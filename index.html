@@ -21,6 +21,7 @@
       --accent:      #1F9D55;
       --accent-ink:  #ffffff;
       --accent-soft: #E5EAE2;
+      --success:     #3D5C3A;
       --dot-ok:      #1F9D55;
       --dot-away:    rgba(60,60,67,0.45);
 
@@ -979,6 +980,77 @@
       cursor: pointer; -webkit-appearance: none; flex-shrink: 0; transition: opacity .15s;
     }
     .profile-rendu-btn:active { opacity: .7; }
+
+    /* ── Search panel ────────────────────────────────────────────── */
+    .search-panel-top {
+      flex-shrink: 0;
+      display: flex; align-items: center; gap: 12px;
+      padding: max(12px, var(--sat)) 20px 14px;
+      border-bottom: 0.5px solid var(--line);
+      background: var(--bg);
+    }
+    .search-active-field {
+      flex: 1; display: flex; align-items: center; gap: 10px;
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: 14px; padding: 11px 14px;
+      transition: border-color .18s;
+    }
+    .search-active-field:focus-within { border-color: var(--text); }
+    .search-active-field input {
+      flex: 1; border: none; outline: none; background: none;
+      font-family: var(--font); font-size: 16px; color: var(--text);
+      -webkit-appearance: none; min-width: 0;
+    }
+    .search-active-field input::placeholder { color: var(--text-dim); }
+    .search-cancel {
+      background: none; border: none; font-family: var(--font);
+      font-size: 16px; font-weight: 400; color: var(--accent);
+      cursor: pointer; -webkit-appearance: none;
+      padding: 4px 0; white-space: nowrap; flex-shrink: 0;
+    }
+    .search-cancel:active { opacity: .7; }
+    .search-scroll {
+      flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+      padding: 20px 20px 60px; overscroll-behavior-y: contain;
+    }
+    .search-section-label {
+      font-size: 12px; font-weight: 400; color: var(--text-muted);
+      letter-spacing: 0.1px; line-height: 16px; margin-bottom: 10px;
+    }
+    .search-suggestion {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 0; border-bottom: 0.5px solid var(--line);
+      cursor: pointer; transition: opacity .12s;
+    }
+    .search-suggestion:last-child { border-bottom: none; }
+    .search-suggestion:active { opacity: .6; }
+    .search-result {
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: 14px; padding: 14px 16px;
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 10px; cursor: pointer; transition: background .1s;
+    }
+    .search-result:active { background: var(--surface-alt); }
+    .search-result-left { flex: 1; min-width: 0; }
+    .search-result-name {
+      font-size: 17px; font-weight: 600; color: var(--text);
+      line-height: 22px; margin-bottom: 5px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .search-result-sub {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--text-muted); line-height: 16px;
+    }
+    .search-result-right {
+      display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0;
+    }
+    .co2-badge {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: 11px; font-weight: 600; color: var(--success);
+      background: var(--accent-soft); border-radius: 9999px;
+      padding: 2px 8px; line-height: 16px; flex-shrink: 0;
+    }
+    .search-status-row { display: flex; align-items: center; gap: 5px; }
   </style>
 </head>
 <body>
@@ -1006,7 +1078,7 @@
     </header>
 
     <!-- ── Champ recherche (passif) ───────────────────────── -->
-    <div class="search-bar" role="button" tabindex="0" aria-label="Rechercher un objet">
+    <div class="search-bar" role="button" tabindex="0" aria-label="Rechercher un objet" onclick="showSearch()">
       <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
         <circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.6"/>
         <line x1="14" y1="14" x2="18.5" y2="18.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
@@ -1392,6 +1464,62 @@
 
 </div><!-- /#panel-exchanges -->
 
+<!-- ── Écran Recherche ─────────────────────────────────────────── -->
+<div class="overlay-panel" id="panel-search">
+
+  <div class="search-panel-top">
+    <div class="search-active-field">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true" style="color:var(--text-muted);flex-shrink:0;">
+        <circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.6"/>
+        <line x1="14" y1="14" x2="18.5" y2="18.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <input type="text" inputmode="search" id="searchInput"
+             autocomplete="off" autocorrect="off" spellcheck="false"
+             placeholder="Rechercher un objet…"
+             oninput="onSearchInput(this)"
+             aria-label="Rechercher un objet">
+    </div>
+    <button class="search-cancel" onclick="hideSearch()">Annuler</button>
+  </div>
+
+  <div class="search-scroll">
+
+    <!-- État initial : suggestions -->
+    <div id="search-suggestions">
+      <p class="search-section-label">Suggestions</p>
+      <div class="search-suggestion" onclick="pickSuggestion('perceuse')">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true" style="color:var(--text-dim);flex-shrink:0;">
+          <circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="14" y1="14" x2="18.5" y2="18.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="t-body" style="color:var(--text);">perceuse</span>
+      </div>
+      <div class="search-suggestion" onclick="pickSuggestion('perceuse à colonne')">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true" style="color:var(--text-dim);flex-shrink:0;">
+          <circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="14" y1="14" x2="18.5" y2="18.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="t-body" style="color:var(--text);">perceuse à colonne</span>
+      </div>
+      <div class="search-suggestion" onclick="pickSuggestion('perceuse visseuse')">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true" style="color:var(--text-dim);flex-shrink:0;">
+          <circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="14" y1="14" x2="18.5" y2="18.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="t-body" style="color:var(--text);">perceuse visseuse</span>
+      </div>
+    </div>
+
+    <!-- Résultats (après frappe) -->
+    <div id="search-results" style="display:none;">
+      <p class="search-section-label" id="search-count"></p>
+      <div id="search-results-list"></div>
+    </div>
+
+  </div>
+
+</div><!-- /#panel-search -->
+
 </div><!-- /#app -->
 
 <script>
@@ -1475,7 +1603,8 @@ function showPanel(id) {
 }
 function hidePanel(id) {
   document.getElementById(id).classList.remove('visible');
-  if (id === 'panel-add') _resetAddForm();
+  if (id === 'panel-add')    _resetAddForm();
+  if (id === 'panel-search') _resetSearch();
 }
 
 // ── Détection catégorie (simule appel API Anthropic) ─────────
@@ -1696,6 +1825,91 @@ function profileTabClick(tab) {
 function profileAddItem() {
   hidePanel('panel-profile');
   setTimeout(() => showPanel('panel-add'), 50);
+}
+
+// ── Search ────────────────────────────────────────────────────
+const SEARCH_CORPUS = [
+  { name: 'Perceuse Bosch GSR 12V',    cat: 'Outils',     who: 'Marc',   no: '14', state: 'available', co2: '8,2'  },
+  { name: 'Perceuse-visseuse Makita',  cat: 'Outils',     who: 'Élise',  no: '9',  state: 'borrowed',  co2: '8,2'  },
+  { name: 'Perceuse à colonne',         cat: 'Outils',     who: 'Tom',    no: '27', state: 'available', co2: '12,4' },
+  { name: 'Sorbetière',                 cat: 'Cuisine',    who: 'Léa',    no: '8',  state: 'available', co2: '6,5'  },
+  { name: 'Tente 4 places',             cat: 'Camping',    who: 'Karim',  no: '31', state: 'available', co2: '12,4' },
+  { name: 'Vidéoprojecteur',            cat: 'Multimédia', who: 'Anouk',  no: '5',  state: 'borrowed',  co2: '14,0' },
+  { name: 'Échelle 3 m',               cat: 'Outils',     who: 'Sophie', no: '22', state: 'borrowed',  co2: '10,5' },
+];
+
+const _leafSvg = `<svg width="11" height="11" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+  <path d="M15 2.5C9 2.5 3 6 3 12c0 1.5.5 2.8 1.3 3.7C5.2 16.6 6.7 15.5 8 14c2.5-3 5-5 7-7-1 4-3.5 7-6 9"
+        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`;
+
+function showSearch() {
+  showPanel('panel-search');
+  setTimeout(() => document.getElementById('searchInput').focus(), 80);
+}
+
+function hideSearch() {
+  hidePanel('panel-search');
+}
+
+function _resetSearch() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('search-suggestions').style.display = 'block';
+  document.getElementById('search-results').style.display = 'none';
+  document.getElementById('search-results-list').innerHTML = '';
+}
+
+function pickSuggestion(text) {
+  const input = document.getElementById('searchInput');
+  input.value = text;
+  onSearchInput(input);
+  input.focus();
+}
+
+function onSearchInput(input) {
+  const q = input.value.trim().toLowerCase();
+  const sugg = document.getElementById('search-suggestions');
+  const res  = document.getElementById('search-results');
+  if (!q) {
+    sugg.style.display = 'block';
+    res.style.display  = 'none';
+    return;
+  }
+  sugg.style.display = 'none';
+  res.style.display  = 'block';
+
+  const matches = SEARCH_CORPUS.filter(item =>
+    item.name.toLowerCase().includes(q) || item.cat.toLowerCase().includes(q)
+  );
+  const n = matches.length;
+  document.getElementById('search-count').textContent =
+    n + ' résultat' + (n !== 1 ? 's' : '');
+
+  const list = document.getElementById('search-results-list');
+  list.innerHTML = '';
+  matches.forEach(item => {
+    const ok = item.state === 'available';
+    const el = document.createElement('div');
+    el.className = 'search-result';
+    el.innerHTML = `
+      <div class="search-result-left">
+        <div class="search-result-name">${item.name}</div>
+        <div class="search-result-sub">
+          <span>${item.cat}</span>
+          <span aria-hidden="true">·</span>
+          ${pill(item.who, item.no)}
+        </div>
+      </div>
+      <div class="search-result-right">
+        <span class="co2-badge">${_leafSvg}−${item.co2} kg</span>
+        <div class="search-status-row">
+          <div class="status-dot" style="background:${ok ? 'var(--dot-ok)' : 'var(--dot-away)'};" aria-hidden="true"></div>
+          ${ok ? '<button class="borrow-btn">Emprunter</button>' : ''}
+        </div>
+      </div>
+    `;
+    list.appendChild(el);
+  });
 }
 
 // ── Exchanges data ────────────────────────────────────────────
