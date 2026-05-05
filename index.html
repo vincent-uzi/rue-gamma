@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Rue Gamma">
+  <meta name="theme-color" content="#ffffff">
+  <title>Rue Gamma</title>
+  <style>
+    /* ── Design tokens · silentWhite ───────────────────────────── */
+    :root {
+      --bg:          #ffffff;
+      --surface:     #ffffff;
+      --surface-alt: #F7F7F5;
+      --line:        rgba(60,60,67,0.12);
+      --text:        #1A1A1C;
+      --text-muted:  rgba(60,60,67,0.62);
+      --text-dim:    rgba(60,60,67,0.38);
+      --accent:      #1F9D55;
+      --accent-ink:  #ffffff;
+      --accent-soft: #E5EAE2;
+      --dot-ok:      #1F9D55;
+      --dot-away:    rgba(60,60,67,0.45);
+
+      --font: -apple-system, 'SF Pro Text', 'SF Pro Display',
+              'Helvetica Neue', system-ui, sans-serif;
+
+      /* safe-area shorthand */
+      --sat: env(safe-area-inset-top,    0px);
+      --sab: env(safe-area-inset-bottom, 0px);
+    }
+
+    /* ── Reset ─────────────────────────────────────────────────── */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0; padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html { height: 100%; background: var(--bg); }
+    body {
+      min-height: 100%;
+      font-family: var(--font);
+      color: var(--text);
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ── Typography scale ──────────────────────────────────────── */
+    /* Sentence case only — aucun uppercase en contenu réel */
+    .t-large-title { font-size: 32px; font-weight: 700; line-height: 38px; letter-spacing: -0.4px; }
+    .t-title3      { font-size: 19px; font-weight: 600; line-height: 24px; }
+    .t-headline    { font-size: 16px; font-weight: 600; line-height: 21px; }
+    .t-body        { font-size: 16px; font-weight: 400; line-height: 22px; }
+    .t-callout     { font-size: 15px; font-weight: 400; line-height: 21px; }
+    .t-subhead     { font-size: 14px; font-weight: 400; line-height: 19px; }
+    .t-footnote    { font-size: 12px; font-weight: 400; line-height: 16px; }
+    .t-caption     { font-size: 11px; font-weight: 500; line-height: 14px; letter-spacing: 0.1px; }
+
+    /* ── Layout ────────────────────────────────────────────────── */
+    #app {
+      max-width: 430px;
+      margin: 0 auto;
+      height: 100dvh;
+      overflow: hidden;
+      position: relative;
+      background: var(--bg);
+    }
+    .screen {
+      position: absolute;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Scroll area — padding-top = status bar / Dynamic Island */
+    .scroll {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-top: max(12px, var(--sat));
+      padding-left: 20px;
+      padding-right: 20px;
+      /* padding-bottom cleared by fixed tab bar height (64) + bottom (32) + extra */
+      padding-bottom: calc(32px + 64px + 24px + var(--sab));
+      overscroll-behavior-y: contain;
+    }
+
+    /* ── Community header ──────────────────────────────────────── */
+    .community-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 22px;
+      gap: 12px;
+    }
+    .header-caption {
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .header-street {
+      color: var(--text);
+    }
+    .header-meta {
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .share-btn {
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text);
+      cursor: pointer;
+      margin-top: 4px;
+      /* subtle press */
+      transition: opacity .12s;
+    }
+    .share-btn:active { opacity: .6; }
+
+    /* ── Search bar (passive) ──────────────────────────────────── */
+    .search-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 46px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 0 14px;
+      margin-bottom: 26px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: background .12s;
+    }
+    .search-bar:active { background: var(--surface-alt); }
+    .search-bar .placeholder { color: var(--text-muted); }
+
+    /* ── CO₂ strip ─────────────────────────────────────────────── */
+    .co2-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px 18px;
+      margin-bottom: 28px;
+      gap: 16px;
+    }
+    .co2-label {
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .co2-value-row {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .co2-number {
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.5px;
+      font-variant-numeric: tabular-nums;
+    }
+    .co2-unit { color: var(--text-muted); }
+
+    /* Bar chart */
+    .bar-chart {
+      display: flex;
+      gap: 3px;
+      align-items: flex-end;
+      height: 36px;
+      flex-shrink: 0;
+    }
+    .bar {
+      width: 6px;
+      border-radius: 2px;
+      background: var(--line);
+    }
+    .bar.current { background: var(--accent); }
+
+    /* ── Section header ────────────────────────────────────────── */
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .see-all {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--accent);
+      cursor: pointer;
+    }
+    .see-all:active { opacity: .65; }
+
+    /* ── Items list ────────────────────────────────────────────── */
+    .items-list {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .item-row {
+      display: flex;
+      align-items: center;
+      padding: 14px 16px;
+      gap: 12px;
+      border-bottom: 0.5px solid var(--line);
+      cursor: pointer;
+      transition: background .1s;
+    }
+    .item-row:last-child { border-bottom: none; }
+    .item-row:active     { background: var(--surface-alt); }
+
+    .item-left { flex: 1; min-width: 0; }
+    .item-name {
+      color: var(--text);
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .item-sub {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+      flex-wrap: nowrap;
+    }
+    .item-cat { color: var(--text-muted); }
+    .sep      { color: var(--text-dim); }
+
+    /* MemberPill */
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 8px 2px 4px;
+      border-radius: 9999px;
+      background: var(--surface);
+      border: 0.5px solid var(--line);
+      color: var(--text);
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.3;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .pill-avatar {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 9px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      letter-spacing: 0;
+    }
+
+    /* Status (right of each row) */
+    .item-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .status-label { color: var(--text-muted); }
+    .status-label.available { color: var(--accent); }
+
+    /* ── Bottom tab bar · glass flottante ──────────────────────── */
+    .tab-bar {
+      position: fixed;
+      bottom: calc(32px + var(--sab));
+      /* Centre la tab bar dans la fenêtre, 12px de marge de chaque côté */
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(calc(100vw - 24px), 406px);   /* 430 − 2×12 = 406 */
+      height: 64px;
+
+      background: rgba(255,255,255,0.85);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+              backdrop-filter: blur(20px) saturate(160%);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      z-index: 100;
+    }
+
+    .tab-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      padding: 8px 4px;
+      cursor: pointer;
+      color: var(--text-muted);
+      border-radius: 14px;
+      transition: color .15s;
+      user-select: none;
+    }
+    .tab-item.active     { color: var(--accent); }
+    .tab-item:active     { opacity: .7; }
+
+    .tab-label {
+      font-size: 10px;
+      font-weight: 500;
+      line-height: 1;
+      letter-spacing: 0.1px;
+    }
+    .tab-item.active .tab-label { font-weight: 600; }
+
+    /* ── Overlay panels (navigation) ──────────────────────────── */
+    .overlay-panel {
+      position: absolute;
+      inset: 0;
+      background: var(--bg);
+      transform: translateX(100%);
+      transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .overlay-panel.visible { transform: translateX(0); }
+
+    /* ── Add screen · navigation bar ──────────────────────────── */
+    .add-nav {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      padding: max(14px, var(--sat)) 8px 14px;
+      border-bottom: 0.5px solid var(--line);
+      background: var(--bg);
+    }
+    .back-btn {
+      width: 44px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      padding-left: 12px;
+      color: var(--accent);
+      cursor: pointer;
+      background: none;
+      border: none;
+      -webkit-appearance: none;
+      flex-shrink: 0;
+    }
+    .back-btn:active { opacity: .6; }
+    .add-nav-title {
+      flex: 1;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 21px;
+    }
+    .nav-spacer { width: 44px; flex-shrink: 0; }
+
+    /* ── Add screen · form ─────────────────────────────────────── */
+    .add-scroll {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 28px 20px 140px;
+      overscroll-behavior-y: contain;
+    }
+    .form-section { margin-bottom: 26px; }
+    .form-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.1px;
+      margin-bottom: 8px;
+      line-height: 14px;
+    }
+    .form-input {
+      display: block;
+      width: 100%;
+      height: 46px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 0 14px;
+      font-family: var(--font);
+      font-size: 16px;
+      color: var(--text);
+      outline: none;
+      -webkit-appearance: none;
+      transition: border-color .18s;
+    }
+    .form-input:focus { border-color: var(--accent); }
+    .form-input::placeholder { color: var(--text-dim); }
+    .form-guidance {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 16px;
+      margin-top: 6px;
+    }
+
+    /* Category detection */
+    .cat-area {
+      margin-top: 10px;
+      min-height: 26px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .cat-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px 4px 8px;
+      border-radius: 9999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.3;
+      cursor: pointer;
+      transition: opacity .15s;
+      border: none;
+    }
+    .cat-pill:active { opacity: .7; }
+    .cat-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+    .cat-spinner-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      background: var(--surface-alt);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .cat-spinner {
+      width: 12px;
+      height: 12px;
+      border: 1.5px solid rgba(60,60,67,0.25);
+      border-top-color: var(--text-muted);
+      border-radius: 50%;
+      animation: rg-spin .7s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes rg-spin { to { transform: rotate(360deg); } }
+
+    /* Toggle */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+    }
+    .toggle-label-text {
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--text);
+      line-height: 22px;
+    }
+    .ios-toggle {
+      width: 51px;
+      height: 31px;
+      border-radius: 16px;
+      background: var(--accent);
+      position: relative;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background .22s;
+      border: none;
+      -webkit-appearance: none;
+      outline: none;
+    }
+    .ios-toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 27px;
+      height: 27px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.22);
+      transition: transform .22s;
+    }
+    .ios-toggle.off { background: rgba(120,120,128,0.32); }
+    .ios-toggle.off::after { transform: translateX(-20px); }
+
+    /* Photo */
+    .photo-area {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      height: 104px;
+      background: var(--surface-alt);
+      border: 1.5px dashed rgba(60,60,67,0.22);
+      border-radius: 16px;
+      cursor: pointer;
+      color: var(--accent);
+      transition: background .12s, border-color .12s;
+      overflow: hidden;
+    }
+    .photo-area:active { background: var(--surface); border-color: var(--accent); }
+    .photo-area-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--accent);
+    }
+    .photo-preview {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Sticky CTA */
+    .add-cta {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 40px 20px calc(max(20px, var(--sab)) + 4px);
+      background: linear-gradient(to top, var(--bg) 58%, transparent);
+      pointer-events: none;
+    }
+    .cta-btn {
+      pointer-events: auto;
+      display: block;
+      width: 100%;
+      height: 54px;
+      border-radius: 16px;
+      border: none;
+      background: var(--accent);
+      color: var(--accent-ink);
+      font-family: var(--font);
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+      cursor: pointer;
+      -webkit-appearance: none;
+      transition: opacity .15s;
+    }
+    .cta-btn:active { opacity: .82; }
+
+    /* ── Success screen ─────────────────────────────────────────── */
+    .success-close {
+      position: absolute;
+      top: max(14px, var(--sat));
+      right: 20px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--surface-alt);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      cursor: pointer;
+      -webkit-appearance: none;
+      z-index: 10;
+    }
+    .success-close:active { opacity: .7; }
+    .success-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 32px max(32px, var(--sab));
+      text-align: center;
+    }
+    .success-icon {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 32px;
+    }
+    .success-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 28px;
+      margin-bottom: 14px;
+    }
+    .success-sub {
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--text-muted);
+      line-height: 22px;
+      margin-bottom: 2px;
+    }
+    .success-co2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 28px;
+      margin-bottom: 40px;
+    }
+    .success-actions { width: 100%; display: flex; flex-direction: column; gap: 14px; }
+    .btn-link {
+      background: none;
+      border: none;
+      font-family: var(--font);
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--accent);
+      cursor: pointer;
+      padding: 8px;
+      -webkit-appearance: none;
+    }
+    .btn-link:active { opacity: .7; }
+
+    /* ── Profile screen ─────────────────────────────────────────── */
+    .profile-nav {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      padding: max(14px, var(--sat)) 16px 14px;
+      border-bottom: 0.5px solid var(--line);
+      background: var(--bg);
+    }
+    .circle-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text);
+      cursor: pointer;
+      -webkit-appearance: none;
+      flex-shrink: 0;
+      transition: opacity .12s;
+    }
+    .circle-btn:active { opacity: .6; }
+    .profile-nav-title {
+      flex: 1;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 21px;
+    }
+    .profile-scroll {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 24px 20px calc(32px + 64px + 24px + var(--sab));
+      overscroll-behavior-y: contain;
+    }
+
+    /* CO₂ ring card */
+    .co2-card {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 20px 16px 20px 18px;
+      margin-bottom: 14px;
+    }
+    .ring-wrap {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      flex-shrink: 0;
+    }
+    .ring-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      pointer-events: none;
+      gap: 1px;
+    }
+    .ring-level-lbl {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.1px;
+      line-height: 1;
+    }
+    .ring-kg {
+      font-size: 30px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.5px;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.15;
+    }
+    .ring-unit {
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--text-muted);
+      line-height: 1;
+    }
+    .ring-info { flex: 1; min-width: 0; }
+    .ring-info-level {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--accent);
+      letter-spacing: 0.1px;
+      margin-bottom: 4px;
+    }
+    .ring-info-title {
+      font-size: 19px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 24px;
+      margin-bottom: 6px;
+    }
+    .ring-info-hint {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 16px;
+      margin-bottom: 10px;
+    }
+    .prog-track {
+      height: 6px;
+      background: var(--surface-alt);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .prog-fill {
+      height: 100%;
+      width: 62%;
+      background: var(--accent);
+      border-radius: 3px;
+    }
+
+    /* Stats row */
+    .stats-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    .stat-card {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .stat-value {
+      font-size: 26px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.3px;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.1;
+    }
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 14px;
+    }
+
+    /* Mes objets section */
+    .profile-section-hd {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .add-obj-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: var(--font);
+      -webkit-appearance: none;
+      padding: 4px 0;
+    }
+    .add-obj-btn:active { opacity: .7; }
+
+    /* Status pills in profile list */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 16px;
+      flex-shrink: 0;
+    }
+    .status-pill.ok { background: var(--accent-soft); color: var(--accent); }
+    .status-pill.ko { background: var(--surface-alt); color: var(--text-muted); }
+
+    /* Profile panel's own tab bar (absolute, not fixed) */
+    .tab-bar-abs {
+      position: absolute;
+      bottom: calc(32px + var(--sab));
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(calc(100vw - 24px), 406px);
+      height: 64px;
+      background: rgba(255,255,255,0.85);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+              backdrop-filter: blur(20px) saturate(160%);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+<div class="screen" id="panel-home">
+  <div class="scroll">
+
+    <!-- ── Header communauté ──────────────────────────────── -->
+    <header class="community-header">
+      <div>
+        <p class="t-caption header-caption">Ma rue</p>
+        <h1 class="t-large-title header-street">Rue des Vignoles</h1>
+        <p class="t-subhead header-meta">34 voisins · 142 objets</p>
+      </div>
+      <button class="share-btn" aria-label="Partager">
+        <!-- Share : 3 circles + 2 lines -->
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+          <circle cx="14" cy="4"  r="2.2" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="4"  cy="9"  r="2.2" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="14" cy="14" r="2.2" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="6.1" y1="7.9"  x2="11.9" y2="5.1"  stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="6.1" y1="10.1" x2="11.9" y2="12.9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </header>
+
+    <!-- ── Champ recherche (passif) ───────────────────────── -->
+    <div class="search-bar" role="button" tabindex="0" aria-label="Rechercher un objet">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.6"/>
+        <line x1="14" y1="14" x2="18.5" y2="18.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <span class="t-body placeholder">Rechercher un objet</span>
+    </div>
+
+    <!-- ── Bandeau CO₂ rue ────────────────────────────────── -->
+    <div class="co2-strip" aria-label="CO₂ économisé ce mois-ci">
+      <div>
+        <p class="t-caption co2-label">La rue ce mois-ci</p>
+        <div class="co2-value-row">
+          <span class="co2-number">312</span>
+          <span class="t-callout co2-unit">kg CO₂ évités</span>
+        </div>
+      </div>
+      <!-- Mini bar chart — même données que le prototype -->
+      <div class="bar-chart" aria-hidden="true" id="barChart"></div>
+    </div>
+
+    <!-- ── Section "Récemment ajoutés" ────────────────────── -->
+    <div class="section-header">
+      <h2 class="t-title3">Récemment ajoutés</h2>
+      <div class="see-all t-subhead" role="button" tabindex="0" aria-label="Tout voir">
+        <span>Tout voir</span>
+        <svg width="9" height="14" viewBox="0 0 10 16" fill="none" aria-hidden="true">
+          <path d="M2 2l6 6-6 6" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- ── Liste d'items ──────────────────────────────────── -->
+    <div class="items-list" id="itemsList" role="list"></div>
+
+  </div><!-- /.scroll -->
+
+  <!-- ── Bottom tab bar · glass flottante ───────────────── -->
+  <nav class="tab-bar" aria-label="Navigation principale">
+
+    <div class="tab-item active" data-tab="home" role="tab" aria-selected="true" tabindex="0">
+      <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+        <path d="M2.5 8L9 2.5 15.5 8v6.5c0 .5-.4 1-1 1h-3v-4h-3v4h-3c-.5 0-1-.5-1-1V8z"
+              stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      </svg>
+      <span class="tab-label">Accueil</span>
+    </div>
+
+    <div class="tab-item" data-tab="add" role="tab" aria-selected="false" tabindex="0">
+      <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+        <path d="M9 3v12M3 9h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      <span class="tab-label">Ajouter</span>
+    </div>
+
+    <div class="tab-item" data-tab="profile" role="tab" aria-selected="false" tabindex="0">
+      <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+        <circle cx="9" cy="6" r="3" stroke="currentColor" stroke-width="1.6"/>
+        <path d="M3 16c0-3 2.7-5 6-5s6 2 6 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <span class="tab-label">Profil</span>
+    </div>
+
+  </nav>
+</div><!-- /#panel-home -->
+
+<!-- ── Écran "Ajouter un objet" ───────────────────────────────── -->
+<div class="overlay-panel" id="panel-add">
+
+  <div class="add-nav">
+    <button class="back-btn" onclick="hidePanel('panel-add')" aria-label="Retour">
+      <svg width="11" height="18" viewBox="0 0 12 20" fill="none" aria-hidden="true">
+        <path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <span class="add-nav-title">Ajouter un objet</span>
+    <div class="nav-spacer"></div>
+  </div>
+
+  <div class="add-scroll">
+
+    <!-- Nom de l'objet -->
+    <div class="form-section">
+      <div class="form-label">Nom de l'objet</div>
+      <input
+        class="form-input"
+        id="nameInput"
+        type="text"
+        placeholder="Ex : Perceuse Bosch GSR 12V"
+        autocomplete="off"
+        autocorrect="off"
+        spellcheck="false"
+        oninput="onNameInput(this)"
+      >
+      <div class="form-guidance">Type d'objet · marque · modèle</div>
+      <div class="cat-area" id="catArea"></div>
+    </div>
+
+    <!-- Disponibilité -->
+    <div class="form-section">
+      <div class="toggle-row">
+        <span class="toggle-label-text">Disponible maintenant</span>
+        <button
+          class="ios-toggle"
+          id="toggleAvail"
+          role="switch"
+          aria-checked="true"
+          aria-label="Disponible maintenant"
+          onclick="toggleAvail()"
+        ></button>
+      </div>
+    </div>
+
+    <!-- Photo -->
+    <div class="form-section">
+      <div class="form-label">Photo (optionnel)</div>
+      <div class="photo-area" id="photoArea" role="button" tabindex="0"
+           onclick="openPhotoChoice()"
+           onkeydown="if(event.key==='Enter')openPhotoChoice()">
+        <!-- camera icon — paths from design_files/icons.jsx -->
+        <svg width="24" height="22" viewBox="0 0 20 18" fill="none" aria-hidden="true">
+          <path d="M6.4 3.2l.7-1.4c.3-.5.8-.8 1.4-.8h3c.6 0 1.1.3 1.4.8l.7 1.4h2.6c1.1 0 2 .9 2 2v8.4c0 1.1-.9 2-2 2H3.8c-1.1 0-2-.9-2-2V5.2c0-1.1.9-2 2-2h2.6z"
+                stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          <circle cx="10" cy="9.6" r="3.2" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="15.5" cy="6" r="0.6" fill="currentColor"/>
+        </svg>
+        <span class="photo-area-label">Ajouter une photo</span>
+      </div>
+      <input type="file" id="photoInput" accept="image/*" style="display:none"
+             onchange="onPhotoSelected(this)">
+    </div>
+
+  </div><!-- /.add-scroll -->
+
+  <div class="add-cta">
+    <button class="cta-btn" onclick="submitForm()">Mettre à disposition</button>
+  </div>
+
+</div><!-- /#panel-add -->
+
+<!-- ── Écran succès ───────────────────────────────────────────── -->
+<div class="overlay-panel" id="panel-success">
+
+  <button class="success-close" onclick="closeSuccess()" aria-label="Fermer">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+      <path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round"/>
+    </svg>
+  </button>
+
+  <div class="success-body">
+    <div class="success-icon" aria-hidden="true">
+      <!-- leaf icon — paths from design_files/icons.jsx -->
+      <svg width="52" height="52" viewBox="0 0 18 18" fill="none">
+        <path d="M15 2.5C9 2.5 3 6 3 12c0 1.5.5 2.8 1.3 3.7C5.2 16.6 6.7 15.5 8 14c2.5-3 5-5 7-7-1 4-3.5 7-6 9"
+              stroke="currentColor" stroke-width="1.4"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <h2 class="success-title">Merci, votre objet<br>fera des heureux&nbsp;!</h2>
+    <p class="success-sub">À chaque emprunt, il économisera</p>
+    <p class="success-co2" id="successCo2">8,2 kg de CO₂</p>
+    <div class="success-actions">
+      <button class="cta-btn" onclick="closeSuccess()">Voir mon objet</button>
+      <button class="btn-link" onclick="addAnother()">Ajouter un autre objet</button>
+    </div>
+  </div>
+
+</div><!-- /#panel-success -->
+
+<!-- ── Écran Profil ────────────────────────────────────────────── -->
+<div class="overlay-panel" id="panel-profile">
+
+  <div class="profile-nav">
+    <button class="circle-btn" onclick="closeProfile()" aria-label="Retour">
+      <svg width="11" height="18" viewBox="0 0 12 20" fill="none" aria-hidden="true">
+        <path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <span class="profile-nav-title">Profil</span>
+    <button class="circle-btn" aria-label="Plus d'options">
+      <svg width="18" height="5" viewBox="0 0 22 6" fill="none" aria-hidden="true">
+        <circle cx="3"  cy="3" r="2" fill="currentColor"/>
+        <circle cx="11" cy="3" r="2" fill="currentColor"/>
+        <circle cx="19" cy="3" r="2" fill="currentColor"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Bloc identité -->
+  <div style="display:flex;align-items:center;gap:14px;padding:18px 20px 0;">
+    <div style="width:44px;height:44px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;flex-shrink:0;">L</div>
+    <div>
+      <div class="t-headline" style="color:var(--text);font-weight:700;">Léa Mercier</div>
+      <div class="t-footnote" style="color:var(--text-muted);margin-top:2px;">n°8 · Rue des Vignoles</div>
+    </div>
+  </div>
+
+  <div class="profile-scroll">
+
+    <!-- CO₂ ring card -->
+    <div class="co2-card">
+      <div class="ring-wrap">
+        <!-- r=52 → circumference=326.73 ; 60% fill → dashOffset=130.69 -->
+        <svg width="120" height="120" viewBox="0 0 120 120" aria-hidden="true">
+          <circle cx="60" cy="60" r="52"
+            stroke="var(--surface-alt)" stroke-width="8" fill="none"/>
+          <circle cx="60" cy="60" r="52"
+            stroke="var(--accent)" stroke-width="8" fill="none"
+            stroke-linecap="round"
+            stroke-dasharray="326.73"
+            stroke-dashoffset="130.69"
+            transform="rotate(-90 60 60)"/>
+        </svg>
+        <div class="ring-center">
+          <span class="ring-level-lbl">CO₂ évité</span>
+          <span class="ring-kg">47.2</span>
+          <span class="ring-unit">kg CO₂</span>
+        </div>
+      </div>
+      <div class="ring-info">
+        <div class="ring-info-level">Niveau 3</div>
+        <div class="ring-info-title">Voisin·e engagé·e</div>
+        <div class="ring-info-hint">3 prêts pour atteindre niveau 4</div>
+        <div class="prog-track"><div class="prog-fill"></div></div>
+      </div>
+    </div>
+
+    <!-- Stats row -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <span class="stat-value">12</span>
+        <span class="stat-label">Objets</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">23</span>
+        <span class="stat-label">Prêts</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">4</span>
+        <span class="stat-label">Badges</span>
+      </div>
+    </div>
+
+    <!-- Mes objets -->
+    <div class="profile-section-hd">
+      <h2 class="t-title3">Mes objets</h2>
+      <button class="add-obj-btn" onclick="profileAddItem()">
+        <svg width="14" height="14" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+          <path d="M9 3v12M3 9h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        Ajouter
+      </button>
+    </div>
+
+    <div class="items-list" id="profileItemsList" role="list"></div>
+
+  </div><!-- /.profile-scroll -->
+
+  <!-- Tab bar propre au panel profil -->
+  <nav class="tab-bar-abs" aria-label="Navigation principale">
+    <div class="tab-item" role="tab" tabindex="0" onclick="profileTabClick('home')">
+      <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+        <path d="M2.5 8L9 2.5 15.5 8v6.5c0 .5-.4 1-1 1h-3v-4h-3v4h-3c-.5 0-1-.5-1-1V8z"
+              stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      </svg>
+      <span class="tab-label">Accueil</span>
+    </div>
+    <div class="tab-item" role="tab" tabindex="0" onclick="profileTabClick('add')">
+      <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+        <path d="M9 3v12M3 9h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      <span class="tab-label">Ajouter</span>
+    </div>
+    <div class="tab-item active" role="tab" aria-selected="true" tabindex="0">
+      <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+        <circle cx="9" cy="6" r="3" stroke="currentColor" stroke-width="1.6"/>
+        <path d="M3 16c0-3 2.7-5 6-5s6 2 6 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <span class="tab-label">Profil</span>
+    </div>
+  </nav>
+
+</div><!-- /#panel-profile -->
+
+</div><!-- /#app -->
+
+<script>
+// ── Items data ────────────────────────────────────────────────
+const ITEMS = [
+  { name: 'Perceuse Bosch',   cat: 'Outils',     who: 'Marc',   no: '14', state: 'available' },
+  { name: 'Échelle 3 m',      cat: 'Outils',     who: 'Sophie', no: '22', state: 'borrowed'  },
+  { name: 'Sorbetière',       cat: 'Cuisine',    who: 'Léa',    no: '8',  state: 'available' },
+  { name: 'Tente 4 places',   cat: 'Camping',    who: 'Karim',  no: '31', state: 'available' },
+  { name: 'Vidéoprojecteur',  cat: 'Multimédia', who: 'Anouk',  no: '5',  state: 'borrowed'  },
+];
+
+// ── Bar chart ─────────────────────────────────────────────────
+// Heights from the design prototype
+[18, 32, 22, 41, 28, 36, 30].forEach((h, i, arr) => {
+  const bar = document.createElement('div');
+  bar.className = 'bar' + (i === arr.length - 1 ? ' current' : '');
+  bar.style.height = h + 'px';
+  document.getElementById('barChart').appendChild(bar);
+});
+
+// ── Items render ──────────────────────────────────────────────
+function pill(name, no) {
+  return `<span class="pill">
+    <span class="pill-avatar" aria-hidden="true">${name[0]}</span>
+    <span>${name} · n°${no}</span>
+  </span>`;
+}
+
+const list = document.getElementById('itemsList');
+ITEMS.forEach(item => {
+  const ok = item.state === 'available';
+  const el = document.createElement('div');
+  el.className = 'item-row';
+  el.setAttribute('role', 'listitem');
+  el.innerHTML = `
+    <div class="item-left">
+      <div class="t-headline item-name">${item.name}</div>
+      <div class="item-sub t-footnote">
+        <span class="item-cat">${item.cat}</span>
+        <span class="sep" aria-hidden="true">·</span>
+        ${pill(item.who, item.no)}
+      </div>
+    </div>
+    <div class="item-right">
+      <div class="status-dot" style="background:${ok ? 'var(--dot-ok)' : 'var(--dot-away)'};"
+           aria-hidden="true"></div>
+      <span class="t-footnote status-label${ok ? ' available' : ''}">${ok ? 'Dispo' : 'Prêté'}</span>
+    </div>
+  `;
+  list.appendChild(el);
+});
+
+// ── Tab bar interaction ───────────────────────────────────────
+document.querySelectorAll('.tab-item').forEach(tab => {
+  tab.addEventListener('click', () => {
+    if (tab.dataset.tab === 'add') {
+      showPanel('panel-add');
+      return;
+    }
+    if (tab.dataset.tab === 'profile') {
+      showPanel('panel-profile');
+      return;
+    }
+    document.querySelectorAll('.tab-item').forEach(t => {
+      t.classList.remove('active');
+      t.setAttribute('aria-selected', 'false');
+    });
+    tab.classList.add('active');
+    tab.setAttribute('aria-selected', 'true');
+  });
+});
+
+// ── Navigation entre panels ───────────────────────────────────
+function showPanel(id) {
+  document.getElementById(id).classList.add('visible');
+}
+function hidePanel(id) {
+  document.getElementById(id).classList.remove('visible');
+  if (id === 'panel-add') _resetAddForm();
+}
+
+// ── Détection catégorie (simule appel API Anthropic) ─────────
+const CAT_MAP = [
+  [/perceu|visseuse|marteau|clé|scie|tournevis|meuleuse|niveau|pince|étau/i, ['Outils',           8.2]],
+  [/échelle|escabeau|établi/i,                                                ['Outils',          10.5]],
+  [/tondeuse|taille.haie|souffleur|débroussailleuse|arrosoir/i,              ['Jardinage',        7.2]],
+  [/barbecue|plancha|brasero/i,                                               ['Jardinage',       14.0]],
+  [/vélo|trottinette|skateboard|roller|surf|kayak|paddle/i,                  ['Sport & loisirs', 45.0]],
+  [/ski|snowboard|raquette/i,                                                 ['Sport & loisirs', 22.0]],
+  [/tente|sac de couchage|matelas gonflable|réchaud|camping/i,               ['Camping',         12.4]],
+  [/sorbetière|mixeur|robot|raclette|fondue|crêpière|gaufrier|thermomix/i,   ['Cuisine',          6.5]],
+  [/projecteur|drone|appareil photo|objectif|trépied|gopro/i,                ['Multimédia',      14.0]],
+  [/canapé|fauteuil|bureau|étagère|armoire/i,                                ['Mobilier',        32.0]],
+  [/aspirateur|karcher|nettoyeur|vapeur/i,                                   ['Électroménager',  11.0]],
+];
+
+let _catTimer, detectedCo2 = 8.2;
+
+function _detectCat(name) {
+  for (const [re, res] of CAT_MAP) if (re.test(name)) return res;
+  return name.trim().length > 3 ? ['Divers', 5.0] : null;
+}
+
+function onNameInput(input) {
+  clearTimeout(_catTimer);
+  const area = document.getElementById('catArea');
+  area.innerHTML = '';
+  if (!input.value.trim()) return;
+
+  _catTimer = setTimeout(async () => {
+    area.innerHTML = `<span class="cat-spinner-wrap"><span class="cat-spinner"></span>Détection en cours…</span>`;
+    await new Promise(r => setTimeout(r, 540)); // simule latence réseau
+    const result = _detectCat(input.value);
+    if (!result) { area.innerHTML = ''; return; }
+    const [cat, co2] = result;
+    detectedCo2 = co2;
+    area.innerHTML = `<button class="cat-pill" onclick="clearCat()" title="Modifier la catégorie">
+      <span class="cat-dot"></span>${cat}
+      <svg width="9" height="9" viewBox="0 0 14 14" fill="none" style="opacity:.7">
+        <path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg></button>`;
+  }, 800);
+}
+
+function clearCat() {
+  document.getElementById('catArea').innerHTML = '';
+  detectedCo2 = 8.2;
+}
+
+// ── Toggle disponibilité ──────────────────────────────────────
+function toggleAvail() {
+  const btn = document.getElementById('toggleAvail');
+  const willBeOff = !btn.classList.contains('off');
+  btn.classList.toggle('off', willBeOff);
+  btn.setAttribute('aria-checked', String(!willBeOff));
+}
+
+// ── Photo ─────────────────────────────────────────────────────
+function openPhotoChoice() { document.getElementById('photoInput').click(); }
+function onPhotoSelected(input) {
+  if (!input.files[0]) return;
+  const area = document.getElementById('photoArea');
+  const img = document.createElement('img');
+  img.src = URL.createObjectURL(input.files[0]);
+  img.className = 'photo-preview';
+  img.alt = "Photo de l'objet";
+  area.innerHTML = '';
+  area.appendChild(img);
+}
+
+// ── Soumission formulaire ─────────────────────────────────────
+function submitForm() {
+  const name = document.getElementById('nameInput').value.trim();
+  if (!name) { document.getElementById('nameInput').focus(); return; }
+  const co2 = detectedCo2.toFixed(1).replace('.', ',');
+  document.getElementById('successCo2').textContent = `${co2} kg de CO₂`;
+  hidePanel('panel-add');
+  setTimeout(() => showPanel('panel-success'), 40);
+}
+
+// ── Réinitialisation formulaire ───────────────────────────────
+function _resetAddForm() {
+  clearTimeout(_catTimer);
+  document.getElementById('nameInput').value = '';
+  document.getElementById('catArea').innerHTML = '';
+  const tog = document.getElementById('toggleAvail');
+  tog.classList.remove('off');
+  tog.setAttribute('aria-checked', 'true');
+  const pa = document.getElementById('photoArea');
+  pa.innerHTML = `<svg width="24" height="22" viewBox="0 0 20 18" fill="none" aria-hidden="true">
+    <path d="M6.4 3.2l.7-1.4c.3-.5.8-.8 1.4-.8h3c.6 0 1.1.3 1.4.8l.7 1.4h2.6c1.1 0 2 .9 2 2v8.4c0 1.1-.9 2-2 2H3.8c-1.1 0-2-.9-2-2V5.2c0-1.1.9-2 2-2h2.6z"
+          stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+    <circle cx="10" cy="9.6" r="3.2" stroke="currentColor" stroke-width="1.5"/>
+    <circle cx="15.5" cy="6" r="0.6" fill="currentColor"/>
+  </svg><span class="photo-area-label">Ajouter une photo</span>`;
+  document.getElementById('photoInput').value = '';
+  detectedCo2 = 8.2;
+}
+
+// ── Écran succès ──────────────────────────────────────────────
+function closeSuccess() {
+  hidePanel('panel-success');
+  document.querySelectorAll('.tab-item').forEach(t => {
+    const isHome = t.dataset.tab === 'home';
+    t.classList.toggle('active', isHome);
+    t.setAttribute('aria-selected', String(isHome));
+  });
+}
+function addAnother() {
+  hidePanel('panel-success');
+  setTimeout(() => showPanel('panel-add'), 40);
+}
+
+// ── Profile ───────────────────────────────────────────────────
+const PROFILE_ITEMS = [
+  { name: 'Robot Kitchenaid', state: 'borrowed'  },
+  { name: 'Sorbetière',       state: 'available' },
+  { name: 'Pierrade',         state: 'available' },
+  { name: 'Tente 2 places',   state: 'available' },
+];
+
+(function renderProfileItems() {
+  const list = document.getElementById('profileItemsList');
+  PROFILE_ITEMS.forEach(item => {
+    const ok = item.state === 'available';
+    const el = document.createElement('div');
+    el.className = 'item-row';
+    el.setAttribute('role', 'listitem');
+    el.innerHTML = `
+      <div class="item-left">
+        <div class="t-headline item-name">${item.name}</div>
+      </div>
+      <span class="status-pill ${ok ? 'ok' : 'ko'}">${ok ? 'Dispo' : 'Prêté'}</span>
+    `;
+    list.appendChild(el);
+  });
+})();
+
+function closeProfile() {
+  hidePanel('panel-profile');
+  document.querySelectorAll('#panel-home .tab-item').forEach(t => {
+    const isHome = t.dataset.tab === 'home';
+    t.classList.toggle('active', isHome);
+    t.setAttribute('aria-selected', String(isHome));
+  });
+}
+
+function profileTabClick(tab) {
+  if (tab === 'home') {
+    closeProfile();
+  } else if (tab === 'add') {
+    closeProfile();
+    setTimeout(() => showPanel('panel-add'), 50);
+  }
+}
+
+function profileAddItem() {
+  hidePanel('panel-profile');
+  setTimeout(() => showPanel('panel-add'), 50);
+}
+
+// ── PWA manifest inline ───────────────────────────────────────
+const icon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="42" fill="#1F9D55"/>
+  <path d="M32 95L96 44L160 95V156c0 2.8-2.2 5-5 5H120V125H72v36H37c-2.8 0-5-2.2-5-5V95z" fill="#fff"/>
+</svg>`;
+
+const manifest = {
+  name: 'Rue Gamma',
+  short_name: 'Rue Gamma',
+  description: "Prêt d'objets entre voisins",
+  start_url: '/',
+  display: 'standalone',
+  orientation: 'portrait',
+  background_color: '#ffffff',
+  theme_color: '#ffffff',
+  icons: [{
+    src: 'data:image/svg+xml,' + encodeURIComponent(icon),
+    sizes: '192x192',
+    type: 'image/svg+xml',
+    purpose: 'any maskable',
+  }],
+};
+
+const mBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+const mLink = Object.assign(document.createElement('link'), {
+  rel: 'manifest',
+  href: URL.createObjectURL(mBlob),
+});
+document.head.appendChild(mLink);
+</script>
+</body>
+</html>
