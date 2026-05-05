@@ -178,9 +178,13 @@ function HomeA() {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <div style={{ width: 6, height: 6, borderRadius: 3, background: T_A.statusDot[it.state] }} />
-                <div style={{ ...rgType('footnote'), color: it.state === 'available' ? T_A.accent : T_A.textMuted }}>
-                  {it.state === 'available' ? 'Dispo' : 'Prêté'}
-                </div>
+                {it.state === 'available' && (
+                  <div style={{
+                    background: T_A.accentSoft, color: T_A.accent,
+                    borderRadius: 9999, fontSize: 11, fontWeight: 600,
+                    padding: '3px 10px', border: 'none', cursor: 'pointer'
+                  }}>Emprunter</div>
+                )}
               </div>
             </div>
           )}
@@ -301,7 +305,7 @@ function SearchA() {
 // ─────────────────────────────────────────────────────────────
 // Screen 3 · Fiche objet + demande
 // ─────────────────────────────────────────────────────────────
-function ItemA() {
+function ItemA({ state = 'available' }) {
   return (
     <ChromeA>
       <div style={{ height: '100%', overflowY: 'auto', boxSizing: 'border-box', paddingBottom: 180 }}>
@@ -404,11 +408,18 @@ function ItemA() {
         background: `linear-gradient(to top, ${T_A.bg} 55%, ${T_A.bg}E6 80%, ${T_A.bg}00)`, zIndex: 10,
         pointerEvents: 'none'
       }}>
-        <button style={{
-          width: '100%', height: 54, borderRadius: 16, border: 'none',
-          background: T_A.accent, color: T_A.accentInk, ...rgType('headline'),
-          fontWeight: 600, letterSpacing: -0.2, cursor: 'pointer', pointerEvents: 'auto'
-        }}>Demander à emprunter</button>
+        {state === 'available' ? (
+          <button style={{
+            width: '100%', height: 54, borderRadius: 16, border: 'none',
+            background: T_A.accent, color: T_A.accentInk, ...rgType('headline'),
+            fontWeight: 600, letterSpacing: -0.2, cursor: 'pointer', pointerEvents: 'auto'
+          }}>Demander à emprunter</button>
+        ) : (
+          <div style={{
+            textAlign: 'center', color: T_A.textMuted, ...rgType('body'),
+            pointerEvents: 'auto'
+          }}>Objet indisponible</div>
+        )}
       </div>
     </ChromeA>);
 
@@ -490,7 +501,13 @@ function ProfileA() {
               <div style={{ ...rgType('body'), color: T_A.text, flex: 1 }}>{it.name}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <div style={{ width: 6, height: 6, borderRadius: 3, background: T_A.statusDot[it.state] }} />
-                <span style={{ ...rgType('footnote'), color: it.state === 'available' ? T_A.accent : T_A.textMuted }}>{it.state === 'available' ? 'Dispo' : 'Prêté'}</span>
+                {it.state === 'available' && (
+                  <div style={{
+                    background: T_A.accentSoft, color: T_A.accent,
+                    borderRadius: 9999, fontSize: 11, fontWeight: 600,
+                    padding: '3px 10px', border: 'none', cursor: 'pointer'
+                  }}>Emprunter</div>
+                )}
               </div>
             </div>
           )}
