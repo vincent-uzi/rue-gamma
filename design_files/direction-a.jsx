@@ -197,15 +197,26 @@ function HomeA() {
 
 }
 
-function BottomTabA({ active = 'home' }) {
-  const tab = (key, icon, label) => {
+function BottomTabA({ active = 'home', exchanges = 2 }) {
+  const tab = (key, icon, label, badge = 0) => {
     const on = active === key;
     return (
       <div style={{
         flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
         color: on ? T_A.accent : T_A.textMuted
       }}>
-        {icon}
+        <div style={{ position: 'relative' }}>
+          {icon}
+          {badge > 0 && (
+            <div style={{
+              position: 'absolute', top: -4, right: -6,
+              background: '#FF3B30', color: '#fff',
+              borderRadius: 9999, minWidth: 15, height: 15,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 9, fontWeight: 700, padding: '0 3px', lineHeight: 1
+            }}>{badge}</div>
+          )}
+        </div>
         <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: 0.1 }}>{label}</div>
       </div>);
 
@@ -220,8 +231,8 @@ function BottomTabA({ active = 'home' }) {
       boxShadow: '0 4px 20px rgba(0,0,0,0.05)'
     }}>
       {tab('home', <RGIcon.home size={20} color={active === 'home' ? T_A.accent : T_A.textMuted} w={1.6} />, 'Accueil')}
-      {tab('search', <RGIcon.search size={20} color={active === 'search' ? T_A.accent : T_A.textMuted} w={1.6} />, 'Chercher')}
       {tab('add', <RGIcon.plus size={20} color={active === 'add' ? T_A.accent : T_A.textMuted} w={1.8} />, 'Ajouter')}
+      {tab('exchanges', <RGIcon.swap size={20} color={active === 'exchanges' ? T_A.accent : T_A.textMuted} w={1.6} />, 'Échanges', exchanges)}
       {tab('profile', <RGIcon.user size={20} color={active === 'profile' ? T_A.accent : T_A.textMuted} w={1.6} />, 'Profil')}
     </div>);
 

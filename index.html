@@ -338,6 +338,25 @@
     }
     .tab-item.active .tab-label { font-weight: 600; }
 
+    .tab-icon-wrap { position: relative; display: inline-flex; }
+    .tab-badge {
+      position: absolute;
+      top: -4px;
+      right: -6px;
+      background: #FF3B30;
+      color: #fff;
+      border-radius: 9999px;
+      min-width: 15px;
+      height: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 0 3px;
+      line-height: 1;
+    }
+
     /* ── Overlay panels (navigation) ──────────────────────────── */
     .overlay-panel {
       position: absolute;
@@ -956,6 +975,17 @@
       <span class="tab-label">Ajouter</span>
     </div>
 
+    <div class="tab-item" data-tab="exchanges" role="tab" aria-selected="false" tabindex="0">
+      <div class="tab-icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+          <path d="M2 6h12M11 3l3 3-3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M16 12H4M7 9l-3 3 3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="tab-badge">2</span>
+      </div>
+      <span class="tab-label">Échanges</span>
+    </div>
+
     <div class="tab-item" data-tab="profile" role="tab" aria-selected="false" tabindex="0">
       <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden="true">
         <circle cx="9" cy="6" r="3" stroke="currentColor" stroke-width="1.6"/>
@@ -1175,6 +1205,16 @@
         <path d="M9 3v12M3 9h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
       </svg>
       <span class="tab-label">Ajouter</span>
+    </div>
+    <div class="tab-item" role="tab" tabindex="0" onclick="profileTabClick('exchanges')">
+      <div class="tab-icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+          <path d="M2 6h12M11 3l3 3-3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M16 12H4M7 9l-3 3 3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="tab-badge">2</span>
+      </div>
+      <span class="tab-label">Échanges</span>
     </div>
     <div class="tab-item active" role="tab" aria-selected="true" tabindex="0">
       <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden="true">
