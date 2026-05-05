@@ -892,6 +892,93 @@
       padding: 0 8px;
       z-index: 10;
     }
+
+    /* ── Exchanges screen ──────────────────────────────────────── */
+    .xg-section { margin-bottom: 32px; }
+    .xg-section-title {
+      font-size: 20px; font-weight: 600; color: var(--text);
+      margin-bottom: 14px; line-height: 25px;
+    }
+    .xg-item {
+      display: flex; align-items: center;
+      padding: 14px 16px; gap: 12px;
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: 14px; margin-bottom: 10px;
+    }
+    .xg-item-left { flex: 1; min-width: 0; }
+    .xg-item-label { font-size: 15px; font-weight: 400; color: var(--text); line-height: 20px; }
+    .xg-item-sub   { font-size: 12px; color: var(--text-muted); line-height: 16px; margin-top: 2px; }
+    .xg-pill {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 7px 16px; border-radius: 9999px;
+      font-family: var(--font); font-size: 13px; font-weight: 600; line-height: 1;
+      border: none; cursor: pointer; -webkit-appearance: none;
+      white-space: nowrap; transition: opacity .15s; flex-shrink: 0;
+    }
+    .xg-pill:active { opacity: .75; }
+    .xg-pill-accept { background: var(--accent); color: var(--accent-ink); }
+    .xg-pill-decline { background: var(--surface-alt); color: var(--text-muted); }
+    .xg-pill-cta    { background: var(--surface-alt); color: var(--text); }
+
+    /* ── Exchanges popin ──────────────────────────────────────── */
+    .xpopin-overlay {
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,0.36);
+      -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+      display: flex; align-items: flex-end; z-index: 50;
+    }
+    .xpopin-sheet {
+      width: 100%; background: var(--surface);
+      border-radius: 24px 24px 0 0; padding: 14px 20px 44px;
+      box-shadow: 0 -8px 40px rgba(0,0,0,0.14);
+    }
+    .xpopin-handle {
+      width: 36px; height: 4px; background: var(--line);
+      border-radius: 2px; margin: 0 auto 22px;
+    }
+    .xpopin-title { font-size: 22px; font-weight: 700; color: var(--text); line-height: 28px; margin-bottom: 10px; }
+    .xpopin-sub   { font-size: 16px; color: var(--text-muted); line-height: 22px; margin-bottom: 24px; }
+    .xpopin-comment {
+      display: block; width: 100%; min-height: 80px; box-sizing: border-box;
+      background: var(--surface-alt); border: 1px solid var(--line); border-radius: 14px;
+      padding: 12px 14px; font-family: var(--font); font-size: 16px; color: var(--text);
+      outline: none; resize: none; margin-bottom: 12px; -webkit-appearance: none;
+    }
+    .xpopin-comment::placeholder { color: var(--text-dim); }
+    .xpopin-photo-btn {
+      display: flex; align-items: center; gap: 8px;
+      background: none; border: none; color: var(--accent);
+      font-family: var(--font); font-size: 15px; font-weight: 500;
+      cursor: pointer; padding: 4px 0; margin-bottom: 24px; -webkit-appearance: none;
+    }
+    .xpopin-photo-btn:active { opacity: .7; }
+
+    /* ── Profile inner tabs ─────────────────────────────────── */
+    .profile-inner-tabs {
+      display: flex; border-bottom: 0.5px solid var(--line); margin-bottom: 16px;
+    }
+    .profile-inner-tab {
+      flex: 1; padding: 10px 4px; text-align: center;
+      font-size: 14px; font-weight: 500; color: var(--text-muted);
+      cursor: pointer; background: none; border: none;
+      border-bottom: 2px solid transparent; margin-bottom: -0.5px;
+      font-family: var(--font); -webkit-appearance: none; white-space: nowrap;
+      transition: color .15s, border-color .15s;
+    }
+    .profile-inner-tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+    .profile-tab-pane { display: none; }
+    .profile-tab-pane.active { display: block; }
+    .profile-item-state { font-size: 12px; font-weight: 500; flex-shrink: 0; }
+    .profile-item-state.ok { color: var(--accent); }
+    .profile-item-state.ko { color: var(--text-muted); }
+    .profile-item-sub-row { font-size: 12px; color: var(--text-muted); line-height: 16px; margin-top: 2px; }
+    .profile-rendu-btn {
+      background: var(--surface-alt); color: var(--text);
+      border: 1px solid var(--line); border-radius: 9999px;
+      padding: 5px 14px; font-family: var(--font); font-size: 12px; font-weight: 600;
+      cursor: pointer; -webkit-appearance: none; flex-shrink: 0; transition: opacity .15s;
+    }
+    .profile-rendu-btn:active { opacity: .7; }
   </style>
 </head>
 <body>
@@ -1187,7 +1274,25 @@
       </button>
     </div>
 
-    <div class="items-list" id="profileItemsList" role="list"></div>
+    <!-- Inner tabs profil -->
+    <div class="profile-inner-tabs" role="tablist">
+      <button class="profile-inner-tab active" role="tab" aria-selected="true"
+              onclick="switchProfileTab('mes-objets')">Mes objets</button>
+      <button class="profile-inner-tab" role="tab" aria-selected="false"
+              onclick="switchProfileTab('pretes')">Prêtés (2)</button>
+      <button class="profile-inner-tab" role="tab" aria-selected="false"
+              onclick="switchProfileTab('empruntes')">Empruntés (1)</button>
+    </div>
+
+    <div class="profile-tab-pane active" id="profile-pane-mes-objets">
+      <div class="items-list" id="profileItemsList" role="list"></div>
+    </div>
+    <div class="profile-tab-pane" id="profile-pane-pretes">
+      <div class="items-list" id="profileLentList" role="list"></div>
+    </div>
+    <div class="profile-tab-pane" id="profile-pane-empruntes">
+      <div class="items-list" id="profileBorrowedList" role="list"></div>
+    </div>
 
   </div><!-- /.profile-scroll -->
 
@@ -1226,6 +1331,66 @@
   </nav>
 
 </div><!-- /#panel-profile -->
+
+<!-- ── Écran Échanges ──────────────────────────────────────────── -->
+<div class="overlay-panel" id="panel-exchanges">
+
+  <div class="add-nav">
+    <button class="back-btn" onclick="hidePanel('panel-exchanges')" aria-label="Retour">
+      <svg width="11" height="18" viewBox="0 0 12 20" fill="none" aria-hidden="true">
+        <path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <span class="add-nav-title">Échanges</span>
+    <div class="nav-spacer"></div>
+  </div>
+
+  <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px 20px 60px;overscroll-behavior-y:contain;">
+
+    <!-- Demandes reçues -->
+    <div class="xg-section">
+      <h2 class="xg-section-title">Demandes reçues</h2>
+      <div id="requests-list"></div>
+    </div>
+
+    <!-- Remises en attente -->
+    <div class="xg-section">
+      <h2 class="xg-section-title">Remises en attente</h2>
+      <div id="handovers-list"></div>
+    </div>
+
+    <!-- Retours en cours -->
+    <div class="xg-section" style="margin-bottom:0;">
+      <h2 class="xg-section-title">Retours en cours</h2>
+      <div id="returns-list"></div>
+    </div>
+
+  </div>
+
+  <!-- Popin partagée -->
+  <div class="xpopin-overlay" id="xpopin" style="display:none;"
+       onclick="if(event.target===this)closeXPopin()">
+    <div class="xpopin-sheet">
+      <div class="xpopin-handle"></div>
+      <h3 class="xpopin-title" id="xpopin-title"></h3>
+      <p class="xpopin-sub" id="xpopin-sub"></p>
+      <div id="xpopin-comment-section" style="display:none;">
+        <textarea class="xpopin-comment" id="xpopin-comment" placeholder="État de l'objet…"></textarea>
+        <button class="xpopin-photo-btn">
+          <svg width="20" height="18" viewBox="0 0 20 18" fill="none" aria-hidden="true">
+            <path d="M6.4 3.2l.7-1.4c.3-.5.8-.8 1.4-.8h3c.6 0 1.1.3 1.4.8l.7 1.4h2.6c1.1 0 2 .9 2 2v8.4c0 1.1-.9 2-2 2H3.8c-1.1 0-2-.9-2-2V5.2c0-1.1.9-2 2-2h2.6z"
+                  stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            <circle cx="10" cy="9.6" r="3.2" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+          Ajouter une photo
+        </button>
+      </div>
+      <button class="cta-btn" id="xpopin-cta"></button>
+    </div>
+  </div>
+
+</div><!-- /#panel-exchanges -->
 
 </div><!-- /#app -->
 
@@ -1285,6 +1450,10 @@ document.querySelectorAll('.tab-item').forEach(tab => {
   tab.addEventListener('click', () => {
     if (tab.dataset.tab === 'add') {
       showPanel('panel-add');
+      return;
+    }
+    if (tab.dataset.tab === 'exchanges') {
+      showPanel('panel-exchanges');
       return;
     }
     if (tab.dataset.tab === 'profile') {
@@ -1422,15 +1591,25 @@ function addAnother() {
 // ── Profile ───────────────────────────────────────────────────
 const PROFILE_ITEMS = [
   { name: 'Robot Kitchenaid', state: 'borrowed'  },
-  { name: 'Sorbetière',       state: 'available' },
+  { name: 'Sorbetière',       state: 'borrowed'  },
   { name: 'Pierrade',         state: 'available' },
   { name: 'Tente 2 places',   state: 'available' },
+];
+
+const PROFILE_LENT = [
+  { name: 'Robot Kitchenaid', lentTo: 'Karim', lentToNo: '31' },
+  { name: 'Sorbetière',       lentTo: 'Marie', lentToNo: '7'  },
+];
+
+const PROFILE_BORROWED = [
+  { name: 'Échelle 3 m', from: 'Sophie', fromNo: '22' },
 ];
 
 (function renderProfileItems() {
   const list = document.getElementById('profileItemsList');
   PROFILE_ITEMS.forEach(item => {
     const ok = item.state === 'available';
+    const stateLabel = ok ? 'Disponible' : item.state === 'borrowed' ? 'Prêté' : 'Indisponible';
     const el = document.createElement('div');
     el.className = 'item-row';
     el.setAttribute('role', 'listitem');
@@ -1440,12 +1619,58 @@ const PROFILE_ITEMS = [
       </div>
       <div class="item-right">
         <div class="status-dot" style="background:${ok ? 'var(--dot-ok)' : 'var(--dot-away)'};" aria-hidden="true"></div>
-        ${ok ? '<button class="borrow-btn">Emprunter</button>' : ''}
+        <span class="profile-item-state ${ok ? 'ok' : 'ko'}">${stateLabel}</span>
       </div>
     `;
     list.appendChild(el);
   });
 })();
+
+(function renderProfileLent() {
+  const list = document.getElementById('profileLentList');
+  PROFILE_LENT.forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'item-row';
+    el.setAttribute('role', 'listitem');
+    el.innerHTML = `
+      <div class="item-left">
+        <div class="t-headline item-name">${item.name}</div>
+        <div class="profile-item-sub-row">Chez ${item.lentTo} · n°${item.lentToNo}</div>
+      </div>
+      <button class="profile-rendu-btn">Rendu</button>
+    `;
+    list.appendChild(el);
+  });
+})();
+
+(function renderProfileBorrowed() {
+  const list = document.getElementById('profileBorrowedList');
+  PROFILE_BORROWED.forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'item-row';
+    el.setAttribute('role', 'listitem');
+    el.innerHTML = `
+      <div class="item-left">
+        <div class="t-headline item-name">${item.name}</div>
+        <div class="profile-item-sub-row">De ${item.from} · n°${item.fromNo}</div>
+      </div>
+      <button class="profile-rendu-btn">Rendu</button>
+    `;
+    list.appendChild(el);
+  });
+})();
+
+function switchProfileTab(tab) {
+  document.querySelectorAll('.profile-inner-tab').forEach(t => {
+    t.classList.remove('active');
+    t.setAttribute('aria-selected', 'false');
+  });
+  document.querySelectorAll('.profile-tab-pane').forEach(p => p.classList.remove('active'));
+  const btn = document.querySelector('.profile-inner-tab[onclick*="' + tab + '"]');
+  if (btn) { btn.classList.add('active'); btn.setAttribute('aria-selected', 'true'); }
+  const pane = document.getElementById('profile-pane-' + tab);
+  if (pane) pane.classList.add('active');
+}
 
 function closeProfile() {
   hidePanel('panel-profile');
@@ -1462,12 +1687,123 @@ function profileTabClick(tab) {
   } else if (tab === 'add') {
     closeProfile();
     setTimeout(() => showPanel('panel-add'), 50);
+  } else if (tab === 'exchanges') {
+    closeProfile();
+    setTimeout(() => showPanel('panel-exchanges'), 50);
   }
 }
 
 function profileAddItem() {
   hidePanel('panel-profile');
   setTimeout(() => showPanel('panel-add'), 50);
+}
+
+// ── Exchanges data ────────────────────────────────────────────
+const EXCHANGES_DATA = {
+  requests: [
+    { who: 'Marie', no: '7',  item: 'Perceuse Bosch' },
+    { who: 'Théo',  no: '3',  item: 'Sorbetière' },
+  ],
+  handovers: [
+    { item: 'Tente 4 places', who: 'Karim', no: '31' },
+  ],
+  returns: [
+    { item: 'Échelle 3 m', who: 'Sophie', no: '22' },
+  ],
+};
+
+// ── Render exchanges ──────────────────────────────────────────
+(function renderExchanges() {
+  // Demandes reçues
+  const rList = document.getElementById('requests-list');
+  EXCHANGES_DATA.requests.forEach(r => {
+    const el = document.createElement('div');
+    el.className = 'xg-item';
+    el.style.cssText = 'flex-direction:column;align-items:stretch;gap:12px;';
+    el.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;">
+        ${pill(r.who, r.no)}
+        <span class="xg-item-label">${r.who} veut emprunter votre <strong>${r.item}</strong></span>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button class="xg-pill xg-pill-decline">Décliner</button>
+        <button class="xg-pill xg-pill-accept">Accepter</button>
+      </div>
+    `;
+    el.querySelector('.xg-pill-accept').onclick = () => showAcceptPopin(r.who);
+    rList.appendChild(el);
+  });
+
+  // Remises en attente
+  const hList = document.getElementById('handovers-list');
+  EXCHANGES_DATA.handovers.forEach(h => {
+    const el = document.createElement('div');
+    el.className = 'xg-item';
+    el.innerHTML = `
+      <div class="xg-item-left">
+        <div class="xg-item-label" style="font-weight:600;">${h.item}</div>
+        <div class="xg-item-sub">${h.who} · en attente de remise</div>
+      </div>
+      <button class="xg-pill xg-pill-cta">Remis</button>
+    `;
+    el.querySelector('.xg-pill-cta').onclick = showHandoverPopin;
+    hList.appendChild(el);
+  });
+
+  // Retours en cours
+  const retList = document.getElementById('returns-list');
+  EXCHANGES_DATA.returns.forEach(r => {
+    const el = document.createElement('div');
+    el.className = 'xg-item';
+    el.innerHTML = `
+      <div class="xg-item-left">
+        <div class="xg-item-label" style="font-weight:600;">${r.item}</div>
+        <div class="xg-item-sub">Emprunté par ${r.who}</div>
+      </div>
+      <button class="xg-pill xg-pill-cta">Rendu</button>
+    `;
+    el.querySelector('.xg-pill-cta').onclick = showReturnPopin;
+    retList.appendChild(el);
+  });
+})();
+
+// ── Popins échanges ───────────────────────────────────────────
+function showAcceptPopin(name) {
+  document.getElementById('xpopin-title').textContent = 'À vous de jouer !';
+  const sub = document.getElementById('xpopin-sub');
+  sub.textContent = `Prenez contact avec ${name} pour organiser l'échange`;
+  sub.style.display = 'block';
+  document.getElementById('xpopin-comment-section').style.display = 'none';
+  const cta = document.getElementById('xpopin-cta');
+  cta.textContent = 'Remis';
+  cta.onclick = closeXPopin;
+  document.getElementById('xpopin').style.display = 'flex';
+}
+
+function showHandoverPopin() {
+  document.getElementById('xpopin-title').textContent = 'Remise en main propre';
+  document.getElementById('xpopin-sub').style.display = 'none';
+  document.getElementById('xpopin-comment-section').style.display = 'block';
+  document.getElementById('xpopin-comment').value = '';
+  const cta = document.getElementById('xpopin-cta');
+  cta.textContent = "C'est parti !";
+  cta.onclick = closeXPopin;
+  document.getElementById('xpopin').style.display = 'flex';
+}
+
+function showReturnPopin() {
+  document.getElementById('xpopin-title').textContent = 'Retour confirmé';
+  document.getElementById('xpopin-sub').style.display = 'none';
+  document.getElementById('xpopin-comment-section').style.display = 'block';
+  document.getElementById('xpopin-comment').value = '';
+  const cta = document.getElementById('xpopin-cta');
+  cta.textContent = 'Rendu !';
+  cta.onclick = closeXPopin;
+  document.getElementById('xpopin').style.display = 'flex';
+}
+
+function closeXPopin() {
+  document.getElementById('xpopin').style.display = 'none';
 }
 
 // ── PWA manifest inline ───────────────────────────────────────
