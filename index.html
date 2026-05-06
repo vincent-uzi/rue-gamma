@@ -677,6 +677,7 @@
     /* ── Profile screen ─────────────────────────────────────────── */
     .profile-nav {
       flex-shrink: 0;
+      position: relative;
       display: flex;
       align-items: center;
       padding: max(14px, var(--sat)) 16px 14px;
@@ -1492,13 +1493,25 @@
       </svg>
     </button>
     <span class="profile-nav-title">Profil</span>
-    <button class="circle-btn" aria-label="Plus d'options">
+    <button class="circle-btn" id="profile-menu-btn" aria-label="Plus d'options"
+            onclick="toggleProfileMenu(event)">
       <svg width="18" height="5" viewBox="0 0 22 6" fill="none" aria-hidden="true">
         <circle cx="3"  cy="3" r="2" fill="currentColor"/>
         <circle cx="11" cy="3" r="2" fill="currentColor"/>
         <circle cx="19" cy="3" r="2" fill="currentColor"/>
       </svg>
     </button>
+
+    <!-- Dropdown menu -->
+    <div id="profile-menu" style="display:none;position:absolute;top:calc(100% - 4px);right:8px;background:var(--bg);border:1px solid var(--line);border-radius:14px;min-width:196px;box-shadow:0 4px 20px rgba(0,0,0,0.10);z-index:20;overflow:hidden;">
+      <button onclick="signOut()" style="display:flex;align-items:center;gap:10px;width:100%;padding:14px 16px;background:none;border:none;font-family:var(--font);font-size:15px;font-weight:500;color:#A14545;cursor:pointer;-webkit-appearance:none;text-align:left;">
+        <svg width="17" height="17" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+          <path d="M7 3H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h4" stroke="#A14545" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M12 12l3-3-3-3M15 9H7" stroke="#A14545" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Se déconnecter
+      </button>
+    </div>
   </div>
 
   <!-- Bloc identité -->
@@ -1570,11 +1583,11 @@
     <!-- Inner tabs profil -->
     <div class="profile-inner-tabs" role="tablist">
       <button class="profile-inner-tab active" role="tab" aria-selected="true"
-              onclick="switchProfileTab('mes-objets')">Mes objets</button>
+              id="tab-mes-objets" onclick="switchProfileTab('mes-objets')">Mes objets</button>
       <button class="profile-inner-tab" role="tab" aria-selected="false"
-              onclick="switchProfileTab('pretes')">Prêtés (2)</button>
+              id="tab-pretes" onclick="switchProfileTab('pretes')">Prêtés</button>
       <button class="profile-inner-tab" role="tab" aria-selected="false"
-              onclick="switchProfileTab('empruntes')">Empruntés (1)</button>
+              id="tab-empruntes" onclick="switchProfileTab('empruntes')">Empruntés</button>
     </div>
 
     <div class="profile-tab-pane active" id="profile-pane-mes-objets">
@@ -1585,17 +1598,6 @@
     </div>
     <div class="profile-tab-pane" id="profile-pane-empruntes">
       <div class="items-list" id="profileBorrowedList" role="list"></div>
-    </div>
-
-    <!-- Déconnexion -->
-    <div style="padding:24px 0 8px;">
-      <button onclick="signOut()" style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;padding:14px 16px;border-radius:14px;font-family:var(--font);font-size:15px;font-weight:500;color:var(--text-muted);cursor:pointer;-webkit-appearance:none;">
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-          <path d="M7 3H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-          <path d="M12 12l3-3-3-3M15 9H7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        Se déconnecter
-      </button>
     </div>
 
   </div><!-- /.profile-scroll -->
@@ -1999,6 +2001,16 @@ async function loadMember() {
   if (elBorrows) elBorrows.textContent = borrowsRes.count ?? '—';
 }
 
+function toggleProfileMenu(e) {
+  e.stopPropagation();
+  const menu = document.getElementById('profile-menu');
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+document.addEventListener('click', () => {
+  const menu = document.getElementById('profile-menu');
+  if (menu) menu.style.display = 'none';
+});
+
 async function signOut() {
   await db.auth.signOut();
   localStorage.removeItem('member_id');
@@ -2036,7 +2048,7 @@ function _navigateTo(key) {
   if (key === 'objects')        showObjects();
   else if (key === 'add')       showPanel('panel-add');
   else if (key === 'exchanges') showPanel('panel-exchanges');
-  else if (key === 'profile')   { showPanel('panel-profile'); loadMember(); }
+  else if (key === 'profile')   { showPanel('panel-profile'); loadMember(); loadProfileTabs(); }
   // 'home': all panels closed, home visible
 
   _setActiveTab(key);
@@ -2193,76 +2205,117 @@ function addAnother() {
 }
 
 // ── Profile ───────────────────────────────────────────────────
-const PROFILE_ITEMS = [
-  { name: 'Robot Kitchenaid', state: 'borrowed'  },
-  { name: 'Sorbetière',       state: 'borrowed'  },
-  { name: 'Pierrade',         state: 'available' },
-  { name: 'Tente 2 places',   state: 'available' },
-];
+function _emptyRow(msg) {
+  const el = document.createElement('div');
+  el.style.cssText = 'padding:24px 16px;font-size:14px;color:var(--text-muted);text-align:center;';
+  el.textContent = msg;
+  return el;
+}
 
-const PROFILE_LENT = [
-  { name: 'Robot Kitchenaid', lentTo: 'Karim', lentToNo: '31' },
-  { name: 'Sorbetière',       lentTo: 'Marie', lentToNo: '7'  },
-];
+async function loadProfileTabs() {
+  const memberId = localStorage.getItem('member_id');
+  if (!memberId) return;
 
-const PROFILE_BORROWED = [
-  { name: 'Échelle 3 m', from: 'Sophie', fromNo: '22' },
-];
+  const [itemsRes, lentRes, borrowedRes] = await Promise.all([
+    db.from('items').select('id, name, status').eq('owner_id', memberId),
+    db.from('loans')
+      .select('id, item:items!item_id(name), borrower:members!borrower_id(first_name, address)')
+      .eq('owner_id', memberId).eq('status', 'active'),
+    db.from('loans')
+      .select('id, item:items!item_id(name), owner:members!owner_id(first_name, address)')
+      .eq('borrower_id', memberId).eq('status', 'active'),
+  ]);
 
-(function renderProfileItems() {
-  const list = document.getElementById('profileItemsList');
-  PROFILE_ITEMS.forEach(item => {
-    const ok = item.state === 'available';
-    const stateLabel = ok ? 'Disponible' : item.state === 'borrowed' ? 'Prêté' : 'Indisponible';
-    const el = document.createElement('div');
-    el.className = 'item-row';
-    el.setAttribute('role', 'listitem');
-    el.innerHTML = `
-      <div class="item-left">
-        <div class="t-headline item-name">${item.name}</div>
-      </div>
-      <div class="item-right">
-        <div class="status-dot" style="background:${ok ? 'var(--dot-ok)' : 'var(--dot-away)'};" aria-hidden="true"></div>
-        <span class="profile-item-state ${ok ? 'ok' : 'ko'}">${stateLabel}</span>
-      </div>
-    `;
-    list.appendChild(el);
-  });
-})();
+  // Mes objets
+  const itemsList = document.getElementById('profileItemsList');
+  if (itemsList) {
+    itemsList.innerHTML = '';
+    const items = itemsRes.data || [];
+    const tabItems = document.getElementById('tab-mes-objets');
+    if (tabItems && items.length) tabItems.textContent = 'Mes objets (' + items.length + ')';
+    if (!items.length) {
+      itemsList.appendChild(_emptyRow('Aucun objet partagé pour l'instant'));
+    } else {
+      items.forEach(item => {
+        const ok = item.status === 'available';
+        const stateLabel = ok ? 'Disponible' : 'Prêté';
+        const el = document.createElement('div');
+        el.className = 'item-row';
+        el.setAttribute('role', 'listitem');
+        el.innerHTML =
+          '<div class="item-left"><div class="t-headline item-name">' + item.name + '</div></div>' +
+          '<div class="item-right">' +
+          '<div class="status-dot" style="background:' + (ok ? 'var(--dot-ok)' : 'var(--dot-away)') + ';" aria-hidden="true"></div>' +
+          '<span class="profile-item-state ' + (ok ? 'ok' : 'ko') + '">' + stateLabel + '</span>' +
+          '</div>';
+        itemsList.appendChild(el);
+      });
+    }
+  }
 
-(function renderProfileLent() {
-  const list = document.getElementById('profileLentList');
-  PROFILE_LENT.forEach(item => {
-    const el = document.createElement('div');
-    el.className = 'item-row';
-    el.setAttribute('role', 'listitem');
-    el.innerHTML = `
-      <div class="item-left">
-        <div class="t-headline item-name">${item.name}</div>
-        <div class="profile-item-sub-row">Chez ${item.lentTo} · n°${item.lentToNo}</div>
-      </div>
-      <button class="profile-rendu-btn">Rendu</button>
-    `;
-    list.appendChild(el);
-  });
-})();
+  // Prêtés
+  const lentList = document.getElementById('profileLentList');
+  if (lentList) {
+    lentList.innerHTML = '';
+    const lent = lentRes.data || [];
+    const tabLent = document.getElementById('tab-pretes');
+    if (tabLent) tabLent.textContent = lent.length ? 'Prêtés (' + lent.length + ')' : 'Prêtés';
+    if (!lent.length) {
+      lentList.appendChild(_emptyRow('Aucun objet prêté en ce moment'));
+    } else {
+      lent.forEach(loan => {
+        const name = loan.item?.name || '—';
+        const borrower = loan.borrower;
+        const who = borrower ? borrower.first_name : '—';
+        const addr = borrower ? borrower.address : '';
+        const el = document.createElement('div');
+        el.className = 'item-row';
+        el.setAttribute('role', 'listitem');
+        el.innerHTML =
+          '<div class="item-left">' +
+          '<div class="t-headline item-name">' + name + '</div>' +
+          '<div class="profile-item-sub-row">Chez ' + who + (addr ? ' · ' + addr : '') + '</div>' +
+          '</div>' +
+          '<button class="profile-rendu-btn" onclick="markReturned('' + loan.id + '')">Rendu</button>';
+        lentList.appendChild(el);
+      });
+    }
+  }
 
-(function renderProfileBorrowed() {
-  const list = document.getElementById('profileBorrowedList');
-  PROFILE_BORROWED.forEach(item => {
-    const el = document.createElement('div');
-    el.className = 'item-row';
-    el.setAttribute('role', 'listitem');
-    el.innerHTML = `
-      <div class="item-left">
-        <div class="t-headline item-name">${item.name}</div>
-        <div class="profile-item-sub-row">De ${item.from} · n°${item.fromNo}</div>
-      </div>
-      <button class="profile-rendu-btn">Rendu</button>
-    `;
-    list.appendChild(el);
-  });
-})();
+  // Empruntés
+  const borrowedList = document.getElementById('profileBorrowedList');
+  if (borrowedList) {
+    borrowedList.innerHTML = '';
+    const borrowed = borrowedRes.data || [];
+    const tabBorrowed = document.getElementById('tab-empruntes');
+    if (tabBorrowed) tabBorrowed.textContent = borrowed.length ? 'Empruntés (' + borrowed.length + ')' : 'Empruntés';
+    if (!borrowed.length) {
+      borrowedList.appendChild(_emptyRow('Aucun emprunt en cours'));
+    } else {
+      borrowed.forEach(loan => {
+        const name = loan.item?.name || '—';
+        const owner = loan.owner;
+        const who = owner ? owner.first_name : '—';
+        const addr = owner ? owner.address : '';
+        const el = document.createElement('div');
+        el.className = 'item-row';
+        el.setAttribute('role', 'listitem');
+        el.innerHTML =
+          '<div class="item-left">' +
+          '<div class="t-headline item-name">' + name + '</div>' +
+          '<div class="profile-item-sub-row">De ' + who + (addr ? ' · ' + addr : '') + '</div>' +
+          '</div>' +
+          '<button class="profile-rendu-btn" onclick="markReturned('' + loan.id + '')">Rendu</button>';
+        borrowedList.appendChild(el);
+      });
+    }
+  }
+}
+
+async function markReturned(loanId) {
+  await db.from('loans').update({ status: 'returned' }).eq('id', loanId);
+  loadProfileTabs();
+}
 
 function switchProfileTab(tab) {
   document.querySelectorAll('.profile-inner-tab').forEach(t => {
