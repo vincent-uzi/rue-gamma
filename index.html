@@ -1234,8 +1234,8 @@
     <header class="community-header">
       <div>
         <p class="t-caption header-caption">Ma rue</p>
-        <h1 class="t-large-title header-street">Rue des Vignoles</h1>
-        <p class="t-subhead header-meta">34 voisins · 142 objets</p>
+        <h1 class="t-large-title header-street" id="community-name">Rue des Vignoles</h1>
+        <p class="t-subhead header-meta" id="community-meta">34 voisins · 142 objets</p>
       </div>
       <button class="share-btn" aria-label="Partager" onclick="shareKolkoze()">
         <!-- Share : 3 circles + 2 lines -->
@@ -1457,7 +1457,7 @@
     <div style="width:44px;height:44px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;flex-shrink:0;">L</div>
     <div>
       <div class="t-headline" style="color:var(--text);font-weight:700;">Léa Mercier</div>
-      <div class="t-footnote" style="color:var(--text-muted);margin-top:2px;">n°8 · Rue des Vignoles</div>
+      <div class="t-footnote" style="color:var(--text-muted);margin-top:2px;">n°8 · <span id="profile-community-name">Rue des Vignoles</span></div>
     </div>
   </div>
 
@@ -1879,6 +1879,29 @@ async function loadHomeItems() {
 }
 
 loadHomeItems();
+
+async function loadCommunity() {
+  const [{ data: comm }, { count }] = await Promise.all([
+    db.from('communities').select('name, street').eq('id', COMMUNITY_ID).single(),
+    db.from('members').select('*', { count: 'exact', head: true }).eq('community_id', COMMUNITY_ID),
+  ]);
+
+  const name = comm?.street || comm?.name;
+  if (name) {
+    document.getElementById('community-name').textContent = name;
+    const profileSpan = document.getElementById('profile-community-name');
+    if (profileSpan) profileSpan.textContent = name;
+  }
+
+  if (count != null) {
+    const metaEl = document.getElementById('community-meta');
+    const current = metaEl.textContent;
+    const objects = current.match(/(\d+)\s+objets/)?.[1] || '142';
+    metaEl.textContent = count + ' voisin' + (count !== 1 ? 's' : '') + ' · ' + objects + ' objets';
+  }
+}
+
+loadCommunity();
 
 // ── Tab bar interaction ───────────────────────────────────────
 document.querySelectorAll('.tab-item').forEach(tab => {
