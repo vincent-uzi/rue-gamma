@@ -282,14 +282,7 @@
       gap: 6px;
       flex-shrink: 0;
     }
-    .status-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .status-label { color: var(--text-muted); }
-    .status-label.available { color: var(--accent); }
+
 
     /* ── Bottom tab bar · glass flottante ──────────────────────── */
     .tab-bar {
@@ -852,25 +845,30 @@
     }
     .add-obj-btn:active { opacity: .7; }
 
-    /* Borrow button pill */
-    .borrow-btn {
-      display: inline-flex;
-      align-items: center;
-      padding: 3px 10px;
-      border-radius: 9999px;
-      background: var(--accent-soft);
-      color: var(--accent);
-      font-family: var(--font);
-      font-size: 11px;
-      font-weight: 600;
-      line-height: 16px;
-      border: none;
-      cursor: pointer;
-      flex-shrink: 0;
-      -webkit-appearance: none;
-      transition: opacity .15s;
+    /* Unified item CTA pill */
+    .obj-cta-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 4px 12px; border-radius: 9999px;
+      font-family: var(--font); font-size: 12px; font-weight: 600; line-height: 16px;
+      border: none; cursor: pointer; -webkit-appearance: none;
+      flex-shrink: 0; transition: opacity .15s; white-space: nowrap;
     }
-    .borrow-btn:active { opacity: .7; }
+    .obj-cta-btn:active { opacity: .7; }
+
+    /* Item toggle — Profil · Mes objets */
+    .item-toggle {
+      width: 36px; height: 22px; border-radius: 11px; background: var(--accent);
+      position: relative; cursor: pointer; flex-shrink: 0;
+      transition: background .22s; border: none; -webkit-appearance: none; outline: none;
+    }
+    .item-toggle::after {
+      content: ''; position: absolute; top: 2px; right: 2px;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.20);
+      transition: transform .22s;
+    }
+    .item-toggle.off { background: rgba(120,120,128,.32); }
+    .item-toggle.off::after { transform: translateX(-14px); }
 
     /* Profile panel’s own tab bar (absolute, not fixed) */
     .tab-bar-abs {
@@ -907,17 +905,7 @@
     .xg-item-left { flex: 1; min-width: 0; }
     .xg-item-label { font-size: 15px; font-weight: 400; color: var(--text); line-height: 20px; }
     .xg-item-sub   { font-size: 12px; color: var(--text-muted); line-height: 16px; margin-top: 2px; }
-    .xg-pill {
-      display: inline-flex; align-items: center; justify-content: center;
-      padding: 7px 16px; border-radius: 9999px;
-      font-family: var(--font); font-size: 13px; font-weight: 600; line-height: 1;
-      border: none; cursor: pointer; -webkit-appearance: none;
-      white-space: nowrap; transition: opacity .15s; flex-shrink: 0;
-    }
-    .xg-pill:active { opacity: .75; }
-    .xg-pill-accept { background: var(--accent); color: var(--accent-ink); }
-    .xg-pill-decline { background: var(--surface-alt); color: var(--text-muted); }
-    .xg-pill-cta    { background: var(--surface-alt); color: var(--text); }
+
 
     /* ── Exchanges popin ──────────────────────────────────────── */
     .xpopin-overlay {
@@ -967,17 +955,7 @@
     .profile-inner-tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
     .profile-tab-pane { display: none; }
     .profile-tab-pane.active { display: block; }
-    .profile-item-state { font-size: 12px; font-weight: 500; flex-shrink: 0; }
-    .profile-item-state.ok { color: var(--accent); }
-    .profile-item-state.ko { color: var(--text-muted); }
-    .profile-item-sub-row { font-size: 12px; color: var(--text-muted); line-height: 16px; margin-top: 2px; }
-    .profile-rendu-btn {
-      background: var(--surface-alt); color: var(--text);
-      border: 1px solid var(--line); border-radius: 9999px;
-      padding: 5px 14px; font-family: var(--font); font-size: 12px; font-weight: 600;
-      cursor: pointer; -webkit-appearance: none; flex-shrink: 0; transition: opacity .15s;
-    }
-    .profile-rendu-btn:active { opacity: .7; }
+
 
     /* ── Search panel ────────────────────────────────────────────── */
     .search-panel-top {
@@ -1846,24 +1824,22 @@ function pill(name, no) {
 }
 
 function renderItemRow(list, item) {
-  const ok = item.state === 'available';
+  const ok         = item.state === 'available';
+  const nameColor  = ok ? 'var(--text)'        : 'var(--text-dim)';
+  const ownerColor = ok ? 'var(--text-muted)'  : 'var(--text-dim)';
+  const btnBg      = ok ? 'var(--accent-soft)' : 'var(--surface-alt)';
+  const btnColor   = ok ? 'var(--accent)'      : 'var(--text-dim)';
   const el = document.createElement('div');
   el.className = 'item-row';
   el.setAttribute('role', 'listitem');
   el.innerHTML = `
     <div class="item-left">
-      <div class="t-headline item-name">${item.name}</div>
-      <div class="item-sub t-footnote">
-        <span class="item-cat">${item.cat}</span>
-        ${item.who ? `<span class="sep" aria-hidden="true">·</span>${pill(item.who, item.no)}` : ''}
-      </div>
+      <div class="t-headline item-name" style="color:${nameColor};">${item.name}</div>
+      ${item.who ? `<div class="t-footnote" style="color:${ownerColor};margin-top:3px;">${item.who}</div>` : ''}
     </div>
-    <div class="item-right">
-      <div class="status-dot" style="background:${ok ? 'var(--dot-ok)' : 'var(--dot-away)'};"
-           aria-hidden="true"></div>
-      ${ok ? '<button class="borrow-btn">Emprunter</button>' : ''}
-    </div>
+    <button class="obj-cta-btn" style="background:${btnBg};color:${btnColor};">Emprunter</button>
   `;
+  el.querySelector('.obj-cta-btn').addEventListener('click', e => { e.stopPropagation(); showItem(item); });
   el.addEventListener('click', () => showItem(item));
   list.appendChild(el);
 }
@@ -2237,17 +2213,26 @@ async function loadProfileTabs() {
       itemsList.appendChild(_emptyRow('Aucun objet partagé pour l’instant'));
     } else {
       items.forEach(item => {
-        const ok = item.status === 'available';
-        const stateLabel = ok ? 'Disponible' : 'Prêté';
+        const on = item.status === 'available';
+        const nameColor = on ? 'var(--text)' : 'var(--text-dim)';
         const el = document.createElement('div');
         el.className = 'item-row';
         el.setAttribute('role', 'listitem');
         el.innerHTML =
-          '<div class="item-left"><div class="t-headline item-name">' + item.name + '</div></div>' +
-          '<div class="item-right">' +
-          '<div class="status-dot" style="background:' + (ok ? 'var(--dot-ok)' : 'var(--dot-away)') + ';" aria-hidden="true"></div>' +
-          '<span class="profile-item-state ' + (ok ? 'ok' : 'ko') + '">' + stateLabel + '</span>' +
-          '</div>';
+          '<div class="item-left">' +
+          '<div class="t-headline item-name" style="color:' + nameColor + ';">' + item.name + '</div>' +
+          '</div>' +
+          '<button class="item-toggle' + (on ? '' : ' off') + '" aria-checked="' + on + '" role="switch"></button>';
+        el.querySelector('.item-toggle').addEventListener('click', async e => {
+          e.stopPropagation();
+          const btn = e.currentTarget;
+          const newOn = btn.classList.contains('off');
+          btn.classList.toggle('off', !newOn);
+          btn.setAttribute('aria-checked', String(newOn));
+          const newName = el.querySelector('.item-name');
+          newName.style.color = newOn ? 'var(--text)' : 'var(--text-dim)';
+          await db.from('items').update({ status: newOn ? 'available' : 'unavailable' }).eq('id', item.id);
+        });
         itemsList.appendChild(el);
       });
     }
@@ -2265,18 +2250,17 @@ async function loadProfileTabs() {
     } else {
       lent.forEach(loan => {
         const name = loan.item?.name || '—';
-        const borrower = loan.borrower;
-        const who = borrower ? borrower.first_name : '—';
-        const addr = borrower ? borrower.address : '';
+        const who  = loan.borrower?.first_name || '—';
         const el = document.createElement('div');
         el.className = 'item-row';
         el.setAttribute('role', 'listitem');
         el.innerHTML =
           '<div class="item-left">' +
-          '<div class="t-headline item-name">' + name + '</div>' +
-          '<div class="profile-item-sub-row">Chez ' + who + (addr ? ' · ' + addr : '') + '</div>' +
+          '<div class="t-footnote" style="color:var(--text-muted);margin-bottom:4px;">' + who + ' emprunteur</div>' +
+          '<div class="t-headline item-name" style="color:var(--text);">' + name + '</div>' +
           '</div>' +
-          '<button class="profile-rendu-btn" onclick="markReturned(\x27' + loan.id + '\x27)">Rendu</button>';
+          '<button class="obj-cta-btn" style="background:var(--accent-soft);color:var(--accent);">Récupéré</button>';
+        el.querySelector('.obj-cta-btn').addEventListener('click', () => markReturned(loan.id));
         lentList.appendChild(el);
       });
     }
@@ -2294,18 +2278,17 @@ async function loadProfileTabs() {
     } else {
       borrowed.forEach(loan => {
         const name = loan.item?.name || '—';
-        const owner = loan.owner;
-        const who = owner ? owner.first_name : '—';
-        const addr = owner ? owner.address : '';
+        const who  = loan.owner?.first_name || '—';
         const el = document.createElement('div');
         el.className = 'item-row';
         el.setAttribute('role', 'listitem');
         el.innerHTML =
           '<div class="item-left">' +
-          '<div class="t-headline item-name">' + name + '</div>' +
-          '<div class="profile-item-sub-row">De ' + who + (addr ? ' · ' + addr : '') + '</div>' +
+          '<div class="t-footnote" style="color:var(--text-muted);margin-bottom:4px;">' + who + ' propriétaire</div>' +
+          '<div class="t-headline item-name" style="color:var(--text);">' + name + '</div>' +
           '</div>' +
-          '<button class="profile-rendu-btn" onclick="markReturned(\x27' + loan.id + '\x27)">Rendu</button>';
+          '<button class="obj-cta-btn" style="background:var(--accent-soft);color:var(--accent);">Rendu</button>';
+        el.querySelector('.obj-cta-btn').addEventListener('click', () => markReturned(loan.id));
         borrowedList.appendChild(el);
       });
     }
@@ -2438,19 +2421,19 @@ function renderObjects(items) {
       };
       const el = document.createElement('div');
       el.style.cssText = 'display:flex;align-items:center;padding:14px 16px;' + (i < grouped[cat].length - 1 ? 'border-bottom:0.5px solid var(--line);' : '');
+      const nColor = ok ? 'var(--text)'        : 'var(--text-dim)';
+      const oColor = ok ? 'var(--text-muted)'  : 'var(--text-dim)';
+      const bBg    = ok ? 'var(--accent-soft)' : 'var(--surface-alt)';
+      const bColor = ok ? 'var(--accent)'      : 'var(--text-dim)';
       el.innerHTML = `
-        <div style="flex:1;margin-right:12px;">
-          <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:5px;">${item.name}</div>
-          <div style="display:flex;align-items:center;gap:4px;font-size:13px;color:var(--text-muted);">
-            ${item.who ? pill(item.who, item.no) : ''}
-          </div>
+        <div style="flex:1;min-width:0;margin-right:12px;">
+          <div class="t-headline" style="color:${nColor};margin-bottom:3px;">${item.name}</div>
+          ${item.who ? `<div class="t-footnote" style="color:${oColor};">${item.who}</div>` : ''}
         </div>
-        <div style="display:flex;align-items:center;gap:5px;">
-          <div style="width:6px;height:6px;border-radius:3px;background:${ok ? 'var(--dot-ok)' : 'var(--dot-away)'};" aria-hidden="true"></div>
-          <span style="font-size:13px;color:${ok ? 'var(--accent)' : 'var(--text-muted)'};">${ok ? 'Dispo' : 'Prêté'}</span>
-        </div>
+        <button class="obj-cta-btn" style="background:${bBg};color:${bColor};">Emprunter</button>
       `;
       el.style.cursor = 'pointer';
+      el.querySelector('.obj-cta-btn').addEventListener('click', e => { e.stopPropagation(); showItem(item); });
       el.addEventListener('click', () => showItem(item));
       card.appendChild(el);
     });
@@ -2582,10 +2565,7 @@ async function _doSearch(q) {
       </div>
       <div class="search-result-right">
         <span class="co2-badge">${_leafSvg}−${item.co2} kg</span>
-        <div class="search-status-row">
-          <div class="status-dot" style="background:${ok ? 'var(--dot-ok)' : 'var(--dot-away)'};" aria-hidden="true"></div>
-          ${ok ? '<button class="borrow-btn">Emprunter</button>' : ''}
-        </div>
+        <button class="obj-cta-btn" style="background:${ok ? 'var(--accent-soft)' : 'var(--surface-alt)'};color:${ok ? 'var(--accent)' : 'var(--text-dim)'};" onclick="event.stopPropagation()">Emprunter</button>
       </div>
     `;
     el.addEventListener('click', () => showItem(item));
@@ -2613,50 +2593,49 @@ const EXCHANGES_DATA = {
   EXCHANGES_DATA.requests.forEach(r => {
     const el = document.createElement('div');
     el.className = 'xg-item';
-    el.style.cssText = 'flex-direction:column;align-items:stretch;gap:12px;';
     el.innerHTML = `
-      <div style="display:flex;align-items:center;gap:10px;">
-        ${pill(r.who, r.no)}
-        <span class="xg-item-label">${r.who} veut emprunter votre <strong>${r.item}</strong></span>
+      <div class="xg-item-left">
+        <div class="t-footnote" style="color:var(--text-muted);margin-bottom:6px;">${r.who} veut emprunter</div>
+        <div class="t-headline" style="color:var(--text);">${r.item}</div>
       </div>
-      <div style="display:flex;gap:8px;justify-content:flex-end;">
-        <button class="xg-pill xg-pill-decline">Décliner</button>
-        <button class="xg-pill xg-pill-accept">Accepter</button>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
+        <button class="obj-cta-btn" style="background:var(--accent);color:var(--accent-ink);">Accepter</button>
+        <button style="background:none;border:none;font-family:var(--font);font-size:12px;color:var(--text-muted);cursor:pointer;padding:0 2px;-webkit-appearance:none;">Décliner</button>
       </div>
     `;
-    el.querySelector('.xg-pill-accept').onclick = () => showAcceptPopin(r.who);
+    el.querySelector('.obj-cta-btn').onclick = () => showAcceptPopin(r.who);
     rList.appendChild(el);
   });
 
-  // Remises en attente
+  // Remises en attente (À rendre)
   const hList = document.getElementById('handovers-list');
   EXCHANGES_DATA.handovers.forEach(h => {
     const el = document.createElement('div');
     el.className = 'xg-item';
     el.innerHTML = `
       <div class="xg-item-left">
-        <div class="xg-item-label" style="font-weight:600;">${h.item}</div>
-        <div class="xg-item-sub">${h.who} · en attente de remise</div>
+        <div class="t-footnote" style="color:var(--text-muted);margin-bottom:6px;">${h.who}</div>
+        <div class="t-headline" style="color:var(--text);">${h.item}</div>
       </div>
-      <button class="xg-pill xg-pill-cta">Remis</button>
+      <button class="obj-cta-btn" style="background:var(--accent-soft);color:var(--accent);">Rendu</button>
     `;
-    el.querySelector('.xg-pill-cta').onclick = showHandoverPopin;
+    el.querySelector('.obj-cta-btn').onclick = showHandoverPopin;
     hList.appendChild(el);
   });
 
-  // Retours en cours
+  // Retours en cours (À récupérer)
   const retList = document.getElementById('returns-list');
   EXCHANGES_DATA.returns.forEach(r => {
     const el = document.createElement('div');
     el.className = 'xg-item';
     el.innerHTML = `
       <div class="xg-item-left">
-        <div class="xg-item-label" style="font-weight:600;">${r.item}</div>
-        <div class="xg-item-sub">Emprunté par ${r.who}</div>
+        <div class="t-footnote" style="color:var(--text-muted);margin-bottom:6px;">${r.who}</div>
+        <div class="t-headline" style="color:var(--text);">${r.item}</div>
       </div>
-      <button class="xg-pill xg-pill-cta">Rendu</button>
+      <button class="obj-cta-btn" style="background:var(--accent-soft);color:var(--accent);">Récupéré</button>
     `;
-    el.querySelector('.xg-pill-cta').onclick = showReturnPopin;
+    el.querySelector('.obj-cta-btn').onclick = showReturnPopin;
     retList.appendChild(el);
   });
 })();
