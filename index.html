@@ -1936,39 +1936,63 @@ async function loadCommunity() {
 }
 
 // ── Auth ──────────────────────────────────────────────────────
-async function loadMember(session) {
-  // Try by auth user id first, fall back to email for pre-auth records
-  let member;
-  const { data: byId } = await db.from('members').select('id, first_name, last_name, address').eq('id', session.user.id).maybeSingle();
-  member = byId;
-  if (!member) {
-    const { data: byEmail } = await db.from('members').select('id, first_name, last_name, address').eq('email', session.user.email).maybeSingle();
-    member = byEmail;
+async function loadMember() {
+  // 1. Session
+  const { data: { session }, error: sessionError } = await db.auth.getSession();
+  console.log('[loadMember] session:', session?.user?.id, sessionError);
+  if (!session) { console.warn('[loadMember] pas de session'); return; }
+
+  const uid = session.user.id;
+
+  // 2. Member row
+  const { data: member, error: memberError } = await db
+    .from('members')
+    .select('id, first_name, last_name, address')
+    .eq('id', uid)
+    .maybeSingle();
+  console.log('[loadMember] member by id:', member, memberError);
+
+  let resolved = member;
+
+  if (!resolved) {
+    // Fallback: cherche par email (anciens comptes sans auth.id)
+    const { data: byEmail, error: emailError } = await db
+      .from('members')
+      .select('id, first_name, last_name, address')
+      .eq('email', session.user.email)
+      .maybeSingle();
+    console.log('[loadMember] member by email:', byEmail, emailError);
+    resolved = byEmail;
   }
 
-  if (!member) return;
-  localStorage.setItem('member_id', member.id);
+  if (!resolved) { console.warn('[loadMember] aucun membre trouvé'); return; }
 
-  const initial = (member.first_name || '?')[0].toUpperCase();
+  localStorage.setItem('member_id', resolved.id);
+
+  // 3. DOM identité
+  const initial = (resolved.first_name || '?')[0].toUpperCase();
   document.getElementById('profile-avatar').textContent = initial;
-  document.getElementById('profile-name').textContent = member.first_name + ' ' + member.last_name;
-  document.getElementById('profile-address').textContent = member.address || '';
-
+  document.getElementById('profile-name').textContent   = resolved.first_name + ' ' + resolved.last_name;
+  document.getElementById('profile-address').textContent = resolved.address || '';
   const captionEl = document.querySelector('.header-caption');
-  if (captionEl) captionEl.textContent = 'Bonjour ' + member.first_name;
+  if (captionEl) captionEl.textContent = 'Bonjour ' + resolved.first_name;
 
-  // Stats — parallel fetches
+  // 4. Stats — 3 requêtes parallèles
   const [itemsRes, loansRes, borrowsRes] = await Promise.all([
-    db.from('items').select('*', { count: 'exact', head: true }).eq('owner_id', member.id),
-    db.from('loans').select('*', { count: 'exact', head: true }).eq('owner_id', member.id),
-    db.from('loans').select('*', { count: 'exact', head: true }).eq('borrower_id', member.id),
+    db.from('items').select('*', { count: 'exact', head: true }).eq('owner_id', resolved.id),
+    db.from('loans').select('*', { count: 'exact', head: true }).eq('owner_id', resolved.id),
+    db.from('loans').select('*', { count: 'exact', head: true }).eq('borrower_id', resolved.id),
   ]);
+  console.log('[loadMember] items count:', itemsRes.count, itemsRes.error);
+  console.log('[loadMember] loans count:', loansRes.count, loansRes.error);
+  console.log('[loadMember] borrows count:', borrowsRes.count, borrowsRes.error);
+
   const elItems   = document.getElementById('stat-items');
   const elLoans   = document.getElementById('stat-loans');
   const elBorrows = document.getElementById('stat-borrows');
-  if (elItems   && itemsRes.count   != null) elItems.textContent   = itemsRes.count;
-  if (elLoans   && loansRes.count   != null) elLoans.textContent   = loansRes.count;
-  if (elBorrows && borrowsRes.count != null) elBorrows.textContent = borrowsRes.count;
+  if (elItems)   elItems.textContent   = itemsRes.count   ?? '—';
+  if (elLoans)   elLoans.textContent   = loansRes.count   ?? '—';
+  if (elBorrows) elBorrows.textContent = borrowsRes.count ?? '—';
 }
 
 async function signOut() {
@@ -1984,7 +2008,7 @@ async function signOut() {
     return;
   }
   document.getElementById('app').style.visibility = '';
-  loadMember(session);
+  loadMember();
   loadCommunity();
   loadHomeItems();
 })();
@@ -2008,7 +2032,7 @@ function _navigateTo(key) {
   if (key === 'objects')        showObjects();
   else if (key === 'add')       showPanel('panel-add');
   else if (key === 'exchanges') showPanel('panel-exchanges');
-  else if (key === 'profile')   showPanel('panel-profile');
+  else if (key === 'profile')   { showPanel('panel-profile'); loadMember(); }
   // 'home': all panels closed, home visible
 
   _setActiveTab(key);
