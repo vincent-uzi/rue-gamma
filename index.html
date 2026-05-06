@@ -311,7 +311,7 @@
       display: flex;
       align-items: center;
       padding: 0 8px;
-      z-index: 100;
+      z-index: 300;
     }
 
     .tab-item {
@@ -363,14 +363,11 @@
       position: absolute;
       inset: 0;
       background: var(--bg);
-      transform: translateX(100%);
-      transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
       z-index: 200;
-      display: flex;
+      display: none;
       flex-direction: column;
       overflow: hidden;
     }
-    .overlay-panel.visible { transform: translateX(0); }
 
     /* ── Add screen · navigation bar ──────────────────────────── */
     .add-nav {
@@ -410,7 +407,7 @@
       flex: 1;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
-      padding: 28px 20px 140px;
+      padding: max(28px, calc(var(--sat) + 20px)) 20px calc(220px + var(--sab));
       overscroll-behavior-y: contain;
     }
     .form-section { margin-bottom: 26px; }
@@ -574,14 +571,14 @@
       object-fit: cover;
     }
 
-    /* Sticky CTA */
+    /* Sticky CTA — floats above the tab bar */
     .add-cta {
       position: absolute;
       bottom: 0;
       left: 0;
       right: 0;
-      padding: 40px 20px calc(max(20px, var(--sab)) + 4px);
-      background: linear-gradient(to top, var(--bg) 58%, transparent);
+      padding: 40px 20px calc(32px + var(--sab) + 64px + 16px);
+      background: linear-gradient(to top, var(--bg) 70%, transparent);
       pointer-events: none;
     }
     .cta-btn {
@@ -1387,63 +1384,10 @@
 
   <div class="obj-scroll" id="objectsList" role="list"></div>
 
-  <nav class="tab-bar-abs" aria-label="Navigation principale">
-    <div class="tab-item" role="tab" tabindex="0" onclick="objectsTabClick('home')">
-      <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-        <path d="M2.5 8L9 2.5 15.5 8v6.5c0 .5-.4 1-1 1h-3v-4h-3v4h-3c-.5 0-1-.5-1-1V8z"
-              stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
-      </svg>
-      <span class="tab-label">Accueil</span>
-    </div>
-    <div class="tab-item active" role="tab" aria-selected="true" tabindex="0">
-      <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-        <rect x="2" y="2" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6"/>
-        <rect x="10" y="2" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6"/>
-        <rect x="2" y="10" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6"/>
-        <rect x="10" y="10" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6"/>
-      </svg>
-      <span class="tab-label">Objets</span>
-    </div>
-    <div class="tab-item" role="tab" tabindex="0" onclick="objectsTabClick('add')">
-      <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-        <path d="M9 3v12M3 9h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-      </svg>
-      <span class="tab-label">Ajouter</span>
-    </div>
-    <div class="tab-item" role="tab" tabindex="0" onclick="objectsTabClick('exchanges')">
-      <div class="tab-icon-wrap">
-        <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-          <path d="M2 6h12M11 3l3 3-3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M16 12H4M7 9l-3 3 3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <span class="tab-badge">2</span>
-      </div>
-      <span class="tab-label">Échanges</span>
-    </div>
-    <div class="tab-item" role="tab" tabindex="0" onclick="objectsTabClick('profile')">
-      <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-        <circle cx="9" cy="6" r="3" stroke="currentColor" stroke-width="1.6"/>
-        <path d="M3 16c0-3 2.7-5 6-5s6 2 6 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-      </svg>
-      <span class="tab-label">Profil</span>
-    </div>
-  </nav>
-
 </div><!-- /#panel-objects -->
 
 <!-- ── Écran "Ajouter un objet" ───────────────────────────────── -->
 <div class="overlay-panel" id="panel-add">
-
-  <div class="add-nav">
-    <button class="back-btn" onclick="hidePanel('panel-add')" aria-label="Retour">
-      <svg width="11" height="18" viewBox="0 0 12 20" fill="none" aria-hidden="true">
-        <path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.2"
-              stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </button>
-    <span class="add-nav-title">Ajouter un objet</span>
-    <div class="nav-spacer"></div>
-  </div>
 
   <div class="add-scroll">
 
@@ -1597,16 +1541,16 @@
     <!-- Stats row -->
     <div class="stats-row">
       <div class="stat-card">
-        <span class="stat-value">12</span>
+        <span class="stat-value" id="stat-items">—</span>
         <span class="stat-label">Objets</span>
       </div>
       <div class="stat-card">
-        <span class="stat-value">23</span>
+        <span class="stat-value" id="stat-loans">—</span>
         <span class="stat-label">Prêts</span>
       </div>
       <div class="stat-card">
-        <span class="stat-value">4</span>
-        <span class="stat-label">Badges</span>
+        <span class="stat-value" id="stat-borrows">—</span>
+        <span class="stat-label">Emprunts</span>
       </div>
     </div>
 
@@ -1654,56 +1598,13 @@
 
   </div><!-- /.profile-scroll -->
 
-  <!-- Tab bar propre au panel profil -->
-  <nav class="tab-bar-abs" aria-label="Navigation principale">
-    <div class="tab-item" role="tab" tabindex="0" onclick="profileTabClick('home')">
-      <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-        <path d="M2.5 8L9 2.5 15.5 8v6.5c0 .5-.4 1-1 1h-3v-4h-3v4h-3c-.5 0-1-.5-1-1V8z"
-              stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
-      </svg>
-      <span class="tab-label">Accueil</span>
-    </div>
-    <div class="tab-item" role="tab" tabindex="0" onclick="profileTabClick('objects')">
-      <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-        <rect x="2" y="2" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6"/>
-        <rect x="10" y="2" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6"/>
-        <rect x="2" y="10" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6"/>
-        <rect x="10" y="10" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6"/>
-      </svg>
-      <span class="tab-label">Objets</span>
-    </div>
-    <div class="tab-item" role="tab" tabindex="0" onclick="profileTabClick('add')">
-      <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-        <path d="M9 3v12M3 9h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-      </svg>
-      <span class="tab-label">Ajouter</span>
-    </div>
-    <div class="tab-item" role="tab" tabindex="0" onclick="profileTabClick('exchanges')">
-      <div class="tab-icon-wrap">
-        <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-          <path d="M2 6h12M11 3l3 3-3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M16 12H4M7 9l-3 3 3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <span class="tab-badge">2</span>
-      </div>
-      <span class="tab-label">Échanges</span>
-    </div>
-    <div class="tab-item active" role="tab" aria-selected="true" tabindex="0">
-      <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-        <circle cx="9" cy="6" r="3" stroke="currentColor" stroke-width="1.6"/>
-        <path d="M3 16c0-3 2.7-5 6-5s6 2 6 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-      </svg>
-      <span class="tab-label">Profil</span>
-    </div>
-  </nav>
-
 </div><!-- /#panel-profile -->
 
 <!-- ── Écran Échanges ──────────────────────────────────────────── -->
 <div class="overlay-panel" id="panel-exchanges">
 
   <div class="add-nav">
-    <button class="back-btn" onclick="hidePanel('panel-exchanges')" aria-label="Retour">
+    <button class="back-btn" onclick="_navigateTo('home')" aria-label="Retour">
       <svg width="11" height="18" viewBox="0 0 12 20" fill="none" aria-hidden="true">
         <path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.2"
               stroke-linecap="round" stroke-linejoin="round"/>
@@ -2055,6 +1956,19 @@ async function loadMember(session) {
 
   const captionEl = document.querySelector('.header-caption');
   if (captionEl) captionEl.textContent = 'Bonjour ' + member.first_name;
+
+  // Stats — parallel fetches
+  const [itemsRes, loansRes, borrowsRes] = await Promise.all([
+    db.from('items').select('*', { count: 'exact', head: true }).eq('owner_id', member.id),
+    db.from('loans').select('*', { count: 'exact', head: true }).eq('owner_id', member.id),
+    db.from('loans').select('*', { count: 'exact', head: true }).eq('borrower_id', member.id),
+  ]);
+  const elItems   = document.getElementById('stat-items');
+  const elLoans   = document.getElementById('stat-loans');
+  const elBorrows = document.getElementById('stat-borrows');
+  if (elItems   && itemsRes.count   != null) elItems.textContent   = itemsRes.count;
+  if (elLoans   && loansRes.count   != null) elLoans.textContent   = loansRes.count;
+  if (elBorrows && borrowsRes.count != null) elBorrows.textContent = borrowsRes.count;
 }
 
 async function signOut() {
@@ -2075,43 +1989,47 @@ async function signOut() {
   loadHomeItems();
 })();
 
-// ── Tab bar interaction ───────────────────────────────────────
-document.querySelectorAll('#panel-home .tab-item').forEach(tab => {
-  tab.addEventListener('click', () => {
-    if (tab.dataset.tab === 'objects') {
-      showObjects();
-      return;
-    }
-    if (tab.dataset.tab === 'add') {
-      showPanel('panel-add');
-      return;
-    }
-    if (tab.dataset.tab === 'exchanges') {
-      showPanel('panel-exchanges');
-      return;
-    }
-    if (tab.dataset.tab === 'profile') {
-      showPanel('panel-profile');
-      return;
-    }
-    document.querySelectorAll('#panel-home .tab-item').forEach(t => {
-      t.classList.remove('active');
-      t.setAttribute('aria-selected', 'false');
-    });
-    tab.classList.add('active');
-    tab.setAttribute('aria-selected', 'true');
+// ── Navigation ───────────────────────────────────────────────
+function _setActiveTab(key) {
+  document.querySelectorAll('#panel-home .tab-item').forEach(t => {
+    const on = t.dataset.tab === key;
+    t.classList.toggle('active', on);
+    t.setAttribute('aria-selected', String(on));
   });
-});
+}
 
-// ── Navigation entre panels ───────────────────────────────────
+function _navigateTo(key) {
+  // Close all overlay panels (transient and main)
+  document.querySelectorAll('.overlay-panel').forEach(el => { el.style.display = 'none'; });
+  _resetAddForm();
+  _resetSearch();
+  _objectsLoaded = false;
+
+  if (key === 'objects')        showObjects();
+  else if (key === 'add')       showPanel('panel-add');
+  else if (key === 'exchanges') showPanel('panel-exchanges');
+  else if (key === 'profile')   showPanel('panel-profile');
+  // 'home': all panels closed, home visible
+
+  _setActiveTab(key);
+}
+
 function showPanel(id) {
-  document.getElementById(id).classList.add('visible');
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'flex';
 }
 function hidePanel(id) {
-  document.getElementById(id).classList.remove('visible');
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'none';
   if (id === 'panel-add')    _resetAddForm();
   if (id === 'panel-search') _resetSearch();
+  if (id === 'panel-objects') _objectsLoaded = false;
 }
+
+// ── Tab bar interaction ───────────────────────────────────────
+document.querySelectorAll('#panel-home .tab-item').forEach(tab => {
+  tab.addEventListener('click', () => _navigateTo(tab.dataset.tab));
+});
 
 // ── Détection catégorie (simule appel API Anthropic) ─────────
 const CAT_MAP = [
@@ -2239,15 +2157,11 @@ function _resetAddForm() {
 // ── Écran succès ──────────────────────────────────────────────
 function closeSuccess() {
   hidePanel('panel-success');
-  document.querySelectorAll('.tab-item').forEach(t => {
-    const isHome = t.dataset.tab === 'home';
-    t.classList.toggle('active', isHome);
-    t.setAttribute('aria-selected', String(isHome));
-  });
+  _setActiveTab('home');
 }
 function addAnother() {
   hidePanel('panel-success');
-  setTimeout(() => showPanel('panel-add'), 40);
+  setTimeout(() => { showPanel('panel-add'); _setActiveTab('add'); }, 40);
 }
 
 // ── Profile ───────────────────────────────────────────────────
@@ -2336,11 +2250,7 @@ function switchProfileTab(tab) {
 
 function closeProfile() {
   hidePanel('panel-profile');
-  document.querySelectorAll('#panel-home .tab-item').forEach(t => {
-    const isHome = t.dataset.tab === 'home';
-    t.classList.toggle('active', isHome);
-    t.setAttribute('aria-selected', String(isHome));
-  });
+  _setActiveTab('home');
 }
 
 function profileTabClick(tab) {
