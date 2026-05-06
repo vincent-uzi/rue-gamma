@@ -1262,7 +1262,7 @@
   </style>
 </head>
 <body>
-<div id="app">
+<div id="app" style="visibility:hidden;">
 <div class="screen" id="panel-home">
   <div class="scroll">
 
@@ -1557,10 +1557,10 @@
 
   <!-- Bloc identité -->
   <div style="display:flex;align-items:center;gap:14px;padding:18px 20px 0;">
-    <div style="width:44px;height:44px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;flex-shrink:0;">L</div>
+    <div id="profile-avatar" style="width:44px;height:44px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;flex-shrink:0;">?</div>
     <div>
-      <div class="t-headline" style="color:var(--text);font-weight:700;">Léa Mercier</div>
-      <div class="t-footnote" style="color:var(--text-muted);margin-top:2px;">n°8 · <span id="profile-community-name">Rue des Vignoles</span></div>
+      <div class="t-headline" id="profile-name" style="color:var(--text);font-weight:700;">…</div>
+      <div class="t-footnote" id="profile-address" style="color:var(--text-muted);margin-top:2px;">…</div>
     </div>
   </div>
 
@@ -1639,6 +1639,17 @@
     </div>
     <div class="profile-tab-pane" id="profile-pane-empruntes">
       <div class="items-list" id="profileBorrowedList" role="list"></div>
+    </div>
+
+    <!-- Déconnexion -->
+    <div style="padding:24px 0 8px;">
+      <button onclick="signOut()" style="display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;padding:14px 16px;border-radius:14px;font-family:var(--font);font-size:15px;font-weight:500;color:var(--text-muted);cursor:pointer;-webkit-appearance:none;">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+          <path d="M7 3H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M12 12l3-3-3-3M15 9H7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Se déconnecter
+      </button>
     </div>
 
   </div><!-- /.profile-scroll -->
@@ -1990,8 +2001,6 @@ async function loadHomeItems() {
   });
 }
 
-loadHomeItems();
-
 async function loadCommunity() {
   const [commRes, countRes] = await Promise.all([
     db.from('communities').select('name, street').eq('id', COMMUNITY_ID).single(),
@@ -2025,7 +2034,46 @@ async function loadCommunity() {
   }
 }
 
-loadCommunity();
+// ── Auth ──────────────────────────────────────────────────────
+async function loadMember(session) {
+  // Try by auth user id first, fall back to email for pre-auth records
+  let member;
+  const { data: byId } = await db.from('members').select('id, first_name, last_name, address').eq('id', session.user.id).maybeSingle();
+  member = byId;
+  if (!member) {
+    const { data: byEmail } = await db.from('members').select('id, first_name, last_name, address').eq('email', session.user.email).maybeSingle();
+    member = byEmail;
+  }
+
+  if (!member) return;
+  localStorage.setItem('member_id', member.id);
+
+  const initial = (member.first_name || '?')[0].toUpperCase();
+  document.getElementById('profile-avatar').textContent = initial;
+  document.getElementById('profile-name').textContent = member.first_name + ' ' + member.last_name;
+  document.getElementById('profile-address').textContent = member.address || '';
+
+  const captionEl = document.querySelector('.header-caption');
+  if (captionEl) captionEl.textContent = 'Bonjour ' + member.first_name;
+}
+
+async function signOut() {
+  await db.auth.signOut();
+  localStorage.removeItem('member_id');
+  window.location.replace('onboarding.html');
+}
+
+(async function checkAuth() {
+  const { data: { session } } = await db.auth.getSession();
+  if (!session) {
+    window.location.replace('onboarding.html');
+    return;
+  }
+  document.getElementById('app').style.visibility = '';
+  loadMember(session);
+  loadCommunity();
+  loadHomeItems();
+})();
 
 // ── Tab bar interaction ───────────────────────────────────────
 document.querySelectorAll('#panel-home .tab-item').forEach(tab => {
