@@ -2234,7 +2234,7 @@ async function loadProfileTabs() {
     const tabItems = document.getElementById('tab-mes-objets');
     if (tabItems && items.length) tabItems.textContent = 'Mes objets (' + items.length + ')';
     if (!items.length) {
-      itemsList.appendChild(_emptyRow('Aucun objet partagé pour l'instant'));
+      itemsList.appendChild(_emptyRow('Aucun objet partagé pour l’instant'));
     } else {
       items.forEach(item => {
         const ok = item.status === 'available';
