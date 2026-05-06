@@ -1765,11 +1765,7 @@
 
       <!-- Propriétaire -->
       <div class="item-owner-row">
-        <div class="item-owner-avatar" id="item-owner-avatar" aria-hidden="true"></div>
-        <div>
-          <div class="t-headline" id="item-owner-name" style="color:var(--text);"></div>
-          <div class="t-footnote" id="item-owner-meta" style="color:var(--text-muted);margin-top:2px;"></div>
-        </div>
+        <span id="item-owner-pill"></span>
       </div>
 
     </div>
@@ -1826,16 +1822,16 @@ function pill(name, no) {
 function renderItemRow(list, item) {
   const ok         = item.state === 'available';
   const nameColor  = ok ? 'var(--text)'        : 'var(--text-dim)';
-  const ownerColor = ok ? 'var(--text-muted)'  : 'var(--text-dim)';
   const btnBg      = ok ? 'var(--accent)'      : 'var(--surface-alt)';
   const btnColor   = ok ? 'var(--accent-ink)'  : 'var(--text-dim)';
+  const pillOp     = ok ? '1' : '0.45';
   const el = document.createElement('div');
   el.className = 'item-row';
   el.setAttribute('role', 'listitem');
   el.innerHTML = `
     <div class="item-left">
-      <div class="t-headline item-name" style="color:${nameColor};">${item.name}</div>
-      ${item.who ? `<div class="t-footnote" style="color:${ownerColor};margin-top:3px;">${item.who}</div>` : ''}
+      <div class="t-headline item-name" style="color:${nameColor};margin-bottom:4px;">${item.name}</div>
+      ${item.who ? `<span style="opacity:${pillOp};">${pill(item.who, item.no)}</span>` : ''}
     </div>
     <button class="obj-cta-btn" style="background:${btnBg};color:${btnColor};">Emprunter</button>
   `;
@@ -2256,7 +2252,7 @@ async function loadProfileTabs() {
         el.setAttribute('role', 'listitem');
         el.innerHTML =
           '<div class="item-left">' +
-          '<div class="t-footnote" style="color:var(--text-muted);margin-bottom:4px;">' + who + ' emprunteur</div>' +
+          '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">' + pill(who, '') + '<span class="t-footnote" style="color:var(--text-muted);">emprunteur</span></div>' +
           '<div class="t-headline item-name" style="color:var(--text);">' + name + '</div>' +
           '</div>' +
           '<button class="obj-cta-btn" style="background:var(--accent);color:var(--accent-ink);">Récupéré</button>';
@@ -2284,7 +2280,7 @@ async function loadProfileTabs() {
         el.setAttribute('role', 'listitem');
         el.innerHTML =
           '<div class="item-left">' +
-          '<div class="t-footnote" style="color:var(--text-muted);margin-bottom:4px;">' + who + ' propriétaire</div>' +
+          '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">' + pill(who, '') + '<span class="t-footnote" style="color:var(--text-muted);">propriétaire</span></div>' +
           '<div class="t-headline item-name" style="color:var(--text);">' + name + '</div>' +
           '</div>' +
           '<button class="obj-cta-btn" style="background:var(--accent);color:var(--accent-ink);">Rendu</button>';
@@ -2422,13 +2418,12 @@ function renderObjects(items) {
       const el = document.createElement('div');
       el.style.cssText = 'display:flex;align-items:center;padding:14px 16px;' + (i < grouped[cat].length - 1 ? 'border-bottom:0.5px solid var(--line);' : '');
       const nColor = ok ? 'var(--text)'        : 'var(--text-dim)';
-      const oColor = ok ? 'var(--text-muted)'  : 'var(--text-dim)';
       const bBg    = ok ? 'var(--accent)'      : 'var(--surface-alt)';
       const bColor = ok ? 'var(--accent-ink)'  : 'var(--text-dim)';
       el.innerHTML = `
         <div style="flex:1;min-width:0;margin-right:12px;">
-          <div class="t-headline" style="color:${nColor};margin-bottom:3px;">${item.name}</div>
-          ${item.who ? `<div class="t-footnote" style="color:${oColor};">${item.who}</div>` : ''}
+          <div class="t-headline" style="color:${nColor};margin-bottom:4px;">${item.name}</div>
+          ${item.who ? `<span style="opacity:${ok ? 1 : 0.45};">${pill(item.who, item.no)}</span>` : ''}
         </div>
         <button class="obj-cta-btn" style="background:${bBg};color:${bColor};">Emprunter</button>
       `;
@@ -2595,7 +2590,7 @@ const EXCHANGES_DATA = {
     el.className = 'xg-item';
     el.innerHTML = `
       <div class="xg-item-left">
-        <div class="t-footnote" style="color:var(--text-muted);margin-bottom:6px;">${r.who} veut emprunter</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">${pill(r.who, r.no)}<span class="t-footnote" style="color:var(--text-muted);">veut emprunter</span></div>
         <div class="t-headline" style="color:var(--text);">${r.item}</div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
@@ -2614,7 +2609,7 @@ const EXCHANGES_DATA = {
     el.className = 'xg-item';
     el.innerHTML = `
       <div class="xg-item-left">
-        <div class="t-footnote" style="color:var(--text-muted);margin-bottom:6px;">${h.who}</div>
+        <div style="margin-bottom:6px;">${pill(h.who, h.no)}</div>
         <div class="t-headline" style="color:var(--text);">${h.item}</div>
       </div>
       <button class="obj-cta-btn" style="background:var(--accent);color:var(--accent-ink);">Rendu</button>
@@ -2630,7 +2625,7 @@ const EXCHANGES_DATA = {
     el.className = 'xg-item';
     el.innerHTML = `
       <div class="xg-item-left">
-        <div class="t-footnote" style="color:var(--text-muted);margin-bottom:6px;">${r.who}</div>
+        <div style="margin-bottom:6px;">${pill(r.who, r.no)}</div>
         <div class="t-headline" style="color:var(--text);">${r.item}</div>
       </div>
       <button class="obj-cta-btn" style="background:var(--accent);color:var(--accent-ink);">Récupéré</button>
@@ -2721,9 +2716,7 @@ function showItem(item) {
   } else {
     descWrap.style.display = 'none';
   }
-  document.getElementById('item-owner-avatar').textContent = item.who[0];
-  document.getElementById('item-owner-name').textContent = item.who;
-  document.getElementById('item-owner-meta').textContent = 'n°' + item.no + ' · membre depuis mars';
+  document.getElementById('item-owner-pill').innerHTML = item.who ? pill(item.who, item.no) : '';
   document.getElementById('item-cta-btn').style.display = ok ? 'block' : 'none';
   document.getElementById('item-unavailable').style.display = ok ? 'none' : 'block';
   showPanel('panel-item');
