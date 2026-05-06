@@ -60,7 +60,18 @@ pending → accepted → active → returned → declined
 ## Parcours restants à implémenter
 - Notifications (cloche header)
 - Invitation voisin fonctionnelle
+- Dans PROJET.md, ajoute cette section après "Parcours restants à implémenter" :
 
+## Parcours à revoir / spécifier
+
+### Parcours prêt — à re-spécifier
+Le parcours emprunt/prêt a été implémenté mais nécessite 
+une revue complète :
+- Les statuts et transitions entre écrans sont à consolider
+- Le processus Remis / Rendu / Récupéré est à clarifier 
+  avec des gribouillages
+- Les notifications associées à chaque étape sont à définir
+- Priorité haute avant branchement Supabase complet
 ---
 
 ## Backlog Dette Technique
