@@ -1200,6 +1200,42 @@
       padding: 8px 0;
     }
 
+    /* ── Objects screen ────────────────────────────────────────── */
+    .t-title2 { font-size: 22px; font-weight: 700; line-height: 28px; letter-spacing: -0.2px; }
+    .obj-nav {
+      flex-shrink: 0;
+      padding: max(18px, var(--sat)) 20px 0;
+      background: var(--bg);
+      border-bottom: 0.5px solid var(--line);
+    }
+    .obj-nav-title { color: var(--text); margin-bottom: 14px; }
+    .obj-inline-search {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 40px;
+      background: var(--surface-alt);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 0 12px;
+      margin-bottom: 14px;
+      transition: border-color .18s;
+    }
+    .obj-inline-search:focus-within { border-color: var(--text); }
+    .obj-inline-search input {
+      flex: 1; border: none; outline: none; background: none;
+      font-family: var(--font); font-size: 15px; color: var(--text);
+      -webkit-appearance: none; min-width: 0;
+    }
+    .obj-inline-search input::placeholder { color: var(--text-dim); }
+    .obj-scroll {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 0 20px calc(32px + 64px + 24px + var(--sab));
+      overscroll-behavior-y: contain;
+    }
+
     /* ── Toast ──────────────────────────────────────────────────── */
     #toast {
       position: absolute;
@@ -1274,13 +1310,6 @@
     <!-- ── Section "Récemment ajoutés" ────────────────────── -->
     <div class="section-header">
       <h2 class="t-title3">Récemment ajoutés</h2>
-      <div class="see-all t-subhead" role="button" tabindex="0" aria-label="Tout voir">
-        <span>Tout voir</span>
-        <svg width="9" height="14" viewBox="0 0 10 16" fill="none" aria-hidden="true">
-          <path d="M2 2l6 6-6 6" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
     </div>
 
     <!-- ── Liste d'items ──────────────────────────────────── -->
@@ -1297,6 +1326,16 @@
               stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
       </svg>
       <span class="tab-label">Accueil</span>
+    </div>
+
+    <div class="tab-item" data-tab="objects" role="tab" aria-selected="false" tabindex="0">
+      <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+        <rect x="2" y="2" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6"/>
+        <rect x="10" y="2" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6"/>
+        <rect x="2" y="10" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6"/>
+        <rect x="10" y="10" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6"/>
+      </svg>
+      <span class="tab-label">Objets</span>
     </div>
 
     <div class="tab-item" data-tab="add" role="tab" aria-selected="false" tabindex="0">
@@ -1327,6 +1366,70 @@
 
   </nav>
 </div><!-- /#panel-home -->
+
+<!-- ── Écran Objets ────────────────────────────────────────────── -->
+<div class="overlay-panel" id="panel-objects">
+
+  <div class="obj-nav">
+    <h1 class="t-title2 obj-nav-title">Les objets du quartier</h1>
+    <div class="obj-inline-search">
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true" style="color:var(--text-muted);flex-shrink:0;">
+        <circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.6"/>
+        <line x1="14" y1="14" x2="18.5" y2="18.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <input type="text" id="objSearchInput"
+             placeholder="Rechercher un objet…"
+             autocomplete="off" autocorrect="off" spellcheck="false"
+             oninput="filterObjects(this)"
+             aria-label="Rechercher un objet">
+    </div>
+  </div>
+
+  <div class="obj-scroll" id="objectsList" role="list"></div>
+
+  <nav class="tab-bar-abs" aria-label="Navigation principale">
+    <div class="tab-item" role="tab" tabindex="0" onclick="objectsTabClick('home')">
+      <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+        <path d="M2.5 8L9 2.5 15.5 8v6.5c0 .5-.4 1-1 1h-3v-4h-3v4h-3c-.5 0-1-.5-1-1V8z"
+              stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      </svg>
+      <span class="tab-label">Accueil</span>
+    </div>
+    <div class="tab-item active" role="tab" aria-selected="true" tabindex="0">
+      <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+        <rect x="2" y="2" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6"/>
+        <rect x="10" y="2" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6"/>
+        <rect x="2" y="10" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6"/>
+        <rect x="10" y="10" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6"/>
+      </svg>
+      <span class="tab-label">Objets</span>
+    </div>
+    <div class="tab-item" role="tab" tabindex="0" onclick="objectsTabClick('add')">
+      <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+        <path d="M9 3v12M3 9h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      <span class="tab-label">Ajouter</span>
+    </div>
+    <div class="tab-item" role="tab" tabindex="0" onclick="objectsTabClick('exchanges')">
+      <div class="tab-icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+          <path d="M2 6h12M11 3l3 3-3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M16 12H4M7 9l-3 3 3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="tab-badge">2</span>
+      </div>
+      <span class="tab-label">Échanges</span>
+    </div>
+    <div class="tab-item" role="tab" tabindex="0" onclick="objectsTabClick('profile')">
+      <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+        <circle cx="9" cy="6" r="3" stroke="currentColor" stroke-width="1.6"/>
+        <path d="M3 16c0-3 2.7-5 6-5s6 2 6 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <span class="tab-label">Profil</span>
+    </div>
+  </nav>
+
+</div><!-- /#panel-objects -->
 
 <!-- ── Écran "Ajouter un objet" ───────────────────────────────── -->
 <div class="overlay-panel" id="panel-add">
@@ -1548,6 +1651,15 @@
               stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
       </svg>
       <span class="tab-label">Accueil</span>
+    </div>
+    <div class="tab-item" role="tab" tabindex="0" onclick="profileTabClick('objects')">
+      <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+        <rect x="2" y="2" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6"/>
+        <rect x="10" y="2" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6"/>
+        <rect x="2" y="10" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6"/>
+        <rect x="10" y="10" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6"/>
+      </svg>
+      <span class="tab-label">Objets</span>
     </div>
     <div class="tab-item" role="tab" tabindex="0" onclick="profileTabClick('add')">
       <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden="true">
@@ -1881,11 +1993,22 @@ async function loadHomeItems() {
 loadHomeItems();
 
 async function loadCommunity() {
-  const [{ data: comm }, { count }] = await Promise.all([
+  const [commRes, countRes] = await Promise.all([
     db.from('communities').select('name, street').eq('id', COMMUNITY_ID).single(),
     db.from('members').select('*', { count: 'exact', head: true }).eq('community_id', COMMUNITY_ID),
   ]);
 
+  console.log('[loadCommunity] community row:', commRes.data, commRes.error);
+  console.log('[loadCommunity] member count:', countRes.count, countRes.error);
+
+  if (commRes.error) {
+    console.error('[loadCommunity] community fetch error:', commRes.error);
+  }
+  if (countRes.error) {
+    console.error('[loadCommunity] member count error:', countRes.error);
+  }
+
+  const comm = commRes.data;
   const name = comm?.street || comm?.name;
   if (name) {
     document.getElementById('community-name').textContent = name;
@@ -1893,6 +2016,7 @@ async function loadCommunity() {
     if (profileSpan) profileSpan.textContent = name;
   }
 
+  const count = countRes.count;
   if (count != null) {
     const metaEl = document.getElementById('community-meta');
     const current = metaEl.textContent;
@@ -1904,8 +2028,12 @@ async function loadCommunity() {
 loadCommunity();
 
 // ── Tab bar interaction ───────────────────────────────────────
-document.querySelectorAll('.tab-item').forEach(tab => {
+document.querySelectorAll('#panel-home .tab-item').forEach(tab => {
   tab.addEventListener('click', () => {
+    if (tab.dataset.tab === 'objects') {
+      showObjects();
+      return;
+    }
     if (tab.dataset.tab === 'add') {
       showPanel('panel-add');
       return;
@@ -1918,7 +2046,7 @@ document.querySelectorAll('.tab-item').forEach(tab => {
       showPanel('panel-profile');
       return;
     }
-    document.querySelectorAll('.tab-item').forEach(t => {
+    document.querySelectorAll('#panel-home .tab-item').forEach(t => {
       t.classList.remove('active');
       t.setAttribute('aria-selected', 'false');
     });
@@ -2170,6 +2298,9 @@ function closeProfile() {
 function profileTabClick(tab) {
   if (tab === 'home') {
     closeProfile();
+  } else if (tab === 'objects') {
+    closeProfile();
+    setTimeout(() => showObjects(), 50);
   } else if (tab === 'add') {
     closeProfile();
     setTimeout(() => showPanel('panel-add'), 50);
@@ -2182,6 +2313,129 @@ function profileTabClick(tab) {
 function profileAddItem() {
   hidePanel('panel-profile');
   setTimeout(() => showPanel('panel-add'), 50);
+}
+
+// ── Objects screen ────────────────────────────────────────────
+let _objectsLoaded = false;
+let _allObjects = [];
+
+function showObjects() {
+  showPanel('panel-objects');
+  if (!_objectsLoaded) loadObjectsItems();
+}
+
+function objectsTabClick(tab) {
+  hidePanel('panel-objects');
+  _objectsLoaded = false;
+  if (tab === 'add') {
+    setTimeout(() => showPanel('panel-add'), 50);
+  } else if (tab === 'exchanges') {
+    setTimeout(() => showPanel('panel-exchanges'), 50);
+  } else if (tab === 'profile') {
+    setTimeout(() => showPanel('panel-profile'), 50);
+  }
+  // 'home' just closes the panel
+}
+
+async function loadObjectsItems() {
+  const list = document.getElementById('objectsList');
+  list.innerHTML = '<div style="padding:40px 0;text-align:center;color:var(--text-muted);font-size:15px;">Chargement…</div>';
+
+  const { data, error } = await db
+    .from('items')
+    .select('*, owner:members!owner_id(first_name, address)')
+    .eq('community_id', COMMUNITY_ID)
+    .order('category', { ascending: true })
+    .order('name', { ascending: true });
+
+  if (error) {
+    list.innerHTML = '<div style="padding:40px 20px;text-align:center;"><p style="font-size:15px;font-weight:500;color:var(--text);margin-bottom:6px;">Impossible de charger les objets</p><p style="font-size:13px;color:var(--text-muted);">Vérifie ta connexion</p></div>';
+    return;
+  }
+
+  _allObjects = data || [];
+  _objectsLoaded = true;
+  renderObjects(_allObjects);
+}
+
+function renderObjects(items) {
+  const list = document.getElementById('objectsList');
+  if (!items.length) {
+    list.innerHTML = '<div style="padding:48px 20px;text-align:center;"><p style="font-size:15px;font-weight:500;color:var(--text);margin-bottom:6px;">Aucun objet pour le moment</p><p style="font-size:13px;color:var(--text-muted);">Soyez le premier à ajouter un objet</p></div>';
+    return;
+  }
+
+  const grouped = {};
+  items.forEach(row => {
+    const cat = row.category || 'Autre';
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(row);
+  });
+
+  list.innerHTML = '';
+  Object.keys(grouped).sort().forEach(cat => {
+    const section = document.createElement('div');
+    section.style.cssText = 'margin-bottom:24px;';
+
+    const header = document.createElement('div');
+    header.style.cssText = 'font-size:13px;font-weight:600;color:var(--text-muted);letter-spacing:0.1px;margin-bottom:8px;padding-top:4px;';
+    header.textContent = cat.toUpperCase();
+    section.appendChild(header);
+
+    const card = document.createElement('div');
+    card.style.cssText = 'background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;';
+
+    grouped[cat].forEach((row, i) => {
+      const ok = row.status === 'available';
+      const c  = row.co2_saved_kg;
+      const item = {
+        name:  row.name,
+        cat:   row.category || '',
+        state: row.status,
+        co2:   c != null ? Number(c).toFixed(1).replace('.', ',') : '8,2',
+        desc:  row.description || '',
+        who:   row.owner?.first_name || '',
+        no:    '',
+      };
+      const el = document.createElement('div');
+      el.style.cssText = 'display:flex;align-items:center;padding:14px 16px;' + (i < grouped[cat].length - 1 ? 'border-bottom:0.5px solid var(--line);' : '');
+      el.innerHTML = `
+        <div style="flex:1;margin-right:12px;">
+          <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:5px;">${item.name}</div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:13px;color:var(--text-muted);">
+            ${item.who ? pill(item.who, item.no) : ''}
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;">
+          <div style="width:6px;height:6px;border-radius:3px;background:${ok ? 'var(--dot-ok)' : 'var(--dot-away)'};" aria-hidden="true"></div>
+          <span style="font-size:13px;color:${ok ? 'var(--accent)' : 'var(--text-muted)'};">${ok ? 'Dispo' : 'Prêté'}</span>
+        </div>
+      `;
+      el.style.cursor = 'pointer';
+      el.addEventListener('click', () => showItem(item));
+      card.appendChild(el);
+    });
+
+    section.appendChild(card);
+    list.appendChild(section);
+  });
+}
+
+let _objFilterTimer;
+function filterObjects(input) {
+  const q = input.value.trim().toLowerCase();
+  clearTimeout(_objFilterTimer);
+  _objFilterTimer = setTimeout(() => {
+    if (!q) {
+      renderObjects(_allObjects);
+      return;
+    }
+    const filtered = _allObjects.filter(row =>
+      (row.name || '').toLowerCase().includes(q) ||
+      (row.category || '').toLowerCase().includes(q)
+    );
+    renderObjects(filtered);
+  }, 200);
 }
 
 // ── Search ────────────────────────────────────────────────────
