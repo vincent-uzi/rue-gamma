@@ -1811,7 +1811,9 @@
 const SUPABASE_URL      = 'https://optfcepolcjyregdaxpt.supabase.co'
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wdGZjZXBvbGNqeXJlZ2RheHB0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5NzE1MjgsImV4cCI6MjA5MzU0NzUyOH0.ZvHOCyd8SQYzh7AQw4PexH742aFvPkeq1JKcLMaQytc'
 const COMMUNITY_ID      = 'ed225eef-e9e0-4cf8-9ae9-aaf687b55c42'
-const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: true },
+})
 
 // ── Items data (fallback statique) ────────────────────────────
 const ITEMS = [
@@ -1998,13 +2000,13 @@ async function loadMember() {
 async function signOut() {
   await db.auth.signOut();
   localStorage.removeItem('member_id');
-  window.location.replace('onboarding.html');
+  window.location.replace('login.html');
 }
 
 (async function checkAuth() {
   const { data: { session } } = await db.auth.getSession();
   if (!session) {
-    window.location.replace('onboarding.html');
+    window.location.replace('login.html');
     return;
   }
   document.getElementById('app').style.visibility = '';
