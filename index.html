@@ -1848,12 +1848,22 @@ async function loadHomeItems() {
     .order('created_at', { ascending: false })
     .limit(6);
 
-  if (error || !data?.length) {
-    ITEMS.forEach(item => renderItemRow(list, item));
+  list.innerHTML = '';
+
+  if (error) {
+    list.innerHTML = '<p style="padding:24px 16px;text-align:center;color:var(--text-muted);font-size:15px;">Impossible de charger les objets</p>';
     return;
   }
 
-  list.innerHTML = '';
+  if (!data?.length) {
+    list.innerHTML = `
+      <div style="padding:32px 20px;text-align:center;">
+        <p style="font-size:15px;font-weight:500;color:var(--text);margin-bottom:6px;">Aucun objet disponible pour le moment</p>
+        <p style="font-size:13px;color:var(--text-muted);">Soyez le premier à proposer un objet !</p>
+      </div>`;
+    return;
+  }
+
   data.forEach(row => {
     const c = row.co2_saved_kg;
     renderItemRow(list, {
@@ -2218,6 +2228,17 @@ async function _doSearch(q) {
 
   const matches = data || [];
   const n = matches.length;
+
+  if (!n) {
+    countEl.textContent = '0 résultat';
+    list.innerHTML = `
+      <div style="padding:32px 20px;text-align:center;">
+        <p style="font-size:15px;font-weight:500;color:var(--text);margin-bottom:6px;">Aucun objet trouvé</p>
+        <p style="font-size:13px;color:var(--text-muted);">Essaie un autre mot-clé</p>
+      </div>`;
+    return;
+  }
+
   countEl.textContent = n + ' résultat' + (n !== 1 ? 's' : '');
 
   matches.forEach(row => {
