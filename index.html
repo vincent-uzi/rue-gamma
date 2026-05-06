@@ -1051,6 +1051,154 @@
       padding: 2px 8px; line-height: 16px; flex-shrink: 0;
     }
     .search-status-row { display: flex; align-items: center; gap: 5px; }
+
+    /* ── Item fiche (ItemA) ─────────────────────────────────────── */
+    .item-panel-scroll {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 120px;
+      overscroll-behavior-y: contain;
+    }
+    .item-hero {
+      position: relative;
+      height: 240px;
+      flex-shrink: 0;
+      background: linear-gradient(160deg, #C8B89A 0%, #A89878 50%, #6E5F4A 100%);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .item-hero-placeholder {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: rgba(255,255,255,0.5);
+      pointer-events: none;
+    }
+    .item-hero-top {
+      position: absolute;
+      top: max(14px, var(--sat));
+      left: 16px;
+      right: 16px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .item-hero-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.9);
+      -webkit-backdrop-filter: blur(12px);
+              backdrop-filter: blur(12px);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      -webkit-appearance: none;
+      color: var(--text);
+      transition: opacity .12s;
+    }
+    .item-hero-btn:active { opacity: .7; }
+    .item-hero-dots {
+      position: absolute;
+      bottom: 14px;
+      left: 0; right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+    }
+    .item-hero-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.4);
+    }
+    .item-hero-dot.on { background: #fff; }
+    .item-body {
+      padding: 20px 20px 0;
+    }
+    .item-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 16px;
+      margin-bottom: 12px;
+    }
+    .item-status-pill.available  { background: var(--accent-soft); color: var(--accent); }
+    .item-status-pill.unavailable { background: var(--surface-alt); color: var(--text-muted); }
+    .item-status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .item-co2-strip {
+      display: flex;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px 18px;
+      margin-bottom: 24px;
+      gap: 14px;
+    }
+    .item-co2-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .item-section-label {
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .item-desc-section { margin-bottom: 24px; }
+    .item-owner-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 0;
+      border-top: 0.5px solid var(--line);
+    }
+    .item-owner-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .item-cta-area {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 40px 20px calc(max(20px, var(--sab)) + 4px);
+      background: linear-gradient(to top, var(--bg) 58%, transparent);
+      pointer-events: none;
+    }
+    .item-unavailable {
+      text-align: center;
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 21px;
+      padding: 8px 0;
+    }
   </style>
 </head>
 <body>
@@ -1520,16 +1668,101 @@
 
 </div><!-- /#panel-search -->
 
+<!-- ── Fiche objet (ItemA) ──────────────────────────────────────── -->
+<div class="overlay-panel" id="panel-item" style="z-index:210;">
+
+  <!-- Hero photo -->
+  <div class="item-hero">
+    <span class="item-hero-placeholder">PHOTO</span>
+    <div class="item-hero-top">
+      <button class="item-hero-btn" onclick="hideItem()" aria-label="Retour">
+        <svg width="11" height="18" viewBox="0 0 12 20" fill="none" aria-hidden="true">
+          <path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button class="item-hero-btn" aria-label="Plus d'options">
+        <svg width="18" height="5" viewBox="0 0 22 6" fill="none" aria-hidden="true">
+          <circle cx="3"  cy="3" r="2" fill="currentColor"/>
+          <circle cx="11" cy="3" r="2" fill="currentColor"/>
+          <circle cx="19" cy="3" r="2" fill="currentColor"/>
+        </svg>
+      </button>
+    </div>
+    <div class="item-hero-dots" aria-hidden="true">
+      <div class="item-hero-dot on"></div>
+      <div class="item-hero-dot"></div>
+      <div class="item-hero-dot"></div>
+    </div>
+  </div>
+
+  <!-- Scroll body -->
+  <div class="item-panel-scroll">
+    <div class="item-body">
+
+      <!-- Pill statut -->
+      <div class="item-status-pill" id="item-status-pill">
+        <div class="item-status-dot" id="item-status-dot" aria-hidden="true"></div>
+        <span id="item-status-text"></span>
+      </div>
+
+      <!-- Titre -->
+      <h1 class="t-large-title" id="item-title" style="color:var(--text);margin-bottom:6px;"></h1>
+
+      <!-- Catégorie -->
+      <p class="t-callout" id="item-cat" style="color:var(--text-muted);margin-bottom:22px;"></p>
+
+      <!-- Bandeau CO₂ -->
+      <div class="item-co2-strip">
+        <div class="item-co2-icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 18 18" fill="none">
+            <path d="M15 2.5C9 2.5 3 6 3 12c0 1.5.5 2.8 1.3 3.7C5.2 16.6 6.7 15.5 8 14c2.5-3 5-5 7-7-1 4-3.5 7-6 9"
+                  stroke="currentColor" stroke-width="1.5"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="t-headline" id="item-co2-val" style="color:var(--text);"></div>
+          <div class="t-footnote" style="color:var(--text-muted);margin-top:2px;">évités si vous l'empruntez</div>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="item-desc-section" id="item-desc-wrap">
+        <div class="item-section-label t-caption">Description</div>
+        <p class="t-body" id="item-desc" style="color:var(--text);line-height:22px;"></p>
+      </div>
+
+      <!-- Propriétaire -->
+      <div class="item-owner-row">
+        <div class="item-owner-avatar" id="item-owner-avatar" aria-hidden="true"></div>
+        <div>
+          <div class="t-headline" id="item-owner-name" style="color:var(--text);"></div>
+          <div class="t-footnote" id="item-owner-meta" style="color:var(--text-muted);margin-top:2px;"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CTA sticky -->
+  <div class="item-cta-area">
+    <button class="cta-btn" id="item-cta-btn" style="pointer-events:auto;display:block;width:100%;">Demander à emprunter</button>
+    <p class="item-unavailable" id="item-unavailable" style="display:none;pointer-events:none;">Objet indisponible</p>
+  </div>
+
+</div><!-- /#panel-item -->
+
 </div><!-- /#app -->
 
 <script>
 // ── Items data ────────────────────────────────────────────────
 const ITEMS = [
-  { name: 'Perceuse Bosch',   cat: 'Outils',     who: 'Marc',   no: '14', state: 'available' },
-  { name: 'Échelle 3 m',      cat: 'Outils',     who: 'Sophie', no: '22', state: 'borrowed'  },
-  { name: 'Sorbetière',       cat: 'Cuisine',    who: 'Léa',    no: '8',  state: 'available' },
-  { name: 'Tente 4 places',   cat: 'Camping',    who: 'Karim',  no: '31', state: 'available' },
-  { name: 'Vidéoprojecteur',  cat: 'Multimédia', who: 'Anouk',  no: '5',  state: 'borrowed'  },
+  { name: 'Perceuse Bosch',  cat: 'Outils',     who: 'Marc',   no: '14', state: 'available', co2: '8,2',  desc: 'Légère, idéale pour les petits travaux' },
+  { name: 'Échelle 3 m',     cat: 'Outils',     who: 'Sophie', no: '22', state: 'borrowed',  co2: '10,5', desc: '' },
+  { name: 'Sorbetière',      cat: 'Cuisine',    who: 'Léa',    no: '8',  state: 'available', co2: '6,5',  desc: '' },
+  { name: 'Tente 4 places',  cat: 'Camping',    who: 'Karim',  no: '31', state: 'available', co2: '12,4', desc: 'Tente 3 saisons, légère et facile à monter' },
+  { name: 'Vidéoprojecteur', cat: 'Multimédia', who: 'Anouk',  no: '5',  state: 'borrowed',  co2: '14,0', desc: '' },
 ];
 
 // ── Bar chart ─────────────────────────────────────────────────
@@ -1570,6 +1803,7 @@ ITEMS.forEach(item => {
       ${ok ? '<button class="borrow-btn">Emprunter</button>' : ''}
     </div>
   `;
+  el.addEventListener('click', () => showItem(item));
   list.appendChild(el);
 });
 
@@ -1829,13 +2063,13 @@ function profileAddItem() {
 
 // ── Search ────────────────────────────────────────────────────
 const SEARCH_CORPUS = [
-  { name: 'Perceuse Bosch GSR 12V',    cat: 'Outils',     who: 'Marc',   no: '14', state: 'available', co2: '8,2'  },
-  { name: 'Perceuse-visseuse Makita',  cat: 'Outils',     who: 'Élise',  no: '9',  state: 'borrowed',  co2: '8,2'  },
-  { name: 'Perceuse à colonne',         cat: 'Outils',     who: 'Tom',    no: '27', state: 'available', co2: '12,4' },
-  { name: 'Sorbetière',                 cat: 'Cuisine',    who: 'Léa',    no: '8',  state: 'available', co2: '6,5'  },
-  { name: 'Tente 4 places',             cat: 'Camping',    who: 'Karim',  no: '31', state: 'available', co2: '12,4' },
-  { name: 'Vidéoprojecteur',            cat: 'Multimédia', who: 'Anouk',  no: '5',  state: 'borrowed',  co2: '14,0' },
-  { name: 'Échelle 3 m',               cat: 'Outils',     who: 'Sophie', no: '22', state: 'borrowed',  co2: '10,5' },
+  { name: 'Perceuse Bosch GSR 12V',   cat: 'Outils',     who: 'Marc',   no: '14', state: 'available', co2: '8,2',  desc: 'Légère, idéale pour les petits travaux' },
+  { name: 'Perceuse-visseuse Makita', cat: 'Outils',     who: 'Élise',  no: '9',  state: 'borrowed',  co2: '8,2',  desc: '' },
+  { name: 'Perceuse à colonne',        cat: 'Outils',     who: 'Tom',    no: '27', state: 'available', co2: '12,4', desc: '' },
+  { name: 'Sorbetière',                cat: 'Cuisine',    who: 'Léa',    no: '8',  state: 'available', co2: '6,5',  desc: '' },
+  { name: 'Tente 4 places',            cat: 'Camping',    who: 'Karim',  no: '31', state: 'available', co2: '12,4', desc: 'Tente 3 saisons, légère et facile à monter' },
+  { name: 'Vidéoprojecteur',           cat: 'Multimédia', who: 'Anouk',  no: '5',  state: 'borrowed',  co2: '14,0', desc: '' },
+  { name: 'Échelle 3 m',              cat: 'Outils',     who: 'Sophie', no: '22', state: 'borrowed',  co2: '10,5', desc: '' },
 ];
 
 const _leafSvg = `<svg width="11" height="11" viewBox="0 0 18 18" fill="none" aria-hidden="true">
@@ -1908,6 +2142,7 @@ function onSearchInput(input) {
         </div>
       </div>
     `;
+    el.addEventListener('click', () => showItem(item));
     list.appendChild(el);
   });
 }
@@ -2018,6 +2253,36 @@ function showReturnPopin() {
 
 function closeXPopin() {
   document.getElementById('xpopin').style.display = 'none';
+}
+
+// ── Item fiche (ItemA) ────────────────────────────────────────
+function showItem(item) {
+  const ok = item.state === 'available';
+  const pill = document.getElementById('item-status-pill');
+  const dot  = document.getElementById('item-status-dot');
+  pill.className = 'item-status-pill ' + (ok ? 'available' : 'unavailable');
+  dot.style.background = ok ? 'var(--dot-ok)' : 'var(--dot-away)';
+  document.getElementById('item-status-text').textContent = ok ? 'Disponible' : 'Prêté';
+  document.getElementById('item-title').textContent = item.name;
+  document.getElementById('item-cat').textContent = (item.cat || '') + ' · catégorie ADEME 04';
+  document.getElementById('item-co2-val').textContent = '−' + (item.co2 || '8,2') + ' kg CO₂';
+  const descWrap = document.getElementById('item-desc-wrap');
+  if (item.desc) {
+    document.getElementById('item-desc').textContent = item.desc;
+    descWrap.style.display = 'block';
+  } else {
+    descWrap.style.display = 'none';
+  }
+  document.getElementById('item-owner-avatar').textContent = item.who[0];
+  document.getElementById('item-owner-name').textContent = item.who;
+  document.getElementById('item-owner-meta').textContent = 'n°' + item.no + ' · membre depuis mars';
+  document.getElementById('item-cta-btn').style.display = ok ? 'block' : 'none';
+  document.getElementById('item-unavailable').style.display = ok ? 'none' : 'block';
+  showPanel('panel-item');
+}
+
+function hideItem() {
+  hidePanel('panel-item');
 }
 
 // ── PWA manifest inline ───────────────────────────────────────
