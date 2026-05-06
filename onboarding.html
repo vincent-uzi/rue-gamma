@@ -271,6 +271,7 @@
                  required autocomplete="email"
                  placeholder="marie@email.com"
                  autocapitalize="none" autocorrect="off">
+          <div id="f-email-error" style="display:none;font-size:12px;color:var(--text-muted);margin-top:6px;line-height:16px;"></div>
         </div>
 
       </form>
@@ -303,23 +304,57 @@
 
 </div><!-- /#app -->
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-function trySubmit() {
-  const form = document.getElementById('onb-form');
-  const inputs = form.querySelectorAll('input[required]');
-  let valid = true;
-  inputs.forEach(input => {
-    if (!input.value.trim() || (input.type === 'email' && !input.value.includes('@'))) {
-      if (valid) input.focus();
-      valid = false;
-    }
-  });
-  if (!valid) return;
-  const prenom = document.getElementById('f-prenom').value.trim();
-  document.getElementById('confirm-title').textContent = 'Bienvenue ' + prenom + ' !';
+const SUPABASE_URL      = 'https://optfcepolcjyregdaxpt.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wdGZjZXBvbGNqeXJlZ2RheHB0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5NzE1MjgsImV4cCI6MjA5MzU0NzUyOH0.ZvHOCyd8SQYzh7AQw4PexH742aFvPkeq1JKcLMaQytc'
+const COMMUNITY_ID      = 'ed225eef-e9e0-4cf8-9ae9-aaf687b55c42'
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+async function trySubmit() {
+  const prenom  = document.getElementById('f-prenom').value.trim();
+  const nom     = document.getElementById('f-nom').value.trim();
+  const adresse = document.getElementById('f-adresse').value.trim();
+  const email   = document.getElementById('f-email').value.trim();
+  const emailErr = document.getElementById('f-email-error');
+  emailErr.style.display = 'none';
+
+  const fields = [
+    { el: document.getElementById('f-prenom'),  val: prenom  },
+    { el: document.getElementById('f-nom'),     val: nom     },
+    { el: document.getElementById('f-adresse'), val: adresse },
+    { el: document.getElementById('f-email'),   val: email   },
+  ];
+  for (const { el, val } of fields) {
+    if (!val) { el.focus(); return; }
+  }
+  if (!email.includes('@')) { document.getElementById('f-email').focus(); return; }
+
+  const btn = document.querySelector('.cta-btn');
+  btn.disabled = true;
+  btn.textContent = 'En cours…';
+
+  const { data, error } = await db
+    .from('members')
+    .insert([{ community_id: COMMUNITY_ID, first_name: prenom, last_name: nom, address: adresse, email }])
+    .select();
+
+  btn.disabled = false;
+  btn.textContent = 'Rejoindre la communauté';
+
+  if (error) {
+    const isDuplicate = error.code === '23505'
+      || (error.message || '').toLowerCase().includes('duplicate')
+      || (error.message || '').toLowerCase().includes('unique');
+    emailErr.textContent = isDuplicate ? 'Cet email est déjà utilisé' : 'Une erreur est survenue, réessaie.';
+    emailErr.style.display = 'block';
+    return;
+  }
+
+  if (data?.[0]?.id) localStorage.setItem('member_id', data[0].id);
+  document.getElementById('confirm-title').textContent = 'Bienvenue ' + prenom + ' !';
   document.getElementById('screen-form').style.display = 'none';
-  const confirm = document.getElementById('screen-confirm');
-  confirm.style.display = 'flex';
+  document.getElementById('screen-confirm').style.display = 'flex';
 }
 
 function handleSubmit(e) {

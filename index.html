@@ -1781,8 +1781,15 @@
 
 </div><!-- /#app -->
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// ── Items data ────────────────────────────────────────────────
+// ── Supabase ──────────────────────────────────────────────────
+const SUPABASE_URL      = 'https://optfcepolcjyregdaxpt.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wdGZjZXBvbGNqeXJlZ2RheHB0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5NzE1MjgsImV4cCI6MjA5MzU0NzUyOH0.ZvHOCyd8SQYzh7AQw4PexH742aFvPkeq1JKcLMaQytc'
+const COMMUNITY_ID      = 'ed225eef-e9e0-4cf8-9ae9-aaf687b55c42'
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+// ── Items data (fallback statique) ────────────────────────────
 const ITEMS = [
   { name: 'Perceuse Bosch',  cat: 'Outils',     who: 'Marc',   no: '14', state: 'available', co2: '8,2',  desc: 'Légère, idéale pour les petits travaux' },
   { name: 'Échelle 3 m',     cat: 'Outils',     who: 'Sophie', no: '22', state: 'borrowed',  co2: '10,5', desc: '' },
@@ -1804,12 +1811,11 @@ const ITEMS = [
 function pill(name, no) {
   return `<span class="pill">
     <span class="pill-avatar" aria-hidden="true">${name[0]}</span>
-    <span>${name} · n°${no}</span>
+    <span>${name}${no ? ' · n°' + no : ''}</span>
   </span>`;
 }
 
-const list = document.getElementById('itemsList');
-ITEMS.forEach(item => {
+function renderItemRow(list, item) {
   const ok = item.state === 'available';
   const el = document.createElement('div');
   el.className = 'item-row';
@@ -1819,8 +1825,7 @@ ITEMS.forEach(item => {
       <div class="t-headline item-name">${item.name}</div>
       <div class="item-sub t-footnote">
         <span class="item-cat">${item.cat}</span>
-        <span class="sep" aria-hidden="true">·</span>
-        ${pill(item.who, item.no)}
+        ${item.who ? `<span class="sep" aria-hidden="true">·</span>${pill(item.who, item.no)}` : ''}
       </div>
     </div>
     <div class="item-right">
@@ -1831,7 +1836,39 @@ ITEMS.forEach(item => {
   `;
   el.addEventListener('click', () => showItem(item));
   list.appendChild(el);
-});
+}
+
+async function loadHomeItems() {
+  const list = document.getElementById('itemsList');
+  const { data, error } = await db
+    .from('items')
+    .select('*, owner:members!owner_id(first_name)')
+    .eq('community_id', COMMUNITY_ID)
+    .eq('status', 'available')
+    .order('created_at', { ascending: false })
+    .limit(6);
+
+  if (error || !data?.length) {
+    ITEMS.forEach(item => renderItemRow(list, item));
+    return;
+  }
+
+  list.innerHTML = '';
+  data.forEach(row => {
+    const c = row.co2_saved_kg;
+    renderItemRow(list, {
+      name:  row.name,
+      cat:   row.category  || '',
+      state: row.status,
+      co2:   c != null ? Number(c).toFixed(1).replace('.', ',') : '8,2',
+      desc:  row.description || '',
+      who:   row.owner?.first_name || '',
+      no:    '',
+    });
+  });
+}
+
+loadHomeItems();
 
 // ── Tab bar interaction ───────────────────────────────────────
 document.querySelectorAll('.tab-item').forEach(tab => {
@@ -1882,7 +1919,7 @@ const CAT_MAP = [
   [/aspirateur|karcher|nettoyeur|vapeur/i,                                   ['Électroménager',  11.0]],
 ];
 
-let _catTimer, detectedCo2 = 8.2;
+let _catTimer, detectedCo2 = 8.2, detectedCategory = '';
 
 function _detectCat(name) {
   for (const [re, res] of CAT_MAP) if (re.test(name)) return res;
@@ -1902,6 +1939,7 @@ function onNameInput(input) {
     if (!result) { area.innerHTML = ''; return; }
     const [cat, co2] = result;
     detectedCo2 = co2;
+    detectedCategory = cat;
     area.innerHTML = `<button class="cat-pill" onclick="clearCat()" title="Modifier la catégorie">
       <span class="cat-dot"></span>${cat}
       <svg width="9" height="9" viewBox="0 0 14 14" fill="none" style="opacity:.7">
@@ -1913,6 +1951,7 @@ function onNameInput(input) {
 function clearCat() {
   document.getElementById('catArea').innerHTML = '';
   detectedCo2 = 8.2;
+  detectedCategory = '';
 }
 
 // ── Toggle disponibilité ──────────────────────────────────────
@@ -1937,13 +1976,37 @@ function onPhotoSelected(input) {
 }
 
 // ── Soumission formulaire ─────────────────────────────────────
-function submitForm() {
+async function submitForm() {
   const name = document.getElementById('nameInput').value.trim();
   if (!name) { document.getElementById('nameInput').focus(); return; }
+
+  const ctaBtn = document.querySelector('#panel-add .cta-btn');
+  if (ctaBtn) { ctaBtn.disabled = true; ctaBtn.textContent = 'En cours…'; }
+
+  const { error } = await db
+    .from('items')
+    .insert([{
+      community_id: COMMUNITY_ID,
+      owner_id:     localStorage.getItem('member_id') || undefined,
+      name,
+      description:  document.getElementById('descInput').value.trim() || null,
+      category:     detectedCategory || null,
+      co2_saved_kg: detectedCo2,
+      status:       'available',
+    }]);
+
+  if (ctaBtn) { ctaBtn.disabled = false; ctaBtn.textContent = 'Mettre à disposition'; }
+
+  if (error) {
+    console.error('Erreur ajout objet:', error);
+    return;
+  }
+
   const co2 = detectedCo2.toFixed(1).replace('.', ',');
   document.getElementById('successCo2').textContent = `${co2} kg de CO₂`;
   hidePanel('panel-add');
   setTimeout(() => showPanel('panel-success'), 40);
+  loadHomeItems();
 }
 
 // ── Réinitialisation formulaire ───────────────────────────────
@@ -1961,6 +2024,7 @@ function _resetAddForm() {
   </svg><span class="photo-area-label">Ajouter une photo</span>`;
   document.getElementById('photoInput').value = '';
   detectedCo2 = 8.2;
+  detectedCategory = '';
 }
 
 // ── Écran succès ──────────────────────────────────────────────
@@ -2088,16 +2152,6 @@ function profileAddItem() {
 }
 
 // ── Search ────────────────────────────────────────────────────
-const SEARCH_CORPUS = [
-  { name: 'Perceuse Bosch GSR 12V',   cat: 'Outils',     who: 'Marc',   no: '14', state: 'available', co2: '8,2',  desc: 'Légère, idéale pour les petits travaux' },
-  { name: 'Perceuse-visseuse Makita', cat: 'Outils',     who: 'Élise',  no: '9',  state: 'borrowed',  co2: '8,2',  desc: '' },
-  { name: 'Perceuse à colonne',        cat: 'Outils',     who: 'Tom',    no: '27', state: 'available', co2: '12,4', desc: '' },
-  { name: 'Sorbetière',                cat: 'Cuisine',    who: 'Léa',    no: '8',  state: 'available', co2: '6,5',  desc: '' },
-  { name: 'Tente 4 places',            cat: 'Camping',    who: 'Karim',  no: '31', state: 'available', co2: '12,4', desc: 'Tente 3 saisons, légère et facile à monter' },
-  { name: 'Vidéoprojecteur',           cat: 'Multimédia', who: 'Anouk',  no: '5',  state: 'borrowed',  co2: '14,0', desc: '' },
-  { name: 'Échelle 3 m',              cat: 'Outils',     who: 'Sophie', no: '22', state: 'borrowed',  co2: '10,5', desc: '' },
-];
-
 const _leafSvg = `<svg width="11" height="11" viewBox="0 0 18 18" fill="none" aria-hidden="true">
   <path d="M15 2.5C9 2.5 3 6 3 12c0 1.5.5 2.8 1.3 3.7C5.2 16.6 6.7 15.5 8 14c2.5-3 5-5 7-7-1 4-3.5 7-6 9"
         stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -2117,6 +2171,7 @@ function _resetSearch() {
   document.getElementById('search-suggestions').style.display = 'block';
   document.getElementById('search-results').style.display = 'none';
   document.getElementById('search-results-list').innerHTML = '';
+  clearTimeout(_searchTimer);
 }
 
 function pickSuggestion(text) {
@@ -2126,29 +2181,57 @@ function pickSuggestion(text) {
   input.focus();
 }
 
+let _searchTimer;
 function onSearchInput(input) {
-  const q = input.value.trim().toLowerCase();
+  const q = input.value.trim();
   const sugg = document.getElementById('search-suggestions');
   const res  = document.getElementById('search-results');
   if (!q) {
     sugg.style.display = 'block';
     res.style.display  = 'none';
+    clearTimeout(_searchTimer);
     return;
   }
   sugg.style.display = 'none';
   res.style.display  = 'block';
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(() => _doSearch(q), 300);
+}
 
-  const matches = SEARCH_CORPUS.filter(item =>
-    item.name.toLowerCase().includes(q) || item.cat.toLowerCase().includes(q)
-  );
-  const n = matches.length;
-  document.getElementById('search-count').textContent =
-    n + ' résultat' + (n !== 1 ? 's' : '');
-
-  const list = document.getElementById('search-results-list');
+async function _doSearch(q) {
+  const countEl = document.getElementById('search-count');
+  const list    = document.getElementById('search-results-list');
+  countEl.textContent = 'Recherche…';
   list.innerHTML = '';
-  matches.forEach(item => {
-    const ok = item.state === 'available';
+
+  const { data, error } = await db
+    .from('items')
+    .select('*, owner:members!owner_id(first_name)')
+    .eq('community_id', COMMUNITY_ID)
+    .ilike('name', `%${q}%`)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    countEl.textContent = 'Erreur de chargement';
+    return;
+  }
+
+  const matches = data || [];
+  const n = matches.length;
+  countEl.textContent = n + ' résultat' + (n !== 1 ? 's' : '');
+
+  matches.forEach(row => {
+    const ok = row.status === 'available';
+    const c  = row.co2_saved_kg;
+    const item = {
+      name:  row.name,
+      cat:   row.category || '',
+      state: row.status,
+      co2:   c != null ? Number(c).toFixed(1).replace('.', ',') : '8,2',
+      desc:  row.description || '',
+      who:   row.owner?.first_name || '',
+      no:    '',
+    };
     const el = document.createElement('div');
     el.className = 'search-result';
     el.innerHTML = `
@@ -2156,12 +2239,12 @@ function onSearchInput(input) {
         <div class="search-result-name">${item.name}</div>
         <div class="search-result-sub">
           <span>${item.cat}</span>
-          <span aria-hidden="true">·</span>
-          ${pill(item.who, item.no)}
+          ${item.cat && item.who ? '<span aria-hidden="true">·</span>' : ''}
+          ${item.who ? pill(item.who, item.no) : ''}
         </div>
       </div>
       <div class="search-result-right">
-        <span class="co2-badge">${_leafSvg}−${item.co2} kg</span>
+        <span class="co2-badge">${_leafSvg}−${item.co2} kg</span>
         <div class="search-status-row">
           <div class="status-dot" style="background:${ok ? 'var(--dot-ok)' : 'var(--dot-away)'};" aria-hidden="true"></div>
           ${ok ? '<button class="borrow-btn">Emprunter</button>' : ''}
@@ -2172,7 +2255,6 @@ function onSearchInput(input) {
     list.appendChild(el);
   });
 }
-
 // ── Exchanges data ────────────────────────────────────────────
 const EXCHANGES_DATA = {
   requests: [
