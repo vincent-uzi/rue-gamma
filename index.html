@@ -337,17 +337,17 @@
       position: absolute;
       top: -4px;
       right: -6px;
-      background: #FF3B30;
+      background: #EF4444;
       color: #fff;
       border-radius: 9999px;
-      min-width: 15px;
-      height: 15px;
+      min-width: 18px;
+      height: 18px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 9px;
+      font-size: 10px;
       font-weight: 700;
-      padding: 0 3px;
+      padding: 0 4px;
       line-height: 1;
     }
 
@@ -1538,6 +1538,31 @@
     #confetti-canvas {
       position:fixed; inset:0; z-index:600; pointer-events:none;
     }
+
+    /* ── fadeInUp animation ──────────────────────────────────── */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Toast types ─────────────────────────────────────────── */
+    #toast.toast-success { background: #1F9D55; }
+    #toast.toast-error   { background: #EF4444; }
+
+    /* ── Decline confirm popin ───────────────────────────────── */
+    #decline-backdrop {
+      display:none; position:fixed; inset:0;
+      background:rgba(0,0,0,0.4); z-index:490; opacity:0; transition:opacity 300ms;
+    }
+    #decline-popin {
+      display:none; position:fixed; bottom:0; left:50%;
+      width:min(430px,100%); background:var(--surface);
+      border-radius:20px 20px 0 0; padding:0 0 max(20px,env(safe-area-inset-bottom,0px));
+      z-index:500; transform:translateX(-50%) translateY(100%);
+      transition:transform 300ms cubic-bezier(0.32,0.72,0,1);
+      box-shadow:0 -4px 40px rgba(0,0,0,0.15);
+    }
+    #decline-popin.open { transform:translateX(-50%) translateY(0); }
   </style>
 </head>
 <body>
@@ -1630,7 +1655,7 @@
           <path d="M2 6h12M11 3l3 3-3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M16 12H4M7 9l-3 3 3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        <span class="tab-badge">2</span>
+        <span class="tab-badge" id="tab-badge-exchanges">2</span>
       </div>
       <span class="tab-label">Transactions</span>
     </div>
@@ -2136,6 +2161,7 @@
     <canvas id="qr-code-canvas" width="200" height="200"></canvas>
     <div class="qr-display-timer" id="qr-timer">Code valable <span id="qr-countdown">5:00</span></div>
     <button class="qr-display-close" onclick="hideQRDisplay()">Fermer</button>
+    <button id="qr-simulate-btn" style="display:none;width:100%;margin-top:8px;padding:12px;border-radius:14px;border:1px dashed #EF4444;background:transparent;font-family:var(--font);font-size:13px;color:#EF4444;cursor:pointer;" onclick="simulateScan()">⚙ Simuler scan (debug)</button>
   </div>
 </div>
 
@@ -2161,6 +2187,19 @@
 </div>
 
 <canvas id="confetti-canvas" style="display:none;"></canvas>
+
+<div id="decline-backdrop" onclick="hideDeclineConfirm()"></div>
+<div id="decline-popin">
+  <div class="qr-choice-handle"></div>
+  <div class="qr-choice-content">
+    <div class="qr-choice-title">Décliner la demande ?</div>
+    <div class="qr-choice-sub"><span id="decline-borrower-name">Votre voisin</span> ne pourra pas emprunter <strong id="decline-item-name"></strong>.</div>
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <button class="qr-manual-cancel" onclick="hideDeclineConfirm()">Annuler</button>
+      <button class="qr-manual-confirm" style="background:#EF4444;" onclick="confirmDecline()">Décliner</button>
+    </div>
+  </div>
+</div>
 
 
 </div><!-- /#app -->
@@ -2384,6 +2423,7 @@ async function signOut() {
     return;
   }
   document.getElementById('app').style.visibility = '';
+  initTransactionsState();
   loadMember();
   loadCommunity();
   loadHomeItems();
@@ -2979,6 +3019,180 @@ const TRANSACTIONS_ARCHIVED = [
   { name: 'Robot cuisine',                           from: 'Léa',    to: 'Vous',        co2: '11,3', status: 'Restitué' },
 ];
 
+// ── Global transactions state ────────────────────────────────
+let _pendingDeclineId = null;
+window._unreadTransactions = 0;
+window._qrPolling = null;
+
+function initTransactionsState() {
+  window._transactionsState = {
+    active: TRANSACTIONS_ACTIVE.map(tx => ({ ...tx, _extraSteps: [] })),
+    archived: TRANSACTIONS_ARCHIVED.map(tx => ({ ...tx, _extraSteps: [] })),
+    currentThread: null,
+  };
+  const actionCount = window._transactionsState.active.filter(
+    t => t.from === 'Vous' && t.status === 'En attente de validation'
+  ).length;
+  updateTransactionsBadge(actionCount);
+  // Show debug button if ?debug=1 in URL
+  if (new URLSearchParams(window.location.search).has('debug')) {
+    const btn = document.getElementById('qr-simulate-btn');
+    if (btn) btn.style.display = 'block';
+  }
+}
+
+function _findTx(loanId) {
+  const s = window._transactionsState;
+  if (!s) return null;
+  return s.active.find(t => t.id === loanId) || s.archived.find(t => t.id === loanId) || null;
+}
+
+async function updateTransactionStatus(loanId, newStatus) {
+  const s = window._transactionsState;
+  if (!s) return;
+  const idx = s.active.findIndex(t => t.id === loanId);
+  if (idx !== -1) {
+    s.active[idx].status = newStatus;
+    // Move to archived if terminal
+    if (newStatus === 'Restitué' || newStatus === 'Décliné') {
+      const tx = s.active.splice(idx, 1)[0];
+      s.archived.unshift(tx);
+    }
+  } else {
+    const aIdx = s.archived.findIndex(t => t.id === loanId);
+    if (aIdx !== -1) s.archived[aIdx].status = newStatus;
+  }
+  // Supabase TODO
+  console.log('[tx] updateTransactionStatus', loanId, newStatus);
+  // Refresh list if visible
+  const panel = document.getElementById('panel-exchanges');
+  if (panel && panel.style.display !== 'none') renderExchanges();
+  // Update badge
+  const count = s.active.filter(t => t.from === 'Vous' && t.status === 'En attente de validation').length;
+  updateTransactionsBadge(count);
+}
+
+function addThreadStep(loanId, stepData) {
+  const tx = _findTx(loanId);
+  if (!tx) return;
+  if (!tx._extraSteps) tx._extraSteps = [];
+  tx._extraSteps.push(stepData);
+
+  const s = window._transactionsState;
+  if (s && s.currentThread === loanId) {
+    const timeline = document.getElementById('thread-timeline');
+    if (timeline) {
+      // Promote current → done visually
+      timeline.querySelectorAll('.step-dot.current').forEach(d => { d.className = 'step-dot done'; });
+      const el = _buildStepEl(stepData, true);
+      timeline.appendChild(el);
+      setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+    }
+  }
+}
+
+function updateTransactionsBadge(count) {
+  window._unreadTransactions = count;
+  const badge = document.getElementById('tab-badge-exchanges');
+  if (!badge) return;
+  badge.textContent = count;
+  badge.style.display = count > 0 ? 'flex' : 'none';
+}
+
+// ── QR polling ─────────────────────────────────────────────────
+function startQRPolling(loanId, action) {
+  stopQRPolling();
+  let prevStatus = _findTx(loanId) ? _findTx(loanId).status : '';
+  window._qrPolling = setInterval(() => {
+    const tx = _findTx(loanId);
+    if (!tx) { stopQRPolling(); return; }
+    if (tx.status !== prevStatus) {
+      stopQRPolling();
+      showConfetti();
+      showToast(action === 'hand' ? '✓ Remise validée' : '✓ Retour validé', 'success');
+    }
+    prevStatus = tx.status;
+  }, 5000);
+}
+
+function stopQRPolling() {
+  if (window._qrPolling) {
+    clearInterval(window._qrPolling);
+    window._qrPolling = null;
+  }
+}
+
+// ── Accept / Decline ──────────────────────────────────────────
+async function acceptRequest(loanId) {
+  const tx = _findTx(loanId);
+  if (!tx) return;
+  await updateTransactionStatus(loanId, 'Prêté');
+  addThreadStep(loanId, {
+    type: 'current',
+    label: "Vous avez accepté la demande",
+    time: "À l'instant",
+    actions: [{ label: 'Contactez ' + tx.to, fn: () => showContactPopin(), primary: true, icon: 'phone' }],
+  });
+  showToast('✓ Demande acceptée', 'success');
+}
+
+function showDeclineConfirm(loanId) {
+  _pendingDeclineId = loanId;
+  const tx = _findTx(loanId);
+  document.getElementById('decline-item-name').textContent     = tx ? tx.name : '';
+  document.getElementById('decline-borrower-name').textContent = tx ? tx.to : 'votre voisin';
+  const backdrop = document.getElementById('decline-backdrop');
+  const popin    = document.getElementById('decline-popin');
+  backdrop.style.display = 'block';
+  popin.style.display    = 'block';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    popin.classList.add('open');
+    backdrop.style.opacity = '1';
+  }));
+}
+
+function hideDeclineConfirm() {
+  const backdrop = document.getElementById('decline-backdrop');
+  const popin    = document.getElementById('decline-popin');
+  popin.classList.remove('open');
+  backdrop.style.opacity = '0';
+  setTimeout(() => {
+    popin.style.display    = 'none';
+    backdrop.style.display = 'none';
+    _pendingDeclineId = null;
+  }, 300);
+}
+
+async function confirmDecline() {
+  const loanId = _pendingDeclineId;
+  if (!loanId) return;
+  hideDeclineConfirm();
+  await updateTransactionStatus(loanId, 'Décliné');
+  showToast('Demande déclinée', 'error');
+  setTimeout(() => hideThread(), 350);
+}
+
+// ── Simulate scan (debug only) ────────────────────────────────
+function simulateScan() {
+  const loanId = _qrId;
+  const action = _qrAction;
+  hideQRDisplay();
+  setTimeout(() => {
+    const newStatus = action === 'hand' ? 'Emprunté' : 'Restitué';
+    if (loanId) {
+      updateTransactionStatus(loanId, newStatus);
+      addThreadStep(loanId, {
+        type: 'done',
+        label: action === 'hand' ? 'Objet remis (simulé)' : 'Objet restitué (simulé)',
+        time: "À l'instant",
+        actions: [],
+      });
+    }
+    showConfetti();
+    showToast(action === 'hand' ? '✓ Remise validée' : '✓ Retour validé', 'success');
+  }, 350);
+}
+
 // ── Render transactions ───────────────────────────────────────
 function _txStatusBadge(status) {
   const s = {
@@ -3021,11 +3235,14 @@ function _txCard(tx) {
 function renderExchanges() {
   const list = document.getElementById('requests-list');
   list.innerHTML = '';
+  const s = window._transactionsState;
+  const activeList   = s ? s.active   : TRANSACTIONS_ACTIVE;
+  const archivedList = s ? s.archived : TRANSACTIONS_ARCHIVED;
 
   // Transactions actives
   const activeGroup = document.createElement('div');
   activeGroup.style.cssText = 'display:flex;flex-direction:column;gap:12px;';
-  TRANSACTIONS_ACTIVE.forEach(tx => activeGroup.appendChild(_txCard(tx)));
+  activeList.forEach(tx => activeGroup.appendChild(_txCard(tx)));
   list.appendChild(activeGroup);
 
   // Séparateur Archivées
@@ -3038,7 +3255,7 @@ function renderExchanges() {
   // 5 archivées par défaut
   const archivedGroup = document.createElement('div');
   archivedGroup.style.cssText = 'display:flex;flex-direction:column;gap:12px;';
-  TRANSACTIONS_ARCHIVED.slice(0, 5).forEach(tx => archivedGroup.appendChild(_txCard(tx)));
+  archivedList.slice(0, 5).forEach(tx => archivedGroup.appendChild(_txCard(tx)));
   list.appendChild(archivedGroup);
 
   // Afficher plus
@@ -3076,8 +3293,8 @@ const THREAD_SCENARIOS = {
     steps: [
       { type: 'current', label: 'Marie souhaite emprunter',      time: 'Il y a 30 min',
         actions: [
-          { label: 'Décliner', fn: () => console.log('Décliner'), primary: false },
-          { label: 'Accepter', fn: () => console.log('Accepter'), primary: true  },
+          { label: 'Décliner', fn: () => showDeclineConfirm('echelle-telescopique'), primary: false },
+          { label: 'Accepter', fn: () => acceptRequest('echelle-telescopique'), primary: true  },
         ] },
       { type: 'pending', label: 'En attente de votre réponse',   time: '' },
     ],
@@ -3096,56 +3313,66 @@ const THREAD_SCENARIOS = {
   },
 };
 // ── Thread panel ──────────────────────────────────────────────
+function _buildStepEl(step, animate) {
+  const stepEl = document.createElement('div');
+  stepEl.className = 'thread-step';
+  if (animate) stepEl.style.animation = 'fadeInUp 400ms ease-out both';
+
+  const dot = document.createElement('div');
+  dot.className = 'step-dot ' + step.type;
+  stepEl.appendChild(dot);
+
+  const label = document.createElement('div');
+  label.className = 'step-label';
+  label.style.color = step.type === 'pending' ? 'var(--text-muted)' : 'var(--text)';
+  label.textContent = step.label;
+  stepEl.appendChild(label);
+
+  if (step.time) {
+    const timeEl = document.createElement('div');
+    timeEl.className = 'step-time';
+    timeEl.textContent = step.time;
+    stepEl.appendChild(timeEl);
+  }
+
+  if (step.actions && step.actions.length) {
+    const actionsEl = document.createElement('div');
+    actionsEl.className = 'step-actions';
+    step.actions.forEach(action => {
+      const btn = document.createElement('button');
+      btn.className = 'step-btn ' + (action.primary ? 'step-btn-primary' : 'step-btn-secondary');
+      if (action.icon === 'phone') {
+        btn.innerHTML = _phoneSvg + action.label;
+      } else {
+        btn.textContent = action.label;
+      }
+      btn.addEventListener('click', action.fn);
+      actionsEl.appendChild(btn);
+    });
+    stepEl.appendChild(actionsEl);
+  }
+
+  return stepEl;
+}
+
 function showThread(id) {
   const scenario = THREAD_SCENARIOS[id];
   if (!scenario) return;
+
+  if (window._transactionsState) window._transactionsState.currentThread = id;
 
   document.getElementById('thread-title').textContent = scenario.name;
   document.getElementById('thread-meta').textContent  = scenario.meta;
 
   const timeline = document.getElementById('thread-timeline');
   timeline.innerHTML = '';
+  scenario.steps.forEach(step => timeline.appendChild(_buildStepEl(step, false)));
 
-  scenario.steps.forEach(step => {
-    const stepEl = document.createElement('div');
-    stepEl.className = 'thread-step';
-
-    const dot = document.createElement('div');
-    dot.className = 'step-dot ' + step.type;
-    stepEl.appendChild(dot);
-
-    const label = document.createElement('div');
-    label.className = 'step-label';
-    label.style.color = step.type === 'pending' ? 'var(--text-muted)' : 'var(--text)';
-    label.textContent = step.label;
-    stepEl.appendChild(label);
-
-    if (step.time) {
-      const timeEl = document.createElement('div');
-      timeEl.className = 'step-time';
-      timeEl.textContent = step.time;
-      stepEl.appendChild(timeEl);
-    }
-
-    if (step.actions?.length) {
-      const actionsEl = document.createElement('div');
-      actionsEl.className = 'step-actions';
-      step.actions.forEach(action => {
-        const btn = document.createElement('button');
-        btn.className = 'step-btn ' + (action.primary ? 'step-btn-primary' : 'step-btn-secondary');
-        if (action.icon === 'phone') {
-          btn.innerHTML = _phoneSvg + action.label;
-        } else {
-          btn.textContent = action.label;
-        }
-        btn.addEventListener('click', action.fn);
-        actionsEl.appendChild(btn);
-      });
-      stepEl.appendChild(actionsEl);
-    }
-
-    timeline.appendChild(stepEl);
-  });
+  // Append extra steps added during this session
+  const tx = window._transactionsState ? _findTx(id) : null;
+  if (tx && tx._extraSteps) {
+    tx._extraSteps.forEach(step => timeline.appendChild(_buildStepEl(step, false)));
+  }
 
   const panel    = document.getElementById('thread-panel');
   const backdrop = document.getElementById('thread-backdrop');
@@ -3158,6 +3385,7 @@ function showThread(id) {
 }
 
 function hideThread() {
+  if (window._transactionsState) window._transactionsState.currentThread = null;
   const panel    = document.getElementById('thread-panel');
   const backdrop = document.getElementById('thread-backdrop');
   panel.classList.remove('open');
@@ -3327,10 +3555,12 @@ function showQRDisplay() {
     popin.classList.add('open');
     backdrop.style.opacity = '1';
   }));
+  if (loanId) startQRPolling(loanId, action);
 }
 
 function hideQRDisplay() {
   clearInterval(_qrCountdownTimer);
+  stopQRPolling();
   const backdrop = document.getElementById('qr-display-backdrop');
   const popin    = document.getElementById('qr-display-popin');
   popin.classList.remove('open');
@@ -3342,14 +3572,24 @@ function hideQRDisplay() {
 }
 
 function validateQR(qrData) {
-  // qrData format: kolkoze:{action}:{loanId}:{timestamp}
   const parts = qrData.split(':');
   if (parts.length < 3 || parts[0] !== 'kolkoze') {
-    showToast('QR code invalide');
+    showToast('QR code invalide', 'error');
     return;
   }
+  const action = parts[1]; // 'hand' or 'return'
+  const loanId = parts[2];
+  const newStatus = action === 'hand' ? 'Emprunté' : 'Restitué';
+  stopQRPolling();
+  updateTransactionStatus(loanId, newStatus);
+  addThreadStep(loanId, {
+    type: 'done',
+    label: action === 'hand' ? 'Objet remis' : 'Objet restitué',
+    time: "À l'instant",
+    actions: [],
+  });
   showConfetti();
-  showToast('Échange validé ! Merci 🌱');
+  showToast(action === 'hand' ? '✓ Remise validée' : '✓ Retour validé', 'success');
 }
 
 function showConfetti() {
@@ -3416,10 +3656,21 @@ function hideManualValidation() {
 }
 
 function confirmManualValidation() {
+  const loanId = _qrId;
+  const action = _qrAction;
   hideManualValidation();
   setTimeout(() => {
-    showConfetti();
-    showToast('Échange validé ! Merci 🌱');
+    const newStatus = action === 'hand' ? 'Emprunté' : 'Restitué';
+    if (loanId) {
+      updateTransactionStatus(loanId, newStatus);
+      addThreadStep(loanId, {
+        type: 'done',
+        label: action === 'hand' ? 'Objet remis (validation manuelle)' : 'Objet restitué (validation manuelle)',
+        time: "À l'instant",
+        actions: [],
+      });
+    }
+    showToast(action === 'hand' ? '✓ Remise validée' : '✓ Retour validé', 'success');
   }, 350);
 }
 
@@ -3451,12 +3702,17 @@ async function shareKolkoze() {
 }
 
 let _toastTimer;
-function showToast(msg) {
+function showToast(msg, type) {
   const el = document.getElementById('toast');
   el.textContent = msg;
+  el.classList.remove('toast-success', 'toast-error');
+  if (type === 'success') el.classList.add('toast-success');
+  if (type === 'error')   el.classList.add('toast-error');
   el.classList.add('show');
   clearTimeout(_toastTimer);
-  _toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+  _toastTimer = setTimeout(() => {
+    el.classList.remove('show', 'toast-success', 'toast-error');
+  }, 3000);
 }
 
 // ── Item fiche (ItemA) ────────────────────────────────────────
