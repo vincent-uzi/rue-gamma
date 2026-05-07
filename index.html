@@ -1858,7 +1858,10 @@ function renderItemRow(list, item) {
   el.innerHTML = `
     <div class="item-left">
       <div class="t-headline item-name" style="color:${nameColor};margin-bottom:4px;">${item.name}</div>
-      ${item.who ? `<span style="opacity:${pillOp};">${pill(item.who, item.no)}</span>` : ''}
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        ${item.who ? `<span style="opacity:${pillOp};">${pill(item.who, item.no)}</span>` : ''}
+        <span class="co2-badge" style="opacity:${pillOp};">${_leafSvg}−${item.co2} kg</span>
+      </div>
     </div>
     <svg width="7" height="12" viewBox="0 0 8 14" fill="none" aria-hidden="true" style="flex-shrink:0;color:var(--text-dim);">
       <path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -2451,7 +2454,10 @@ function renderObjects(items) {
       el.innerHTML = `
         <div style="flex:1;min-width:0;margin-right:12px;">
           <div class="t-headline" style="color:${nColor};margin-bottom:4px;">${item.name}</div>
-          ${item.who ? `<span style="opacity:${ok ? 1 : 0.45};">${pill(item.who, item.no)}</span>` : ''}
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+            ${item.who ? `<span style="opacity:${ok ? 1 : 0.45};">${pill(item.who, item.no)}</span>` : ''}
+            <span class="co2-badge" style="opacity:${ok ? 1 : 0.45};">${_leafSvg}−${item.co2} kg</span>
+          </div>
         </div>
         <svg width="7" height="12" viewBox="0 0 8 14" fill="none" aria-hidden="true" style="flex-shrink:0;color:var(--text-dim);">
           <path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -2580,17 +2586,15 @@ async function _doSearch(q) {
     el.className = 'search-result';
     el.innerHTML = `
       <div class="search-result-left">
-        <div class="search-result-name">${item.name}</div>
-        <div class="search-result-sub">
-          <span>${item.cat}</span>
-          ${item.cat && item.who ? '<span aria-hidden="true">·</span>' : ''}
+        <div class="search-result-name" style="color:${ok ? 'var(--text)' : 'var(--text-dim)'}">${item.name}</div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px;opacity:${ok ? 1 : 0.45};">
           ${item.who ? pill(item.who, item.no) : ''}
+          <span class="co2-badge">${_leafSvg}−${item.co2} kg</span>
         </div>
       </div>
-      <div class="search-result-right">
-        <span class="co2-badge">${_leafSvg}−${item.co2} kg</span>
-        <button class="obj-cta-btn" style="background:${ok ? 'var(--accent)' : 'var(--surface-alt)'};color:${ok ? 'var(--accent-ink)' : 'var(--text-dim)'};" onclick="event.stopPropagation()">Emprunter</button>
-      </div>
+      <svg width="7" height="12" viewBox="0 0 8 14" fill="none" aria-hidden="true" style="flex-shrink:0;color:var(--text-dim);">
+        <path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
     `;
     el.addEventListener('click', () => showItem(item));
     list.appendChild(el);
