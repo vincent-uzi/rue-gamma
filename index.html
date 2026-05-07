@@ -2603,8 +2603,8 @@ async function _doSearch(q) {
 // ── Exchanges data ────────────────────────────────────────────
 const EXCHANGES_DATA = {
   requests: [
-    { who: 'Marie', no: '7',  item: 'Perceuse Bosch' },
-    { who: 'Théo',  no: '3',  item: 'Sorbetière' },
+    { who: 'Marie', fullName: 'Marie Dupont', no: '7', item: 'Perceuse Bosch', owner: 'Marc', co2: '8,2 kg' },
+    { who: 'Théo',  fullName: 'Théo Lebrun',  no: '3', item: 'Sorbetière',     owner: 'Léa',  co2: '5,1 kg' },
   ],
   handovers: [
     { item: 'Tente 4 places', who: 'Karim', no: '31' },
@@ -2622,30 +2622,43 @@ function renderExchanges() {
   // Demandes reçues
   const rList = document.getElementById('requests-list');
   rList.innerHTML = '';
-  const rCard = document.createElement('div');
-  rCard.style.cssText = cardStyle;
   EXCHANGES_DATA.requests.forEach(r => {
-    const el = document.createElement('div');
-    el.className = 'xg-item';
-    el.innerHTML = `
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
-        ${pill(r.who, r.no)}<span class="t-footnote" style="color:var(--text-muted);">veut emprunter</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:12px;">
-        <div style="flex:1;min-width:0;">
-          <div class="t-headline" style="color:var(--text);margin-bottom:4px;">${r.item}</div>
-          ${pill(owner, '')}
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'margin-bottom:20px;';
+
+    const title = document.createElement('p');
+    title.className = 't-callout';
+    title.style.cssText = 'color:var(--text-muted);margin-bottom:12px;';
+    title.textContent = r.fullName + ' souhaite emprunter';
+    wrap.appendChild(title);
+
+    const card = document.createElement('div');
+    card.style.cssText = 'background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;align-items:center;cursor:pointer;';
+    card.innerHTML = `
+      <div style="flex:1;min-width:0;margin-right:12px;">
+        <div class="t-headline" style="color:var(--text);margin-bottom:4px;">${r.item}</div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          ${r.owner ? pill(r.owner, '') : ''}
+          <span class="co2-badge">${_leafSvg}−${r.co2}</span>
         </div>
-        <button class="obj-cta-btn" style="background:var(--accent);color:var(--accent-ink);">Accepter</button>
       </div>
-      <div style="margin-top:10px;text-align:right;">
-        <button style="background:none;border:none;font-family:var(--font);font-size:12px;color:var(--text-muted);cursor:pointer;padding:0;-webkit-appearance:none;">Décliner</button>
-      </div>
+      <svg width="7" height="12" viewBox="0 0 8 14" fill="none" aria-hidden="true" style="flex-shrink:0;color:var(--text-dim);">
+        <path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
     `;
-    el.querySelector('.obj-cta-btn').onclick = () => showAcceptPopin(r.who);
-    rCard.appendChild(el);
+    card.addEventListener('click', () => showItem({ name: r.item, state: 'available', who: r.owner, no: '', co2: r.co2.replace(' kg',''), cat: '', desc: '' }));
+    wrap.appendChild(card);
+
+    const actions = document.createElement('div');
+    actions.style.cssText = 'margin-top:12px;display:flex;gap:12px;';
+    actions.innerHTML = `
+      <button style="flex:1;background:var(--surface-alt);color:var(--text);padding:12px 20px;border-radius:12px;border:none;font-family:var(--font);font-size:15px;font-weight:600;cursor:pointer;-webkit-appearance:none;" onclick="console.log('Décliner')">Décliner</button>
+      <button style="flex:1;background:var(--accent);color:var(--accent-ink);padding:12px 20px;border-radius:12px;border:none;font-family:var(--font);font-size:15px;font-weight:600;cursor:pointer;-webkit-appearance:none;" onclick="console.log('Accepter')">Accepter</button>
+    `;
+    wrap.appendChild(actions);
+
+    rList.appendChild(wrap);
   });
-  rList.appendChild(rCard);
 
   // Remises en attente (À rendre)
   const hList = document.getElementById('handovers-list');
