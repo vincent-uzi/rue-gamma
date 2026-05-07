@@ -2569,103 +2569,79 @@ async function _doSearch(q) {
     list.appendChild(el);
   });
 }
-// ── Exchanges data ────────────────────────────────────────────
-const EXCHANGES_DATA = {
-  requests: [
-    { who: 'Marie', fullName: 'Marie Dupont', no: '7', item: 'Perceuse Bosch', owner: 'Marc', co2: '8,2 kg' },
-    { who: 'Théo',  fullName: 'Théo Lebrun',  no: '3', item: 'Sorbetière',     owner: 'Léa',  co2: '5,1 kg' },
-  ],
-};
+// ── Transactions data ───────────────────────────────────────
+const TRANSACTIONS_ACTIVE = [
+  { name: 'Perceuse Bosch',       from: 'Sophie', to: 'Vous',        co2: '8,2',  status: 'Emprunté' },
+  { name: 'Échelle télescopique', from: 'Vous',   to: 'Marie',       co2: '12,5', status: 'En attente de validation' },
+];
 
-// ── Render exchanges ──────────────────────────────────────────
-function renderExchanges() {
-  const rList = document.getElementById('requests-list');
-  rList.innerHTML = '';
-  EXCHANGES_DATA.requests.forEach(r => {
-    const wrap = document.createElement('div');
-    wrap.style.cssText = 'margin-bottom:20px;';
+const TRANSACTIONS_ARCHIVED = [
+  { name: 'Tente 4 places',       from: 'Karim',  to: 'Vous',        co2: '18,2', status: 'Restitué' },
+  { name: 'Tondeuse',             from: 'Vous',   to: 'Jean-Pierre', co2: '15,8', status: 'Restitué' },
+  { name: 'Sorbetière',              from: 'Marie',  to: 'Vous',        co2: '6,5',  status: 'Restitué' },
+  { name: 'Ponceuse',             from: 'Vous',   to: 'Théo',         co2: '9,1',  status: 'Décliné' },
+  { name: 'Tapis de yoga',        from: 'Sophie', to: 'Vous',        co2: '4,2',  status: 'Restitué' },
+  { name: 'Vélo de ville',          from: 'Vous',   to: 'Karim',       co2: '22,0', status: 'Restitué' },
+  { name: 'Robot cuisine',        from: 'Léa',    to: 'Vous',        co2: '11,3', status: 'Restitué' },
+];
 
-    const title = document.createElement('p');
-    title.className = 't-callout';
-    title.style.cssText = 'color:var(--text-muted);margin-bottom:12px;';
-    title.textContent = r.fullName + ' souhaite emprunter';
-    wrap.appendChild(title);
-
-    const card = document.createElement('div');
-    card.style.cssText = 'background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;align-items:center;cursor:pointer;';
-    card.innerHTML = `
-      <div style="flex:1;min-width:0;margin-right:12px;">
-        <div class="t-headline" style="color:var(--text);margin-bottom:4px;">${r.item}</div>
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-          ${r.owner ? pill(r.owner, '') : ''}
-          <span class="co2-badge">${_leafSvg}−${r.co2}</span>
-        </div>
-      </div>
-      <svg width="7" height="12" viewBox="0 0 8 14" fill="none" aria-hidden="true" style="flex-shrink:0;color:var(--text-dim);">
-        <path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    `;
-    card.addEventListener('click', () => showItem({ name: r.item, state: 'available', who: r.owner, no: '', co2: r.co2.replace(' kg',''), cat: '', desc: '' }));
-    wrap.appendChild(card);
-
-    const actions = document.createElement('div');
-    actions.style.cssText = 'margin-top:12px;display:flex;justify-content:flex-end;gap:12px;';
-    actions.innerHTML = `
-      <button style="background:var(--surface-alt);color:var(--text);padding:12px 24px;border-radius:12px;border:none;font-family:var(--font);font-size:15px;font-weight:600;cursor:pointer;-webkit-appearance:none;" onclick="console.log('Décliner')">Décliner</button>
-      <button style="background:var(--accent);color:var(--accent-ink);padding:12px 24px;border-radius:12px;border:none;font-family:var(--font);font-size:15px;font-weight:600;cursor:pointer;-webkit-appearance:none;" onclick="console.log('Accepter')">Accepter</button>
-    `;
-    wrap.appendChild(actions);
-
-    rList.appendChild(wrap);
-  });
-
-  // Demande acceptée (statique)
-  const acceptedWrap = document.createElement('div');
-  acceptedWrap.style.cssText = 'margin-bottom:20px;';
-
-  const acceptedTitle = document.createElement('p');
-  acceptedTitle.className = 't-callout';
-  acceptedTitle.style.cssText = 'color:var(--text-muted);margin-bottom:12px;';
-  acceptedTitle.textContent = 'Sophie Martin accepte de vous prêter';
-  acceptedWrap.appendChild(acceptedTitle);
-
-  const acceptedCard = document.createElement('div');
-  acceptedCard.style.cssText = 'background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;align-items:center;cursor:pointer;';
-  acceptedCard.innerHTML = `
+// ── Render transactions ───────────────────────────────────────
+function _txCard(tx) {
+  const el = document.createElement('div');
+  el.style.cssText = 'background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;align-items:center;cursor:pointer;';
+  el.innerHTML = `
     <div style="flex:1;min-width:0;margin-right:12px;">
-      <div class="t-headline" style="color:var(--text);margin-bottom:4px;">Perceuse Bosch</div>
-      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-        ${pill('Sophie', '')}
-        <span class="co2-badge">${_leafSvg}−8,2 kg</span>
+      <div class="t-headline" style="color:var(--text);margin-bottom:4px;">${tx.name}</div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;">
+        <span class="t-footnote" style="color:var(--text-muted);">${tx.from} → ${tx.to}</span>
+        <span class="co2-badge">${_leafSvg}−${tx.co2} kg</span>
       </div>
+      <div class="t-callout" style="color:var(--text-muted);">${tx.status}</div>
     </div>
     <svg width="7" height="12" viewBox="0 0 8 14" fill="none" aria-hidden="true" style="flex-shrink:0;color:var(--text-dim);">
       <path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
   `;
-  acceptedCard.addEventListener('click', () => showItem({ name: 'Perceuse Bosch', state: 'available', who: 'Sophie', no: '', co2: '8,2', cat: 'Outils', desc: '' }));
-  acceptedWrap.appendChild(acceptedCard);
-
-  const acceptedActions = document.createElement('div');
-  acceptedActions.style.cssText = 'margin-top:16px;text-align:center;';
-  acceptedActions.innerHTML = `
-    <button onclick="showContactPopin()" style="display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:var(--accent-ink);padding:12px 24px;border-radius:12px;border:none;font-family:var(--font);font-size:15px;font-weight:600;cursor:pointer;-webkit-appearance:none;transition:opacity .15s;">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012-.5c.9.3 1.8.6 2.8.7A2 2 0 0122 16.9z"
-              stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      Contactez Sophie
-    </button>
-    <div style="margin-top:12px;">
-      <span onclick="console.log('Annuler')" style="color:var(--text-muted);font-size:14px;text-decoration:underline;cursor:pointer;">Annuler</span>
-    </div>
-  `;
-  acceptedWrap.appendChild(acceptedActions);
-
-  rList.appendChild(acceptedWrap);
+  el.addEventListener('click', () => console.log('transaction', tx.name));
+  return el;
 }
 
+function renderExchanges() {
+  const list = document.getElementById('requests-list');
+  list.innerHTML = '';
 
+  // Transactions actives
+  const activeGroup = document.createElement('div');
+  activeGroup.style.cssText = 'display:flex;flex-direction:column;gap:12px;';
+  TRANSACTIONS_ACTIVE.forEach(tx => activeGroup.appendChild(_txCard(tx)));
+  list.appendChild(activeGroup);
+
+  // Séparateur Archivées
+  const sep = document.createElement('p');
+  sep.className = 't-caption';
+  sep.style.cssText = 'text-transform:uppercase;color:var(--text-muted);margin-top:32px;margin-bottom:12px;letter-spacing:0.1px;';
+  sep.textContent = 'Archivées';
+  list.appendChild(sep);
+
+  // 5 archivées par défaut
+  const archivedGroup = document.createElement('div');
+  archivedGroup.style.cssText = 'display:flex;flex-direction:column;gap:12px;';
+  TRANSACTIONS_ARCHIVED.slice(0, 5).forEach(tx => archivedGroup.appendChild(_txCard(tx)));
+  list.appendChild(archivedGroup);
+
+  // Afficher plus
+  if (TRANSACTIONS_ARCHIVED.length > 5) {
+    const more = document.createElement('p');
+    more.style.cssText = 'text-align:center;margin-top:16px;';
+    const moreLink = document.createElement('span');
+    moreLink.className = 't-callout';
+    moreLink.style.cssText = 'color:var(--accent);text-decoration:underline;cursor:pointer;';
+    moreLink.textContent = 'Afficher plus';
+    moreLink.addEventListener('click', () => console.log('Afficher plus'));
+    more.appendChild(moreLink);
+    list.appendChild(more);
+  }
+}
 
 // ── Contact popin ────────────────────────────────────────────
 function showContactPopin() {
