@@ -1363,6 +1363,181 @@
       opacity: 1;
       transform: translateX(-50%) translateY(0);
     }
+
+    /* ── QR choice popin ─────────────────────────────────────── */
+    #qr-choice-backdrop {
+      display:none; position:fixed; inset:0;
+      background:rgba(0,0,0,0.4); z-index:490; opacity:0; transition:opacity 300ms;
+    }
+    #qr-choice-popin {
+      display:none; position:fixed; bottom:0; left:50%;
+      width:min(430px,100%); background:var(--surface);
+      border-radius:20px 20px 0 0; padding:0 0 max(20px,env(safe-area-inset-bottom,0px));
+      z-index:500; transform:translateX(-50%) translateY(100%);
+      transition:transform 300ms cubic-bezier(0.32,0.72,0,1);
+      box-shadow:0 -4px 40px rgba(0,0,0,0.15);
+    }
+    #qr-choice-popin.open { transform:translateX(-50%) translateY(0); }
+    .qr-choice-handle {
+      width:36px; height:4px; border-radius:2px;
+      background:var(--line); margin:12px auto 0;
+    }
+    .qr-choice-content { padding:24px 20px 20px; }
+    .qr-choice-title { font-size:18px; font-weight:700; color:var(--text); margin-bottom:6px; letter-spacing:-0.2px; }
+    .qr-choice-sub { font-size:14px; color:var(--text-muted); margin-bottom:24px; line-height:19px; }
+    .qr-choice-btn {
+      display:flex; align-items:center; gap:14px;
+      width:100%; padding:16px; border-radius:14px; border:1px solid var(--line);
+      background:var(--surface-alt); cursor:pointer; font-family:var(--font);
+      margin-bottom:10px; -webkit-appearance:none; transition:opacity .15s; text-align:left;
+    }
+    .qr-choice-btn:active { opacity:.75; }
+    .qr-choice-icon {
+      width:40px; height:40px; border-radius:10px;
+      background:var(--accent-soft); color:var(--accent);
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    }
+    .qr-choice-btn-label { font-size:15px; font-weight:600; color:var(--text); margin-bottom:2px; }
+    .qr-choice-btn-desc  { font-size:12px; color:var(--text-muted); }
+    .qr-choice-cancel {
+      width:100%; padding:14px; border-radius:14px; border:none;
+      background:transparent; font-family:var(--font); font-size:15px;
+      font-weight:500; color:var(--text-muted); cursor:pointer; margin-top:4px;
+    }
+
+    /* ── QR scanner panel ───────────────────────────────────── */
+    #qr-scanner-panel {
+      display:none; position:fixed; inset:0; z-index:510;
+      background:#000; flex-direction:column; overflow:hidden;
+    }
+    #qr-video {
+      position:absolute; inset:0; width:100%; height:100%;
+      object-fit:cover;
+    }
+    #qr-canvas { display:none; }
+    .qr-scan-overlay {
+      position:relative; z-index:1; display:flex; flex-direction:column;
+      height:100%; pointer-events:none;
+    }
+    .qr-scan-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:max(56px,env(safe-area-inset-top,0px)) 20px 16px;
+      background:linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%);
+      pointer-events:auto;
+    }
+    .qr-scan-header-title { font-size:17px; font-weight:600; color:#fff; }
+    .qr-scan-cancel {
+      padding:8px 16px; border-radius:20px; border:none;
+      background:rgba(255,255,255,0.2); color:#fff; font-family:var(--font);
+      font-size:14px; font-weight:500; cursor:pointer; -webkit-appearance:none;
+      backdrop-filter:blur(8px); pointer-events:auto;
+    }
+    .qr-scan-frame {
+      flex:1; display:flex; align-items:center; justify-content:center;
+    }
+    .qr-viewfinder {
+      width:240px; height:240px; position:relative;
+    }
+    .qr-viewfinder::before, .qr-viewfinder::after,
+    .qr-viewfinder-inner::before, .qr-viewfinder-inner::after {
+      content:''; position:absolute; width:28px; height:28px; border-color:#fff; border-style:solid;
+    }
+    .qr-viewfinder::before  { top:0; left:0; border-width:3px 0 0 3px; border-radius:4px 0 0 0; }
+    .qr-viewfinder::after   { top:0; right:0; border-width:3px 3px 0 0; border-radius:0 4px 0 0; }
+    .qr-viewfinder-inner::before { bottom:0; left:0; border-width:0 0 3px 3px; border-radius:0 0 0 4px; }
+    .qr-viewfinder-inner::after  { bottom:0; right:0; border-width:0 3px 3px 0; border-radius:0 0 4px 0; }
+    .qr-scan-line {
+      position:absolute; left:0; right:0; height:2px;
+      background:linear-gradient(to right, transparent, var(--accent), transparent);
+      animation:qr-scan-anim 2s ease-in-out infinite;
+      top:0;
+    }
+    @keyframes qr-scan-anim {
+      0%   { top:0%; opacity:0; }
+      10%  { opacity:1; }
+      90%  { opacity:1; }
+      100% { top:100%; opacity:0; }
+    }
+    .qr-scan-footer {
+      padding:24px 20px max(24px,env(safe-area-inset-bottom,0px));
+      background:linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%);
+      text-align:center; pointer-events:auto;
+    }
+    .qr-scan-hint { font-size:14px; color:rgba(255,255,255,0.8); margin-bottom:16px; }
+    .qr-scan-manual {
+      padding:10px 24px; border-radius:20px; border:1px solid rgba(255,255,255,0.3);
+      background:rgba(255,255,255,0.1); color:#fff; font-family:var(--font);
+      font-size:14px; font-weight:500; cursor:pointer; -webkit-appearance:none;
+      backdrop-filter:blur(8px);
+    }
+
+    /* ── QR display popin ───────────────────────────────────── */
+    #qr-display-backdrop {
+      display:none; position:fixed; inset:0;
+      background:rgba(0,0,0,0.4); z-index:490; opacity:0; transition:opacity 300ms;
+    }
+    #qr-display-popin {
+      display:none; position:fixed; bottom:0; left:50%;
+      width:min(430px,100%); background:var(--surface);
+      border-radius:20px 20px 0 0; padding:0 0 max(20px,env(safe-area-inset-bottom,0px));
+      z-index:500; transform:translateX(-50%) translateY(100%);
+      transition:transform 300ms cubic-bezier(0.32,0.72,0,1);
+      box-shadow:0 -4px 40px rgba(0,0,0,0.15);
+    }
+    #qr-display-popin.open { transform:translateX(-50%) translateY(0); }
+    .qr-display-content { padding:24px 20px 20px; }
+    .qr-display-title { font-size:18px; font-weight:700; color:var(--text); margin-bottom:4px; letter-spacing:-0.2px; }
+    .qr-display-sub { font-size:14px; color:var(--text-muted); margin-bottom:24px; line-height:19px; }
+    #qr-code-canvas { display:block; margin:0 auto 16px; border-radius:12px; }
+    .qr-display-timer { font-size:12px; color:var(--text-muted); text-align:center; margin-bottom:20px; }
+    .qr-display-close {
+      width:100%; padding:14px; border-radius:14px; border:none;
+      background:var(--surface-alt); font-family:var(--font); font-size:15px;
+      font-weight:600; color:var(--text); cursor:pointer;
+    }
+
+    /* ── QR manual popin ────────────────────────────────────── */
+    #qr-manual-backdrop {
+      display:none; position:fixed; inset:0;
+      background:rgba(0,0,0,0.4); z-index:490; opacity:0; transition:opacity 300ms;
+    }
+    #qr-manual-popin {
+      display:none; position:fixed; bottom:0; left:50%;
+      width:min(430px,100%); background:var(--surface);
+      border-radius:20px 20px 0 0; padding:0 0 max(20px,env(safe-area-inset-bottom,0px));
+      z-index:500; transform:translateX(-50%) translateY(100%);
+      transition:transform 300ms cubic-bezier(0.32,0.72,0,1);
+      box-shadow:0 -4px 40px rgba(0,0,0,0.15);
+    }
+    #qr-manual-popin.open { transform:translateX(-50%) translateY(0); }
+    .qr-manual-content { padding:24px 20px 20px; }
+    .qr-manual-title { font-size:18px; font-weight:700; color:var(--text); margin-bottom:6px; letter-spacing:-0.2px; }
+    .qr-manual-sub { font-size:14px; color:var(--text-muted); margin-bottom:20px; line-height:19px; }
+    .qr-manual-confirmation {
+      background:var(--accent-soft); border-radius:14px; padding:16px;
+      margin-bottom:20px; display:flex; align-items:center; gap:12px;
+    }
+    .qr-manual-check {
+      width:32px; height:32px; border-radius:50%; background:var(--accent);
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    }
+    .qr-manual-conf-text { font-size:14px; color:var(--text); line-height:19px; }
+    .qr-manual-actions { display:flex; gap:10px; }
+    .qr-manual-cancel {
+      flex:1; padding:14px; border-radius:14px; border:1px solid var(--line);
+      background:var(--surface-alt); font-family:var(--font); font-size:15px;
+      font-weight:600; color:var(--text); cursor:pointer;
+    }
+    .qr-manual-confirm {
+      flex:1; padding:14px; border-radius:14px; border:none;
+      background:var(--accent); font-family:var(--font); font-size:15px;
+      font-weight:600; color:var(--accent-ink); cursor:pointer;
+    }
+
+    /* ── Confetti canvas ─────────────────────────────────────── */
+    #confetti-canvas {
+      position:fixed; inset:0; z-index:600; pointer-events:none;
+    }
   </style>
 </head>
 <body>
@@ -1713,15 +1888,8 @@
 <!-- ── Écran Échanges ──────────────────────────────────────────── -->
 <div class="overlay-panel" id="panel-exchanges">
 
-  <div class="add-nav">
-    <button class="back-btn" onclick="_navigateTo('home')" aria-label="Retour">
-      <svg width="11" height="18" viewBox="0 0 12 20" fill="none" aria-hidden="true">
-        <path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.2"
-              stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </button>
-    <span class="add-nav-title">Transactions</span>
-    <div class="nav-spacer"></div>
+  <div class="obj-nav">
+    <h1 class="t-title2 obj-nav-title">Transactions</h1>
   </div>
 
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px 20px 60px;overscroll-behavior-y:contain;">
@@ -1902,8 +2070,104 @@
 
 <div id="toast" role="status" aria-live="polite"></div>
 
+<div id="qr-choice-backdrop" onclick="hideQRChoice()"></div>
+<div id="qr-choice-popin">
+  <div class="qr-choice-handle"></div>
+  <div class="qr-choice-content">
+    <div class="qr-choice-title">Valider l'échange</div>
+    <div class="qr-choice-sub">Comment voulez-vous valider cet échange avec votre voisin ?</div>
+    <button class="qr-choice-btn" onclick="hideQRChoice();setTimeout(()=>startQRScanner(),80)">
+      <div class="qr-choice-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/>
+          <rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/>
+          <rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/>
+          <rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/>
+        </svg>
+      </div>
+      <div>
+        <div class="qr-choice-btn-label">Scanner le QR code</div>
+        <div class="qr-choice-btn-desc">Pointez la caméra vers le code de votre voisin</div>
+      </div>
+    </button>
+    <button class="qr-choice-btn" onclick="hideQRChoice();setTimeout(()=>showQRDisplay(),80)">
+      <div class="qr-choice-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 3v18M3 12h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/>
+        </svg>
+      </div>
+      <div>
+        <div class="qr-choice-btn-label">Afficher mon QR code</div>
+        <div class="qr-choice-btn-desc">Montrez votre code à votre voisin pour qu'il scanne</div>
+      </div>
+    </button>
+    <button class="qr-choice-cancel" onclick="hideQRChoice()">Annuler</button>
+  </div>
+</div>
+
+<div id="qr-scanner-panel">
+  <video id="qr-video" autoplay playsinline muted></video>
+  <canvas id="qr-canvas"></canvas>
+  <div class="qr-scan-overlay">
+    <div class="qr-scan-header">
+      <div class="qr-scan-header-title">Scanner le QR code</div>
+      <button class="qr-scan-cancel" onclick="stopQRScanner()">Annuler</button>
+    </div>
+    <div class="qr-scan-frame">
+      <div class="qr-viewfinder">
+        <div class="qr-viewfinder-inner"></div>
+        <div class="qr-scan-line"></div>
+      </div>
+    </div>
+    <div class="qr-scan-footer">
+      <div class="qr-scan-hint">Placez le QR code dans le cadre</div>
+      <button class="qr-scan-manual" onclick="stopQRScanner();showManualValidation()">Saisie manuelle</button>
+    </div>
+  </div>
+</div>
+
+<div id="qr-display-backdrop" onclick="hideQRDisplay()"></div>
+<div id="qr-display-popin">
+  <div class="qr-choice-handle"></div>
+  <div class="qr-display-content">
+    <div class="qr-display-title">Mon QR code</div>
+    <div class="qr-display-sub">Montrez ce code à <span id="qr-recipient-name">votre voisin</span> pour valider</div>
+    <canvas id="qr-code-canvas" width="200" height="200"></canvas>
+    <div class="qr-display-timer" id="qr-timer">Code valable <span id="qr-countdown">5:00</span></div>
+    <button class="qr-display-close" onclick="hideQRDisplay()">Fermer</button>
+  </div>
+</div>
+
+<div id="qr-manual-backdrop" onclick="hideManualValidation()"></div>
+<div id="qr-manual-popin">
+  <div class="qr-choice-handle"></div>
+  <div class="qr-manual-content">
+    <div class="qr-manual-title">Validation manuelle</div>
+    <div class="qr-manual-sub" id="qr-manual-desc">Confirmez l'échange directement avec votre voisin.</div>
+    <div class="qr-manual-confirmation">
+      <div class="qr-manual-check">
+        <svg width="16" height="16" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path d="M2 7l4 4 6-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="qr-manual-conf-text" id="qr-manual-conf-text">Les deux parties confirment l'échange en présence l'une de l'autre.</div>
+    </div>
+    <div class="qr-manual-actions">
+      <button class="qr-manual-cancel" onclick="hideManualValidation()">Annuler</button>
+      <button class="qr-manual-confirm" onclick="confirmManualValidation()">Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<canvas id="confetti-canvas" style="display:none;"></canvas>
+
+
 </div><!-- /#app -->
 
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ── Supabase ──────────────────────────────────────────────────
@@ -2123,6 +2387,8 @@ async function signOut() {
   loadMember();
   loadCommunity();
   loadHomeItems();
+  // /v route: index.html?v=1&action=return&id=xxx
+  if (new URLSearchParams(window.location.search).has('v')) handleValidation();
 })();
 
 // ── Navigation ───────────────────────────────────────────────
@@ -2714,17 +2980,35 @@ const TRANSACTIONS_ARCHIVED = [
 ];
 
 // ── Render transactions ───────────────────────────────────────
+function _txStatusBadge(status) {
+  const s = {
+    'Emprunté':                 { border:'1.5px solid #1F9D55', bg:'transparent', color:'#1F9D55' },
+    'Prêté':                    { border:'1.5px solid #1F9D55', bg:'transparent', color:'#1F9D55' },
+    'En attente de validation': { border:'1.5px solid #F59E0B', bg:'transparent', color:'#F59E0B' },
+    'Décliné':                  { border:'1.5px solid #EF4444', bg:'transparent', color:'#EF4444' },
+    'Restitué':                 { border:'none',                bg:'#1F9D55',     color:'#ffffff'  },
+  }[status] || { border:'1px solid var(--line)', bg:'transparent', color:'var(--text-muted)' };
+  return `<span style="display:inline-block;font-size:13px;padding:4px 10px;border-radius:6px;border:${s.border};background:${s.bg};color:${s.color};font-weight:500;line-height:1;">${status}</span>`;
+}
+
+function _txName(name) {
+  if (name === 'Vous') return '<span style="font-weight:600;color:#1F9D55;">Vous</span>';
+  return pill(name, '');
+}
+
 function _txCard(tx) {
+  const needsAction = tx.from === 'Vous' && tx.status === 'En attente de validation';
+  const borderCss = needsAction ? 'border:2px solid #1F9D55;' : 'border:0.5px solid var(--line);';
   const el = document.createElement('div');
-  el.style.cssText = 'background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;align-items:center;cursor:pointer;';
+  el.style.cssText = `background:var(--surface);${borderCss}border-radius:14px;padding:14px 16px;display:flex;align-items:center;cursor:pointer;`;
   el.innerHTML = `
     <div style="flex:1;min-width:0;margin-right:12px;">
-      <div class="t-headline" style="color:var(--text);margin-bottom:4px;">${tx.name}</div>
-      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;">
-        <span class="t-footnote" style="color:var(--text-muted);">${tx.from} → ${tx.to}</span>
-        <span class="co2-badge">${_leafSvg}−${tx.co2} kg</span>
+      <div class="t-headline" style="color:var(--text);margin-bottom:6px;">${tx.name}</div>
+      <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:8px;">
+        ${_txName(tx.from)}<span class="t-footnote" style="color:var(--text-dim);">→</span>${_txName(tx.to)}
+        <span class="co2-badge">${_leafSvg}−${tx.co2} kg</span>
       </div>
-      <div class="t-callout" style="color:var(--text-muted);">${tx.status}</div>
+      ${_txStatusBadge(tx.status)}
     </div>
     <svg width="7" height="12" viewBox="0 0 8 14" fill="none" aria-hidden="true" style="flex-shrink:0;color:var(--text-dim);">
       <path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -2783,7 +3067,7 @@ const THREAD_SCENARIOS = {
       { type: 'done',    label: 'Objet récupéré',                time: 'Le 5 mai' },
       { type: 'current', label: 'Emprunté depuis 2 jours',       time: '' },
       { type: 'pending', label: 'Retour à effectuer',            time: '',
-        actions: [{ label: 'Valider le retour', fn: () => console.log('Valider le retour'), primary: true }] },
+        actions: [{ label: 'Valider le retour', fn: () => showQRChoice('return', 'perceuse-bosch'), primary: true }] },
     ],
   },
   'echelle-telescopique': {
@@ -2807,7 +3091,7 @@ const THREAD_SCENARIOS = {
       { type: 'done',    label: 'Objet récupéré',                time: 'Le 1er mai' },
       { type: 'current', label: 'Emprunté depuis 6 jours',       time: '' },
       { type: 'pending', label: 'Retour à effectuer',            time: '',
-        actions: [{ label: 'Valider le retour', fn: () => console.log('Valider le retour'), primary: true }] },
+        actions: [{ label: 'Valider le retour', fn: () => showQRChoice('return', 'tente-4-places'), primary: true }] },
     ],
   },
 };
@@ -2905,6 +3189,250 @@ function hideContactPopin() {
     panel.style.display    = 'none';
     backdrop.style.display = 'none';
   }, 300);
+}
+
+
+// ── QR code validation ────────────────────────────────────────
+let _qrAction = null;  // 'hand' | 'return'
+let _qrId     = null;  // transaction id
+let _qrStream = null;  // MediaStream
+let _qrRafId  = null;  // requestAnimationFrame id
+let _qrCountdownTimer = null;
+
+function showQRChoice(action, id) {
+  _qrAction = action;
+  _qrId     = id;
+  // Derive recipient name from scenario meta (e.g. "Sophie → Vous" → "Sophie")
+  const scenario = id && THREAD_SCENARIOS[id];
+  if (scenario) {
+    const meta = scenario.meta || '';
+    _qrRecipientName = meta.split('→')[action === 'return' ? 0 : 1].split('•')[0].trim();
+  }
+  const backdrop = document.getElementById('qr-choice-backdrop');
+  const popin    = document.getElementById('qr-choice-popin');
+  backdrop.style.display = 'block';
+  popin.style.display    = 'block';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    popin.classList.add('open');
+    backdrop.style.opacity = '1';
+  }));
+}
+
+function hideQRChoice() {
+  const backdrop = document.getElementById('qr-choice-backdrop');
+  const popin    = document.getElementById('qr-choice-popin');
+  popin.classList.remove('open');
+  backdrop.style.opacity = '0';
+  setTimeout(() => {
+    popin.style.display    = 'none';
+    backdrop.style.display = 'none';
+  }, 300);
+}
+
+async function startQRScanner() {
+  const panel = document.getElementById('qr-scanner-panel');
+  panel.style.display = 'flex';
+
+  try {
+    _qrStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
+    const video = document.getElementById('qr-video');
+    video.srcObject = _qrStream;
+    await video.play();
+    _scanLoop();
+  } catch (err) {
+    console.error('[QR] Camera error:', err);
+    panel.style.display = 'none';
+    showManualValidation();
+  }
+}
+
+function _scanLoop() {
+  const video  = document.getElementById('qr-video');
+  const canvas = document.getElementById('qr-canvas');
+
+  if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+    _qrRafId = requestAnimationFrame(_scanLoop);
+    return;
+  }
+
+  canvas.width  = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const code = window.jsQR && window.jsQR(imageData.data, imageData.width, imageData.height, {
+    inversionAttempts: 'dontInvert',
+  });
+
+  if (code && code.data.startsWith('kolkoze:')) {
+    stopQRScanner();
+    validateQR(code.data);
+    return;
+  }
+
+  _qrRafId = requestAnimationFrame(_scanLoop);
+}
+
+function stopQRScanner() {
+  if (_qrRafId) { cancelAnimationFrame(_qrRafId); _qrRafId = null; }
+  if (_qrStream) { _qrStream.getTracks().forEach(t => t.stop()); _qrStream = null; }
+  const video = document.getElementById('qr-video');
+  video.srcObject = null;
+  document.getElementById('qr-scanner-panel').style.display = 'none';
+}
+
+function showQRDisplay() {
+  const loanId    = _qrId || 'loan';
+  const action    = _qrAction || 'return';
+  const recipient = _qrRecipientName || 'votre voisin';
+
+  document.getElementById('qr-recipient-name').textContent = recipient;
+
+  const qrData = 'kolkoze:' + action + ':' + loanId + ':' + Date.now();
+  const canvas  = document.getElementById('qr-code-canvas');
+
+  if (window.QRCode) {
+    QRCode.toCanvas(canvas, qrData, {
+      width:  200,
+      margin: 2,
+      color:  { dark: '#1A1A1C', light: '#ffffff' },
+    }, function(err) { if (err) console.error('[QR]', err); });
+  }
+
+  // Countdown 5 min
+  clearInterval(_qrCountdownTimer);
+  let seconds = 300;
+  const countEl = document.getElementById('qr-countdown');
+  function _tick() {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    if (countEl) countEl.textContent = m + ':' + String(s).padStart(2, '0');
+    if (seconds <= 0) {
+      clearInterval(_qrCountdownTimer);
+      hideQRDisplay();
+      return;
+    }
+    seconds--;
+  }
+  _tick();
+  _qrCountdownTimer = setInterval(_tick, 1000);
+
+  const backdrop = document.getElementById('qr-display-backdrop');
+  const popin    = document.getElementById('qr-display-popin');
+  backdrop.style.display = 'block';
+  popin.style.display    = 'block';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    popin.classList.add('open');
+    backdrop.style.opacity = '1';
+  }));
+}
+
+function hideQRDisplay() {
+  clearInterval(_qrCountdownTimer);
+  const backdrop = document.getElementById('qr-display-backdrop');
+  const popin    = document.getElementById('qr-display-popin');
+  popin.classList.remove('open');
+  backdrop.style.opacity = '0';
+  setTimeout(() => {
+    popin.style.display    = 'none';
+    backdrop.style.display = 'none';
+  }, 300);
+}
+
+function validateQR(qrData) {
+  // qrData format: kolkoze:{action}:{loanId}:{timestamp}
+  const parts = qrData.split(':');
+  if (parts.length < 3 || parts[0] !== 'kolkoze') {
+    showToast('QR code invalide');
+    return;
+  }
+  showConfetti();
+  showToast('Échange validé ! Merci 🌱');
+}
+
+function showConfetti() {
+  const canvas = document.getElementById('confetti-canvas');
+  canvas.style.display = 'block';
+  const confetti = window.confetti && window.confetti.create(canvas, { resize: true });
+  if (!confetti && window.confetti) {
+    window.confetti({
+      particleCount: 120,
+      spread: 80,
+      origin: { y: 0.5 },
+      colors: ['#1F9D55', '#3D5C3A', '#E5EAE2', '#A8D5B5'],
+    });
+    setTimeout(() => { canvas.style.display = 'none'; }, 3500);
+    return;
+  }
+  if (confetti) {
+    confetti({
+      particleCount: 120,
+      spread: 80,
+      origin: { y: 0.5 },
+      colors: ['#1F9D55', '#3D5C3A', '#E5EAE2', '#A8D5B5'],
+    });
+    setTimeout(() => {
+      confetti.reset();
+      canvas.style.display = 'none';
+    }, 3500);
+  }
+}
+
+let _qrRecipientName = '';
+
+function showManualValidation() {
+  const action = _qrAction;
+  const desc = document.getElementById('qr-manual-desc');
+  const conf = document.getElementById('qr-manual-conf-text');
+  if (action === 'hand') {
+    desc.textContent = "Confirmez la remise de l'objet à votre voisin.";
+    conf.textContent = "Vous remettez l'objet en main propre. Les deux parties confirment la transaction.";
+  } else {
+    desc.textContent = "Confirmez le retour de l'objet à son propriétaire.";
+    conf.textContent = "L'objet est restitué en main propre. Les deux parties confirment la transaction.";
+  }
+
+  const backdrop = document.getElementById('qr-manual-backdrop');
+  const popin    = document.getElementById('qr-manual-popin');
+  backdrop.style.display = 'block';
+  popin.style.display    = 'block';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    popin.classList.add('open');
+    backdrop.style.opacity = '1';
+  }));
+}
+
+function hideManualValidation() {
+  const backdrop = document.getElementById('qr-manual-backdrop');
+  const popin    = document.getElementById('qr-manual-popin');
+  popin.classList.remove('open');
+  backdrop.style.opacity = '0';
+  setTimeout(() => {
+    popin.style.display    = 'none';
+    backdrop.style.display = 'none';
+  }, 300);
+}
+
+function confirmManualValidation() {
+  hideManualValidation();
+  setTimeout(() => {
+    showConfetti();
+    showToast('Échange validé ! Merci 🌱');
+  }, 350);
+}
+
+// ── /v route handler ──────────────────────────────────────────
+function handleValidation() {
+  const params = new URLSearchParams(window.location.search);
+  const action = params.get('action') || 'return';
+  const id     = params.get('id')     || '';
+  _qrAction = action;
+  _qrId     = id;
+  // Remove the /v param from URL without reload
+  history.replaceState(null, '', window.location.pathname);
+  showQRChoice(action, id);
 }
 
 // ── Share ─────────────────────────────────────────────────────
