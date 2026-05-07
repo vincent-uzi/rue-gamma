@@ -1820,11 +1820,9 @@ function pill(name, no) {
 }
 
 function renderItemRow(list, item) {
-  const ok         = item.state === 'available';
-  const nameColor  = ok ? 'var(--text)'        : 'var(--text-dim)';
-  const btnBg      = ok ? 'var(--accent)'      : 'var(--surface-alt)';
-  const btnColor   = ok ? 'var(--accent-ink)'  : 'var(--text-dim)';
-  const pillOp     = ok ? '1' : '0.45';
+  const ok        = item.state === 'available';
+  const nameColor = ok ? 'var(--text)' : 'var(--text-dim)';
+  const pillOp    = ok ? '1' : '0.45';
   const el = document.createElement('div');
   el.className = 'item-row';
   el.setAttribute('role', 'listitem');
@@ -1833,9 +1831,10 @@ function renderItemRow(list, item) {
       <div class="t-headline item-name" style="color:${nameColor};margin-bottom:4px;">${item.name}</div>
       ${item.who ? `<span style="opacity:${pillOp};">${pill(item.who, item.no)}</span>` : ''}
     </div>
-    <button class="obj-cta-btn" style="background:${btnBg};color:${btnColor};">Emprunter</button>
+    <svg width="7" height="12" viewBox="0 0 8 14" fill="none" aria-hidden="true" style="flex-shrink:0;color:var(--text-dim);">
+      <path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
   `;
-  el.querySelector('.obj-cta-btn').addEventListener('click', e => { e.stopPropagation(); showItem(item); });
   el.addEventListener('click', () => showItem(item));
   list.appendChild(el);
 }
@@ -2419,18 +2418,17 @@ function renderObjects(items) {
       };
       const el = document.createElement('div');
       el.style.cssText = 'display:flex;align-items:center;padding:14px 16px;' + (i < grouped[cat].length - 1 ? 'border-bottom:0.5px solid var(--line);' : '');
-      const nColor = ok ? 'var(--text)'        : 'var(--text-dim)';
-      const bBg    = ok ? 'var(--accent)'      : 'var(--surface-alt)';
-      const bColor = ok ? 'var(--accent-ink)'  : 'var(--text-dim)';
+      const nColor = ok ? 'var(--text)' : 'var(--text-dim)';
       el.innerHTML = `
         <div style="flex:1;min-width:0;margin-right:12px;">
           <div class="t-headline" style="color:${nColor};margin-bottom:4px;">${item.name}</div>
           ${item.who ? `<span style="opacity:${ok ? 1 : 0.45};">${pill(item.who, item.no)}</span>` : ''}
         </div>
-        <button class="obj-cta-btn" style="background:${bBg};color:${bColor};">Emprunter</button>
+        <svg width="7" height="12" viewBox="0 0 8 14" fill="none" aria-hidden="true" style="flex-shrink:0;color:var(--text-dim);">
+          <path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
       `;
       el.style.cursor = 'pointer';
-      el.querySelector('.obj-cta-btn').addEventListener('click', e => { e.stopPropagation(); showItem(item); });
       el.addEventListener('click', () => showItem(item));
       card.appendChild(el);
     });
