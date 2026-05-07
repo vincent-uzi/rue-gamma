@@ -907,39 +907,6 @@
     .xg-item-sub   { font-size: 12px; color: var(--text-muted); line-height: 16px; margin-top: 2px; }
 
 
-    /* ── Exchanges popin ──────────────────────────────────────── */
-    .xpopin-overlay {
-      position: absolute; inset: 0;
-      background: rgba(0,0,0,0.36);
-      -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
-      display: flex; align-items: flex-end; z-index: 50;
-    }
-    .xpopin-sheet {
-      width: 100%; background: var(--surface);
-      border-radius: 24px 24px 0 0; padding: 14px 20px 44px;
-      box-shadow: 0 -8px 40px rgba(0,0,0,0.14);
-    }
-    .xpopin-handle {
-      width: 36px; height: 4px; background: var(--line);
-      border-radius: 2px; margin: 0 auto 22px;
-    }
-    .xpopin-title { font-size: 22px; font-weight: 700; color: var(--text); line-height: 28px; margin-bottom: 10px; }
-    .xpopin-sub   { font-size: 16px; color: var(--text-muted); line-height: 22px; margin-bottom: 24px; }
-    .xpopin-comment {
-      display: block; width: 100%; min-height: 80px; box-sizing: border-box;
-      background: var(--surface-alt); border: 1px solid var(--line); border-radius: 14px;
-      padding: 12px 14px; font-family: var(--font); font-size: 16px; color: var(--text);
-      outline: none; resize: none; margin-bottom: 12px; -webkit-appearance: none;
-    }
-    .xpopin-comment::placeholder { color: var(--text-dim); }
-    .xpopin-photo-btn {
-      display: flex; align-items: center; gap: 8px;
-      background: none; border: none; color: var(--accent);
-      font-family: var(--font); font-size: 15px; font-weight: 500;
-      cursor: pointer; padding: 4px 0; margin-bottom: 24px; -webkit-appearance: none;
-    }
-    .xpopin-photo-btn:active { opacity: .7; }
-
     /* ── Profile inner tabs ─────────────────────────────────── */
     .profile-inner-tabs {
       display: flex; border-bottom: 0.5px solid var(--line); margin-bottom: 16px;
@@ -1626,46 +1593,8 @@
 
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px 20px 60px;overscroll-behavior-y:contain;">
 
-    <!-- Demandes reçues -->
-    <div class="xg-section">
-      <h2 class="xg-section-title">Demandes reçues</h2>
-      <div id="requests-list"></div>
-    </div>
+    <div id="requests-list"></div>
 
-    <!-- Remises en attente -->
-    <div class="xg-section">
-      <h2 class="xg-section-title">Remises en attente</h2>
-      <div id="handovers-list"></div>
-    </div>
-
-    <!-- Retours en cours -->
-    <div class="xg-section" style="margin-bottom:0;">
-      <h2 class="xg-section-title">Retours en cours</h2>
-      <div id="returns-list"></div>
-    </div>
-
-  </div>
-
-  <!-- Popin partagée -->
-  <div class="xpopin-overlay" id="xpopin" style="display:none;"
-       onclick="if(event.target===this)closeXPopin()">
-    <div class="xpopin-sheet">
-      <div class="xpopin-handle"></div>
-      <h3 class="xpopin-title" id="xpopin-title"></h3>
-      <p class="xpopin-sub" id="xpopin-sub"></p>
-      <div id="xpopin-comment-section" style="display:none;">
-        <textarea class="xpopin-comment" id="xpopin-comment" placeholder="État de l’objet…"></textarea>
-        <button class="xpopin-photo-btn">
-          <svg width="20" height="18" viewBox="0 0 20 18" fill="none" aria-hidden="true">
-            <path d="M6.4 3.2l.7-1.4c.3-.5.8-.8 1.4-.8h3c.6 0 1.1.3 1.4.8l.7 1.4h2.6c1.1 0 2 .9 2 2v8.4c0 1.1-.9 2-2 2H3.8c-1.1 0-2-.9-2-2V5.2c0-1.1.9-2 2-2h2.6z"
-                  stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-            <circle cx="10" cy="9.6" r="3.2" stroke="currentColor" stroke-width="1.5"/>
-          </svg>
-          Ajouter une photo
-        </button>
-      </div>
-      <button class="cta-btn" id="xpopin-cta"></button>
-    </div>
   </div>
 
 </div><!-- /#panel-exchanges -->
@@ -2606,20 +2535,10 @@ const EXCHANGES_DATA = {
     { who: 'Marie', fullName: 'Marie Dupont', no: '7', item: 'Perceuse Bosch', owner: 'Marc', co2: '8,2 kg' },
     { who: 'Théo',  fullName: 'Théo Lebrun',  no: '3', item: 'Sorbetière',     owner: 'Léa',  co2: '5,1 kg' },
   ],
-  handovers: [
-    { item: 'Tente 4 places', who: 'Karim', no: '31' },
-  ],
-  returns: [
-    { item: 'Échelle 3 m', who: 'Sophie', no: '22' },
-  ],
 };
 
 // ── Render exchanges ──────────────────────────────────────────
 function renderExchanges() {
-  const owner = _me || 'Vous';
-  const cardStyle = 'background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;';
-
-  // Demandes reçues
   const rList = document.getElementById('requests-list');
   rList.innerHTML = '';
   EXCHANGES_DATA.requests.forEach(r => {
@@ -2650,105 +2569,18 @@ function renderExchanges() {
     wrap.appendChild(card);
 
     const actions = document.createElement('div');
-    actions.style.cssText = 'margin-top:12px;display:flex;gap:12px;';
+    actions.style.cssText = 'margin-top:12px;display:flex;justify-content:flex-end;gap:12px;';
     actions.innerHTML = `
-      <button style="flex:1;background:var(--surface-alt);color:var(--text);padding:12px 20px;border-radius:12px;border:none;font-family:var(--font);font-size:15px;font-weight:600;cursor:pointer;-webkit-appearance:none;" onclick="console.log('Décliner')">Décliner</button>
-      <button style="flex:1;background:var(--accent);color:var(--accent-ink);padding:12px 20px;border-radius:12px;border:none;font-family:var(--font);font-size:15px;font-weight:600;cursor:pointer;-webkit-appearance:none;" onclick="console.log('Accepter')">Accepter</button>
+      <button style="background:var(--surface-alt);color:var(--text);padding:12px 24px;border-radius:12px;border:none;font-family:var(--font);font-size:15px;font-weight:600;cursor:pointer;-webkit-appearance:none;" onclick="console.log('Décliner')">Décliner</button>
+      <button style="background:var(--accent);color:var(--accent-ink);padding:12px 24px;border-radius:12px;border:none;font-family:var(--font);font-size:15px;font-weight:600;cursor:pointer;-webkit-appearance:none;" onclick="console.log('Accepter')">Accepter</button>
     `;
     wrap.appendChild(actions);
 
     rList.appendChild(wrap);
   });
-
-  // Remises en attente (À rendre)
-  const hList = document.getElementById('handovers-list');
-  hList.innerHTML = '';
-  const hCard = document.createElement('div');
-  hCard.style.cssText = cardStyle;
-  EXCHANGES_DATA.handovers.forEach(h => {
-    const el = document.createElement('div');
-    el.className = 'xg-item';
-    el.innerHTML = `
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
-        ${pill(h.who, h.no)}<span class="t-footnote" style="color:var(--text-muted);">attend la remise</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:12px;">
-        <div style="flex:1;min-width:0;">
-          <div class="t-headline" style="color:var(--text);margin-bottom:4px;">${h.item}</div>
-          ${pill(owner, '')}
-        </div>
-        <button class="obj-cta-btn" style="background:var(--accent);color:var(--accent-ink);">Remis</button>
-      </div>
-    `;
-    el.querySelector('.obj-cta-btn').onclick = showHandoverPopin;
-    hCard.appendChild(el);
-  });
-  hList.appendChild(hCard);
-
-  // Retours en cours (À récupérer)
-  const retList = document.getElementById('returns-list');
-  retList.innerHTML = '';
-  const retCard = document.createElement('div');
-  retCard.style.cssText = cardStyle;
-  EXCHANGES_DATA.returns.forEach(r => {
-    const el = document.createElement('div');
-    el.className = 'xg-item';
-    el.innerHTML = `
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
-        ${pill(r.who, r.no)}<span class="t-footnote" style="color:var(--text-muted);">a emprunté</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:12px;">
-        <div style="flex:1;min-width:0;">
-          <div class="t-headline" style="color:var(--text);margin-bottom:4px;">${r.item}</div>
-          ${pill(owner, '')}
-        </div>
-        <button class="obj-cta-btn" style="background:var(--accent);color:var(--accent-ink);">Récupéré</button>
-      </div>
-    `;
-    el.querySelector('.obj-cta-btn').onclick = showReturnPopin;
-    retCard.appendChild(el);
-  });
-  retList.appendChild(retCard);
 }
 
-// ── Popins échanges ───────────────────────────────────────────
-function showAcceptPopin(name) {
-  document.getElementById('xpopin-title').textContent = 'À vous de jouer !';
-  const sub = document.getElementById('xpopin-sub');
-  sub.textContent = `Prenez contact avec ${name} pour organiser l’échange`;
-  sub.style.display = 'block';
-  document.getElementById('xpopin-comment-section').style.display = 'none';
-  const cta = document.getElementById('xpopin-cta');
-  cta.textContent = 'Remis';
-  cta.onclick = closeXPopin;
-  document.getElementById('xpopin').style.display = 'flex';
-}
 
-function showHandoverPopin() {
-  document.getElementById('xpopin-title').textContent = 'Remise en main propre';
-  document.getElementById('xpopin-sub').style.display = 'none';
-  document.getElementById('xpopin-comment-section').style.display = 'block';
-  document.getElementById('xpopin-comment').value = '';
-  const cta = document.getElementById('xpopin-cta');
-  cta.textContent = "C’est parti !";
-  cta.onclick = closeXPopin;
-  document.getElementById('xpopin').style.display = 'flex';
-}
-
-function showReturnPopin() {
-  document.getElementById('xpopin-title').textContent = 'Retour confirmé';
-  document.getElementById('xpopin-sub').style.display = 'none';
-  document.getElementById('xpopin-comment-section').style.display = 'block';
-  document.getElementById('xpopin-comment').value = '';
-  const cta = document.getElementById('xpopin-cta');
-  cta.textContent = 'Rendu !';
-  cta.onclick = closeXPopin;
-  document.getElementById('xpopin').style.display = 'flex';
-}
-
-function closeXPopin() {
-  document.getElementById('xpopin').style.display = 'none';
-}
 
 // ── Share ─────────────────────────────────────────────────────
 async function shareKolkoze() {
