@@ -1171,6 +1171,34 @@
       transform: translateX(-50%) translateY(0);
     }
 
+    /* ── Contact popin ────────────────────────────────────────── */
+    #contact-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 390;
+      opacity: 0;
+      transition: opacity 300ms;
+    }
+    #contact-popin {
+      display: none;
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      width: min(380px, calc(100% - 40px));
+      background: var(--surface);
+      border-radius: 20px;
+      padding: 32px 24px;
+      z-index: 400;
+      transform: translateX(-50%) translateY(calc(100% + 32px));
+      transition: transform 300ms cubic-bezier(0.32, 0.72, 0, 1);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.16);
+    }
+    #contact-popin.open {
+      transform: translateX(-50%) translateY(0);
+    }
+
     /* ── Objects screen ────────────────────────────────────────── */
     .t-title2 { font-size: 22px; font-weight: 700; line-height: 28px; letter-spacing: -0.2px; }
     .obj-nav {
@@ -1736,6 +1764,18 @@
   </div>
 
 </div><!-- /#panel-item -->
+
+<div id="contact-backdrop" onclick="hideContactPopin()"></div>
+<div id="contact-popin" role="dialog" aria-modal="true" aria-labelledby="contact-popin-title">
+  <h2 id="contact-popin-title" class="t-title2" style="text-align:center;margin-bottom:8px;">À vous de jouer !</h2>
+  <p class="t-callout" style="color:var(--text-muted);text-align:center;margin-bottom:24px;">Convenez d’un rendez-vous</p>
+  <div style="background:var(--surface-alt);border-radius:14px;padding:16px;">
+    <div class="t-headline" style="color:var(--text);margin-bottom:6px;">Sophie Martin</div>
+    <div class="t-callout" style="color:var(--text-muted);margin-bottom:6px;">108 rue Charles Sainte-Beuve</div>
+    <a href="tel:0612345678" class="t-callout" style="color:var(--accent);text-decoration:none;">06 12 34 56 78</a>
+  </div>
+  <button onclick="hideContactPopin()" style="margin-top:24px;width:100%;background:var(--accent);color:var(--accent-ink);padding:14px 20px;border-radius:12px;border:none;font-family:var(--font);font-size:16px;font-weight:600;cursor:pointer;-webkit-appearance:none;transition:opacity .15s;">Fermer</button>
+</div>
 
 <div id="toast" role="status" aria-live="polite"></div>
 
@@ -2578,9 +2618,77 @@ function renderExchanges() {
 
     rList.appendChild(wrap);
   });
+
+  // Demande acceptée (statique)
+  const acceptedWrap = document.createElement('div');
+  acceptedWrap.style.cssText = 'margin-bottom:20px;';
+
+  const acceptedTitle = document.createElement('p');
+  acceptedTitle.className = 't-callout';
+  acceptedTitle.style.cssText = 'color:var(--text-muted);margin-bottom:12px;';
+  acceptedTitle.textContent = 'Sophie Martin accepte de vous prêter';
+  acceptedWrap.appendChild(acceptedTitle);
+
+  const acceptedCard = document.createElement('div');
+  acceptedCard.style.cssText = 'background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;align-items:center;cursor:pointer;';
+  acceptedCard.innerHTML = `
+    <div style="flex:1;min-width:0;margin-right:12px;">
+      <div class="t-headline" style="color:var(--text);margin-bottom:4px;">Perceuse Bosch</div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        ${pill('Sophie', '')}
+        <span class="co2-badge">${_leafSvg}−8,2 kg</span>
+      </div>
+    </div>
+    <svg width="7" height="12" viewBox="0 0 8 14" fill="none" aria-hidden="true" style="flex-shrink:0;color:var(--text-dim);">
+      <path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  `;
+  acceptedCard.addEventListener('click', () => showItem({ name: 'Perceuse Bosch', state: 'available', who: 'Sophie', no: '', co2: '8,2', cat: 'Outils', desc: '' }));
+  acceptedWrap.appendChild(acceptedCard);
+
+  const acceptedActions = document.createElement('div');
+  acceptedActions.style.cssText = 'margin-top:16px;text-align:center;';
+  acceptedActions.innerHTML = `
+    <button onclick="showContactPopin()" style="display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:var(--accent-ink);padding:12px 24px;border-radius:12px;border:none;font-family:var(--font);font-size:15px;font-weight:600;cursor:pointer;-webkit-appearance:none;transition:opacity .15s;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012-.5c.9.3 1.8.6 2.8.7A2 2 0 0122 16.9z"
+              stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Contactez Sophie
+    </button>
+    <div style="margin-top:12px;">
+      <span onclick="console.log('Annuler')" style="color:var(--text-muted);font-size:14px;text-decoration:underline;cursor:pointer;">Annuler</span>
+    </div>
+  `;
+  acceptedWrap.appendChild(acceptedActions);
+
+  rList.appendChild(acceptedWrap);
 }
 
 
+
+// ── Contact popin ────────────────────────────────────────────
+function showContactPopin() {
+  const panel    = document.getElementById('contact-popin');
+  const backdrop = document.getElementById('contact-backdrop');
+  backdrop.style.display = 'block';
+  panel.style.display    = 'block';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    panel.classList.add('open');
+    backdrop.style.opacity = '1';
+  }));
+}
+
+function hideContactPopin() {
+  const panel    = document.getElementById('contact-popin');
+  const backdrop = document.getElementById('contact-backdrop');
+  panel.classList.remove('open');
+  backdrop.style.opacity = '0';
+  setTimeout(() => {
+    panel.style.display    = 'none';
+    backdrop.style.display = 'none';
+  }, 300);
+}
 
 // ── Share ─────────────────────────────────────────────────────
 async function shareKolkoze() {
