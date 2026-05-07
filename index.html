@@ -2063,7 +2063,7 @@
 
   <!-- CTA sticky -->
   <div class="item-cta-area">
-    <button class="cta-btn" id="item-cta-btn" style="pointer-events:auto;display:block;width:100%;">Demander à emprunter</button>
+    <button class="cta-btn" id="item-cta-btn" style="pointer-events:auto;display:block;width:100%;" onclick="borrowItem()">Demander à emprunter</button>
     <p class="item-unavailable" id="item-unavailable" style="display:none;pointer-events:none;">Objet indisponible</p>
   </div>
 
@@ -2300,13 +2300,15 @@ async function loadHomeItems() {
   data.forEach(row => {
     const c = row.co2_saved_kg;
     renderItemRow(list, {
-      name:  row.name,
-      cat:   row.category  || '',
-      state: row.status,
-      co2:   c != null ? Number(c).toFixed(1).replace('.', ',') : '8,2',
-      desc:  row.description || '',
-      who:   row.owner?.first_name || '',
-      no:    '',
+      id:       row.id,
+      owner_id: row.owner_id,
+      name:     row.name,
+      cat:      row.category  || '',
+      state:    row.status,
+      co2:      c != null ? Number(c).toFixed(1).replace('.', ',') : '8,2',
+      desc:     row.description || '',
+      who:      row.owner?.first_name || '',
+      no:       '',
     });
   });
 }
@@ -2843,13 +2845,15 @@ function renderObjects(items) {
       const ok = row.status === 'available';
       const c  = row.co2_saved_kg;
       const item = {
-        name:  row.name,
-        cat:   row.category || '',
-        state: row.status,
-        co2:   c != null ? Number(c).toFixed(1).replace('.', ',') : '8,2',
-        desc:  row.description || '',
-        who:   row.owner?.first_name || '',
-        no:    '',
+        id:       row.id,
+        owner_id: row.owner_id,
+        name:     row.name,
+        cat:      row.category || '',
+        state:    row.status,
+        co2:      c != null ? Number(c).toFixed(1).replace('.', ',') : '8,2',
+        desc:     row.description || '',
+        who:      row.owner?.first_name || '',
+        no:       '',
       };
       const el = document.createElement('div');
       el.style.cssText = 'display:flex;align-items:center;padding:14px 16px;' + (i < grouped[cat].length - 1 ? 'border-bottom:0.5px solid var(--line);' : '');
@@ -2982,13 +2986,15 @@ async function _doSearch(q) {
     const ok = row.status === 'available';
     const c  = row.co2_saved_kg;
     const item = {
-      name:  row.name,
-      cat:   row.category || '',
-      state: row.status,
-      co2:   c != null ? Number(c).toFixed(1).replace('.', ',') : '8,2',
-      desc:  row.description || '',
-      who:   row.owner?.first_name || '',
-      no:    '',
+      id:       row.id,
+      owner_id: row.owner_id,
+      name:     row.name,
+      cat:      row.category || '',
+      state:    row.status,
+      co2:      c != null ? Number(c).toFixed(1).replace('.', ',') : '8,2',
+      desc:     row.description || '',
+      who:      row.owner?.first_name || '',
+      no:       '',
     };
     const el = document.createElement('div');
     el.className = 'search-result';
@@ -4065,7 +4071,10 @@ function showToast(msg, type) {
 }
 
 // ── Item fiche (ItemA) ────────────────────────────────────────
+let _currentItem = null;
+
 function showItem(item) {
+  _currentItem = item;
   const ok     = item.state === 'available';
   const pillEl = document.getElementById('item-status-pill');
   const dot    = document.getElementById('item-status-dot');
@@ -4105,6 +4114,55 @@ function hideItem() {
     panel.style.display    = 'none';
     backdrop.style.display = 'none';
   }, 300);
+}
+
+async function borrowItem() {
+  const item = _currentItem;
+  if (!item?.id) return;
+
+  const userId = localStorage.getItem('member_id');
+  if (!userId) { showToast('Connexion requise', 'error'); return; }
+
+  if (item.owner_id === userId) {
+    showToast("C'est votre propre objet", 'error');
+    return;
+  }
+
+  const btn = document.getElementById('item-cta-btn');
+  btn.disabled    = true;
+  btn.textContent = 'Envoi…';
+
+  const { data, error } = await db.from('loans').insert([{
+    item_id:      item.id,
+    owner_id:     item.owner_id,
+    borrower_id:  userId,
+    status:       'pending',
+    requested_at: new Date().toISOString(),
+  }]).select(_LOAN_SELECT).single();
+
+  btn.disabled    = false;
+  btn.textContent = 'Demander à emprunter';
+
+  if (error) {
+    console.error('[borrowItem]', error);
+    showToast('Erreur lors de la demande', 'error');
+    return;
+  }
+
+  hideItem();
+  showToast('Demande envoyée !', 'success');
+
+  // Add new loan to active transactions state
+  const s = window._transactionsState;
+  if (s && data) {
+    const tx = _loanToTx(data, userId);
+    s.active.unshift(tx);
+    const panel = document.getElementById('panel-exchanges');
+    if (panel && panel.style.display !== 'none') renderExchanges();
+    updateTransactionsBadge(s.active.filter(
+      t => (t._dbStatus === 'pending' || t.status === 'En attente de validation') && t.from === 'Vous'
+    ).length);
+  }
 }
 
 // ── PWA manifest inline ───────────────────────────────────────
