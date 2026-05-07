@@ -1539,6 +1539,12 @@
       position:fixed; inset:0; z-index:600; pointer-events:none;
     }
 
+    /* ── Skeleton pulse ─────────────────────────────────────── */
+    @keyframes pulse {
+      0%,100% { opacity:1; }
+      50%      { opacity:.45; }
+    }
+
     /* ── fadeInUp animation ──────────────────────────────────── */
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(12px); }
@@ -2086,9 +2092,8 @@
   <h2 id="contact-popin-title" class="t-title2" style="text-align:center;margin-bottom:8px;">À vous de jouer !</h2>
   <p class="t-callout" style="color:var(--text-muted);text-align:center;margin-bottom:24px;">Convenez d’un rendez-vous</p>
   <div style="background:var(--surface-alt);border-radius:14px;padding:16px;">
-    <div class="t-headline" style="color:var(--text);margin-bottom:6px;">Sophie Martin</div>
-    <div class="t-callout" style="color:var(--text-muted);margin-bottom:6px;">108 rue Charles Sainte-Beuve</div>
-    <a href="tel:0612345678" class="t-callout" style="color:var(--accent);text-decoration:none;">06 12 34 56 78</a>
+    <div id="contact-popin-name" class="t-headline" style="color:var(--text);margin-bottom:6px;">Votre voisin</div>
+    <div id="contact-popin-address" class="t-callout" style="color:var(--text-muted);margin-top:2px;"></div>
   </div>
   <button onclick="hideContactPopin()" style="margin-top:24px;width:100%;background:var(--accent);color:var(--accent-ink);padding:14px 20px;border-radius:12px;border:none;font-family:var(--font);font-size:16px;font-weight:600;cursor:pointer;-webkit-appearance:none;transition:opacity .15s;">Fermer</button>
 </div>
@@ -2449,7 +2454,7 @@ function _navigateTo(key) {
 
   if (key === 'objects')        showObjects();
   else if (key === 'add')       showPanel('panel-add');
-  else if (key === 'exchanges') { showPanel('panel-exchanges'); renderExchanges(); }
+  else if (key === 'exchanges') { showPanel('panel-exchanges'); loadTransactions(); }
   else if (key === 'profile')   { showPanel('panel-profile'); loadMember(); loadProfileTabs(); }
   // 'home': all panels closed, home visible
 
@@ -3019,27 +3024,274 @@ const TRANSACTIONS_ARCHIVED = [
   { name: 'Robot cuisine',                           from: 'Léa',    to: 'Vous',        co2: '11,3', status: 'Restitué' },
 ];
 
+// ── DB helpers and mapping ────────────────────────────────────
+const _UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const _STATUS_TO_DB = {
+  'Accepté':                  'accepted',
+  'Emprunté':                 'active',
+  'Prêté':                    'active',
+  'Restitué':                 'returned',
+  'Décliné':                  'declined',
+  'En attente de validation': 'pending',
+};
+
+function _determineStatusLabel(dbStatus, isOwner) {
+  if (dbStatus === 'pending')  return 'En attente de validation';
+  if (dbStatus === 'accepted') return 'Accepté';
+  if (dbStatus === 'active')   return isOwner ? 'Prêté' : 'Emprunté';
+  if (dbStatus === 'returned') return 'Restitué';
+  if (dbStatus === 'declined') return 'Décliné';
+  return dbStatus;
+}
+
+function _loanToTx(loan, userId) {
+  const isOwner      = loan.owner_id === userId;
+  const ownerName    = isOwner ? 'Vous' : (loan.owner?.first_name    || '—');
+  const borrowerName = isOwner ? (loan.borrower?.first_name || '—') : 'Vous';
+  const co2Raw       = loan.item?.co2_saved_kg || 0;
+  const co2          = typeof co2Raw === 'number'
+    ? co2Raw.toFixed(1).replace('.', ',')
+    : String(co2Raw);
+  return {
+    id:          loan.id,
+    name:        loan.item?.name || '—',
+    from:        ownerName,
+    to:          borrowerName,
+    co2,
+    status:      _determineStatusLabel(loan.status, isOwner),
+    _dbStatus:   loan.status,
+    _isOwner:    isOwner,
+    _loan:       loan,
+    _extraSteps: [],
+  };
+}
+
+function _relativeDate(isoStr) {
+  if (!isoStr) return '';
+  const diff = Math.floor((Date.now() - new Date(isoStr)) / 86400000);
+  if (diff === 0) return "Aujourd'hui";
+  if (diff === 1) return 'Il y a 1 jour';
+  if (diff < 7)  return 'Il y a ' + diff + ' jours';
+  return new Date(isoStr).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+}
+
+function _daysSince(isoStr) {
+  if (!isoStr) return 0;
+  return Math.max(0, Math.floor((Date.now() - new Date(isoStr)) / 86400000));
+}
+
+function _buildStepsFromLoan(loan, userId) {
+  const isOwner   = loan.owner_id === userId;
+  const otherName = isOwner
+    ? (loan.borrower?.first_name || 'votre voisin')
+    : (loan.owner?.first_name   || 'votre voisin');
+  const steps = [];
+
+  // Step 1 — request
+  steps.push({
+    type:    'done',
+    label:   isOwner
+      ? otherName + ' a demandé à emprunter'
+      : 'Vous avez demandé à emprunter',
+    time:    _relativeDate(loan.requested_at),
+    actions: [],
+  });
+
+  if (loan.status === 'pending') {
+    steps.push(isOwner ? {
+      type:    'current',
+      label:   otherName + ' attend votre réponse',
+      time:    '',
+      actions: [
+        { label: 'Décliner', fn: () => showDeclineConfirm(loan.id), primary: false },
+        { label: 'Accepter', fn: () => acceptRequest(loan.id),      primary: true  },
+      ],
+    } : {
+      type:    'current',
+      label:   'En attente de la réponse de ' + otherName,
+      time:    '',
+      actions: [],
+    });
+    return steps;
+  }
+
+  if (loan.status === 'declined') {
+    steps.push({
+      type:    'done',
+      label:   isOwner ? 'Vous avez décliné' : 'Demande refusée par ' + otherName,
+      time:    _relativeDate(loan.declined_at),
+      actions: [],
+    });
+    return steps;
+  }
+
+  // Step 2 — accepted
+  const acceptStep = {
+    type:    'done',
+    label:   isOwner ? 'Vous avez accepté' : otherName + ' a accepté',
+    time:    _relativeDate(loan.accepted_at),
+    actions: [],
+  };
+  if (!isOwner) {
+    acceptStep.actions = [{ label: 'Contacter ' + otherName, fn: () => showContactPopin(), primary: true, icon: 'phone' }];
+  }
+  steps.push(acceptStep);
+
+  if (loan.status === 'accepted') {
+    steps.push({
+      type:    'current',
+      label:   isOwner ? "Remettre l'objet à " + otherName : "Récupérer l'objet",
+      time:    '',
+      actions: [{ label: 'Valider la remise', fn: () => showQRChoice('hand', loan.id), primary: true }],
+    });
+    steps.push({ type: 'pending', label: 'Prêt en cours', time: '', actions: [] });
+    return steps;
+  }
+
+  // Step 3 — handed over
+  steps.push({
+    type:    'done',
+    label:   isOwner ? 'Objet remis' : 'Objet récupéré',
+    time:    _relativeDate(loan.handed_at),
+    actions: [],
+  });
+
+  if (loan.status === 'active') {
+    const days   = _daysSince(loan.handed_at);
+    const dayStr = days === 0 ? "depuis aujourd'hui"
+      : days === 1 ? 'depuis 1 jour'
+      : 'depuis ' + days + ' jours';
+    steps.push({
+      type:    'current',
+      label:   (isOwner ? 'Prêté ' : 'Emprunté ') + dayStr,
+      time:    '',
+      actions: [],
+    });
+    steps.push({
+      type:    'pending',
+      label:   'Retour à effectuer',
+      time:    '',
+      actions: [{ label: 'Valider le retour', fn: () => showQRChoice('return', loan.id), primary: true }],
+    });
+    return steps;
+  }
+
+  // Step 4 — returned
+  steps.push({
+    type:    'done',
+    label:   isOwner ? 'Objet récupéré' : 'Objet restitué',
+    time:    _relativeDate(loan.returned_at),
+    actions: [],
+  });
+  return steps;
+}
+
+// ── Supabase select snippet (shared) ─────────────────────────
+const _LOAN_SELECT = `id,item_id,borrower_id,owner_id,status,requested_at,accepted_at,declined_at,handed_at,returned_at,item:items!item_id(name,co2_saved_kg),owner:members!owner_id(first_name,last_name,address),borrower:members!borrower_id(first_name,last_name,address)`;
+
+// ── Archived pagination state ─────────────────────────────────
+let _archivedOffset = 0;
+let _archivedTotal  = 0;
+
+async function loadTransactions() {
+  const userId = localStorage.getItem('member_id');
+  if (!userId) { console.warn('[loadTransactions] no member_id'); return; }
+
+  // Skeleton while loading (only if list is currently empty)
+  const list = document.getElementById('requests-list');
+  if (list && !list.querySelector('[data-tx]')) {
+    list.innerHTML = '<div style="display:flex;flex-direction:column;gap:12px;">' +
+      [0,1,2].map(() => '<div style="background:var(--surface-alt);border-radius:14px;height:82px;animation:pulse 1.5s ease-in-out infinite;"></div>').join('') +
+      '</div>';
+  }
+
+  const [activeRes, archivedRes] = await Promise.all([
+    db.from('loans').select(_LOAN_SELECT)
+      .or('owner_id.eq.' + userId + ',borrower_id.eq.' + userId)
+      .in('status', ['pending','accepted','active'])
+      .order('requested_at', { ascending: false }),
+    db.from('loans').select(_LOAN_SELECT, { count: 'exact' })
+      .or('owner_id.eq.' + userId + ',borrower_id.eq.' + userId)
+      .in('status', ['returned','declined'])
+      .order('requested_at', { ascending: false })
+      .range(0, 4),
+  ]);
+
+  if (activeRes.error)   console.error('[loadTransactions] active:',   activeRes.error);
+  if (archivedRes.error) console.error('[loadTransactions] archived:', archivedRes.error);
+
+  _archivedOffset = 0;
+  _archivedTotal  = archivedRes.count || 0;
+
+  const activeTxs   = (activeRes.data   || []).map(l => _loanToTx(l, userId));
+  const archivedTxs = (archivedRes.data || []).map(l => _loanToTx(l, userId));
+
+  const mergeExtras = (newList, oldList) =>
+    newList.map(tx => {
+      const old = oldList.find(o => o.id === tx.id);
+      return old ? { ...tx, _extraSteps: old._extraSteps || [] } : tx;
+    });
+
+  const s = window._transactionsState;
+  if (s) {
+    if (activeTxs.length)   s.active   = mergeExtras(activeTxs,   s.active);
+    if (archivedTxs.length) s.archived = mergeExtras(archivedTxs, s.archived);
+  } else {
+    window._transactionsState = { active: activeTxs, archived: archivedTxs, currentThread: null };
+  }
+
+  const count = (window._transactionsState.active || []).filter(
+    t => (t._dbStatus === 'pending' || t.status === 'En attente de validation') && t.from === 'Vous'
+  ).length;
+  updateTransactionsBadge(count);
+  renderExchanges();
+}
+
+async function showMoreArchived() {
+  const userId = localStorage.getItem('member_id');
+  if (!userId) return;
+  _archivedOffset += 5;
+  const { data, error } = await db.from('loans').select(_LOAN_SELECT)
+    .or('owner_id.eq.' + userId + ',borrower_id.eq.' + userId)
+    .in('status', ['returned','declined'])
+    .order('requested_at', { ascending: false })
+    .range(_archivedOffset, _archivedOffset + 4);
+  if (error) { console.error('[showMoreArchived]', error); return; }
+  const s = window._transactionsState;
+  if (s) s.archived = [...s.archived, ...(data || []).map(l => _loanToTx(l, userId))];
+  renderExchanges();
+}
+
 // ── Global transactions state ────────────────────────────────
 let _pendingDeclineId = null;
 window._unreadTransactions = 0;
 window._qrPolling = null;
 
 function initTransactionsState() {
+  const mapStatic = (list, defaultDb) =>
+    list.map(tx => ({
+      ...tx,
+      _extraSteps: [],
+      _dbStatus: _STATUS_TO_DB[tx.status] || defaultDb,
+    }));
   window._transactionsState = {
-    active: TRANSACTIONS_ACTIVE.map(tx => ({ ...tx, _extraSteps: [] })),
-    archived: TRANSACTIONS_ARCHIVED.map(tx => ({ ...tx, _extraSteps: [] })),
+    active:        mapStatic(TRANSACTIONS_ACTIVE,   'active'),
+    archived:      mapStatic(TRANSACTIONS_ARCHIVED, 'returned'),
     currentThread: null,
   };
   const actionCount = window._transactionsState.active.filter(
     t => t.from === 'Vous' && t.status === 'En attente de validation'
   ).length;
   updateTransactionsBadge(actionCount);
-  // Show debug button if ?debug=1 in URL
   if (new URLSearchParams(window.location.search).has('debug')) {
     const btn = document.getElementById('qr-simulate-btn');
     if (btn) btn.style.display = 'block';
   }
+  // Load real data from Supabase (overlays static fallback)
+  loadTransactions();
 }
+
 
 function _findTx(loanId) {
   const s = window._transactionsState;
@@ -3047,30 +3299,50 @@ function _findTx(loanId) {
   return s.active.find(t => t.id === loanId) || s.archived.find(t => t.id === loanId) || null;
 }
 
-async function updateTransactionStatus(loanId, newStatus) {
+async function updateTransactionStatus(loanId, frenchStatus) {
   const s = window._transactionsState;
   if (!s) return;
+
+  const dbStatus = _STATUS_TO_DB[frenchStatus] || frenchStatus;
+
+  // Update local state
   const idx = s.active.findIndex(t => t.id === loanId);
   if (idx !== -1) {
-    s.active[idx].status = newStatus;
-    // Move to archived if terminal
-    if (newStatus === 'Restitué' || newStatus === 'Décliné') {
+    s.active[idx].status   = frenchStatus;
+    s.active[idx]._dbStatus = dbStatus;
+    if (dbStatus === 'returned' || dbStatus === 'declined') {
       const tx = s.active.splice(idx, 1)[0];
       s.archived.unshift(tx);
     }
   } else {
     const aIdx = s.archived.findIndex(t => t.id === loanId);
-    if (aIdx !== -1) s.archived[aIdx].status = newStatus;
+    if (aIdx !== -1) {
+      s.archived[aIdx].status   = frenchStatus;
+      s.archived[aIdx]._dbStatus = dbStatus;
+    }
   }
-  // Supabase TODO
-  console.log('[tx] updateTransactionStatus', loanId, newStatus);
-  // Refresh list if visible
+
+  // Supabase UPDATE (only for real UUIDs)
+  if (_UUID_RE.test(loanId)) {
+    const updates = { status: dbStatus };
+    const now = new Date().toISOString();
+    if (dbStatus === 'accepted') updates.accepted_at = now;
+    if (dbStatus === 'active')   updates.handed_at   = now;
+    if (dbStatus === 'returned') updates.returned_at  = now;
+    if (dbStatus === 'declined') updates.declined_at  = now;
+    const { error } = await db.from('loans').update(updates).eq('id', loanId);
+    if (error) console.error('[updateTransactionStatus]', error);
+  }
+
+  // Refresh list + badge
   const panel = document.getElementById('panel-exchanges');
   if (panel && panel.style.display !== 'none') renderExchanges();
-  // Update badge
-  const count = s.active.filter(t => t.from === 'Vous' && t.status === 'En attente de validation').length;
+  const count = s.active.filter(
+    t => (t._dbStatus === 'pending' || t.status === 'En attente de validation') && t.from === 'Vous'
+  ).length;
   updateTransactionsBadge(count);
 }
+
 
 function addThreadStep(loanId, stepData) {
   const tx = _findTx(loanId);
@@ -3126,7 +3398,7 @@ function stopQRPolling() {
 async function acceptRequest(loanId) {
   const tx = _findTx(loanId);
   if (!tx) return;
-  await updateTransactionStatus(loanId, 'Prêté');
+  await updateTransactionStatus(loanId, 'Accepté');
   addThreadStep(loanId, {
     type: 'current',
     label: "Vous avez accepté la demande",
@@ -3196,6 +3468,7 @@ function simulateScan() {
 // ── Render transactions ───────────────────────────────────────
 function _txStatusBadge(status) {
   const s = {
+    'Accepté':                  { border:'1.5px solid #1F9D55', bg:'transparent', color:'#1F9D55' },
     'Emprunté':                 { border:'1.5px solid #1F9D55', bg:'transparent', color:'#1F9D55' },
     'Prêté':                    { border:'1.5px solid #1F9D55', bg:'transparent', color:'#1F9D55' },
     'En attente de validation': { border:'1.5px solid #F59E0B', bg:'transparent', color:'#F59E0B' },
@@ -3239,38 +3512,66 @@ function renderExchanges() {
   const activeList   = s ? s.active   : TRANSACTIONS_ACTIVE;
   const archivedList = s ? s.archived : TRANSACTIONS_ARCHIVED;
 
-  // Transactions actives
-  const activeGroup = document.createElement('div');
-  activeGroup.style.cssText = 'display:flex;flex-direction:column;gap:12px;';
-  activeList.forEach(tx => activeGroup.appendChild(_txCard(tx)));
-  list.appendChild(activeGroup);
+  // Active
+  if (!activeList.length) {
+    const empty = document.createElement('p');
+    empty.className = 't-callout';
+    empty.style.cssText = 'color:var(--text-muted);text-align:center;padding:28px 0;';
+    empty.textContent = 'Aucune transaction en cours';
+    list.appendChild(empty);
+  } else {
+    const group = document.createElement('div');
+    group.style.cssText = 'display:flex;flex-direction:column;gap:12px;';
+    activeList.forEach(tx => {
+      const el = _txCard(tx);
+      el.setAttribute('data-tx', tx.id || '');
+      group.appendChild(el);
+    });
+    list.appendChild(group);
+  }
 
-  // Séparateur Archivées
+  // Separator
   const sep = document.createElement('p');
   sep.className = 't-caption';
   sep.style.cssText = 'text-transform:uppercase;color:var(--text-muted);margin-top:32px;margin-bottom:12px;letter-spacing:0.1px;';
   sep.textContent = 'Archivées';
   list.appendChild(sep);
 
-  // 5 archivées par défaut
-  const archivedGroup = document.createElement('div');
-  archivedGroup.style.cssText = 'display:flex;flex-direction:column;gap:12px;';
-  archivedList.slice(0, 5).forEach(tx => archivedGroup.appendChild(_txCard(tx)));
-  list.appendChild(archivedGroup);
+  // Archived
+  if (!archivedList.length) {
+    const empty2 = document.createElement('p');
+    empty2.className = 't-callout';
+    empty2.style.cssText = 'color:var(--text-muted);text-align:center;padding:16px 0;';
+    empty2.textContent = 'Aucun historique';
+    list.appendChild(empty2);
+  } else {
+    const archGroup = document.createElement('div');
+    archGroup.style.cssText = 'display:flex;flex-direction:column;gap:12px;';
+    archivedList.forEach(tx => {
+      const el = _txCard(tx);
+      el.setAttribute('data-tx', tx.id || '');
+      archGroup.appendChild(el);
+    });
+    list.appendChild(archGroup);
+  }
 
   // Afficher plus
-  if (TRANSACTIONS_ARCHIVED.length > 5) {
+  const hasMore = s
+    ? archivedList.length < _archivedTotal
+    : TRANSACTIONS_ARCHIVED.length > 5;
+  if (hasMore) {
     const more = document.createElement('p');
     more.style.cssText = 'text-align:center;margin-top:16px;';
     const moreLink = document.createElement('span');
     moreLink.className = 't-callout';
     moreLink.style.cssText = 'color:var(--accent);text-decoration:underline;cursor:pointer;';
     moreLink.textContent = 'Afficher plus';
-    moreLink.addEventListener('click', () => console.log('Afficher plus'));
+    moreLink.addEventListener('click', () => showMoreArchived());
     more.appendChild(moreLink);
     list.appendChild(more);
   }
 }
+
 
 // ── Thread scenarios ─────────────────────────────────────────
 const THREAD_SCENARIOS = {
@@ -3355,25 +3656,10 @@ function _buildStepEl(step, animate) {
   return stepEl;
 }
 
-function showThread(id) {
-  const scenario = THREAD_SCENARIOS[id];
-  if (!scenario) return;
-
+async function showThread(id) {
   if (window._transactionsState) window._transactionsState.currentThread = id;
 
-  document.getElementById('thread-title').textContent = scenario.name;
-  document.getElementById('thread-meta').textContent  = scenario.meta;
-
-  const timeline = document.getElementById('thread-timeline');
-  timeline.innerHTML = '';
-  scenario.steps.forEach(step => timeline.appendChild(_buildStepEl(step, false)));
-
-  // Append extra steps added during this session
-  const tx = window._transactionsState ? _findTx(id) : null;
-  if (tx && tx._extraSteps) {
-    tx._extraSteps.forEach(step => timeline.appendChild(_buildStepEl(step, false)));
-  }
-
+  // Open panel immediately
   const panel    = document.getElementById('thread-panel');
   const backdrop = document.getElementById('thread-backdrop');
   backdrop.style.display = 'block';
@@ -3382,7 +3668,65 @@ function showThread(id) {
     panel.classList.add('open');
     backdrop.style.opacity = '1';
   }));
+
+  // Static prototype ID → use THREAD_SCENARIOS as fallback
+  if (!_UUID_RE.test(id)) {
+    const scenario = THREAD_SCENARIOS[id];
+    if (!scenario) { hideThread(); return; }
+    document.getElementById('thread-title').textContent = scenario.name;
+    document.getElementById('thread-meta').textContent  = scenario.meta;
+    const timeline = document.getElementById('thread-timeline');
+    timeline.innerHTML = '';
+    scenario.steps.forEach(s => timeline.appendChild(_buildStepEl(s, false)));
+    const tx = _findTx(id);
+    if (tx && tx._extraSteps) {
+      tx._extraSteps.forEach(s => timeline.appendChild(_buildStepEl(s, false)));
+    }
+    return;
+  }
+
+  // Real UUID → fetch from Supabase
+  const userId = localStorage.getItem('member_id');
+  const timeline = document.getElementById('thread-timeline');
+  document.getElementById('thread-title').textContent = '…';
+  document.getElementById('thread-meta').textContent  = '';
+  timeline.innerHTML = '<div style="display:flex;justify-content:center;padding:48px 0;"><div class="spinner"></div></div>';
+
+  const { data: loan, error } = await db.from('loans')
+    .select(_LOAN_SELECT)
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error || !loan) {
+    console.error('[showThread]', error);
+    document.getElementById('thread-title').textContent = 'Erreur';
+    timeline.innerHTML = '<p style="color:var(--text-muted);padding:20px;text-align:center;">Impossible de charger les détails.</p>';
+    return;
+  }
+
+  const isOwner  = loan.owner_id === userId;
+  const other    = isOwner ? loan.borrower : loan.owner;
+  const co2Raw   = loan.item?.co2_saved_kg || 0;
+  const co2      = typeof co2Raw === 'number' ? co2Raw.toFixed(1).replace('.', ',') : co2Raw;
+  const fromName = isOwner ? 'Vous' : (loan.owner?.first_name || '—');
+  const toName   = isOwner ? (loan.borrower?.first_name || '—') : 'Vous';
+
+  document.getElementById('thread-title').textContent = loan.item?.name || '—';
+  document.getElementById('thread-meta').textContent  = fromName + ' → ' + toName + ' • −' + co2 + ' kg CO₂';
+
+  // Store contact info for showContactPopin
+  window._currentLoanContact = {
+    name:    ((other?.first_name || '') + ' ' + (other?.last_name || '')).trim(),
+    address: other?.address || '',
+  };
+
+  timeline.innerHTML = '';
+  const steps  = _buildStepsFromLoan(loan, userId);
+  const tx     = _findTx(id);
+  const extras = tx ? tx._extraSteps || [] : [];
+  [...steps, ...extras].forEach(s => timeline.appendChild(_buildStepEl(s, false)));
 }
+
 
 function hideThread() {
   if (window._transactionsState) window._transactionsState.currentThread = null;
@@ -3398,6 +3742,11 @@ function hideThread() {
 
 // ── Contact popin ────────────────────────────────────────────
 function showContactPopin() {
+  const c = window._currentLoanContact;
+  const nameEl = document.getElementById('contact-popin-name');
+  const addrEl = document.getElementById('contact-popin-address');
+  if (nameEl) nameEl.textContent = c ? (c.name || 'Votre voisin') : 'Votre voisin';
+  if (addrEl) addrEl.textContent = c ? (c.address || '') : '';
   const panel    = document.getElementById('contact-popin');
   const backdrop = document.getElementById('contact-backdrop');
   backdrop.style.display = 'block';
