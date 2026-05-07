@@ -897,11 +897,11 @@
       margin-bottom: 14px; line-height: 25px;
     }
     .xg-item {
-      display: flex; align-items: center;
-      padding: 14px 16px; gap: 12px;
-      background: var(--surface); border: 1px solid var(--line);
-      border-radius: 14px; margin-bottom: 10px;
+      display: flex; flex-direction: column;
+      padding: 16px;
+      border-bottom: 0.5px solid var(--line);
     }
+    .xg-item:last-child { border-bottom: none; }
     .xg-item-left { flex: 1; min-width: 0; }
     .xg-item-label { font-size: 15px; font-weight: 400; color: var(--text); line-height: 20px; }
     .xg-item-sub   { font-size: 12px; color: var(--text-muted); line-height: 16px; margin-top: 2px; }
@@ -1945,6 +1945,7 @@ async function loadMember() {
 
   if (!resolved) { console.warn('[loadMember] aucun membre trouvé'); return; }
 
+  _me = resolved.first_name || '';
   localStorage.setItem('member_id', resolved.id);
 
   // 3. DOM identité
@@ -2019,7 +2020,7 @@ function _navigateTo(key) {
 
   if (key === 'objects')        showObjects();
   else if (key === 'add')       showPanel('panel-add');
-  else if (key === 'exchanges') showPanel('panel-exchanges');
+  else if (key === 'exchanges') { showPanel('panel-exchanges'); renderExchanges(); }
   else if (key === 'profile')   { showPanel('panel-profile'); loadMember(); loadProfileTabs(); }
   // 'home': all panels closed, home visible
 
@@ -2334,6 +2335,7 @@ function profileAddItem() {
 }
 
 // ── Objects screen ────────────────────────────────────────────
+let _me = '';            // prénom du membre courant, rempli par loadMember()
 let _objectsLoaded = false;
 let _allObjects = [];
 
@@ -2582,58 +2584,88 @@ const EXCHANGES_DATA = {
 };
 
 // ── Render exchanges ──────────────────────────────────────────
-(function renderExchanges() {
+function renderExchanges() {
+  const owner = _me || 'Vous';
+  const cardStyle = 'background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;';
+
   // Demandes reçues
   const rList = document.getElementById('requests-list');
+  rList.innerHTML = '';
+  const rCard = document.createElement('div');
+  rCard.style.cssText = cardStyle;
   EXCHANGES_DATA.requests.forEach(r => {
     const el = document.createElement('div');
     el.className = 'xg-item';
     el.innerHTML = `
-      <div class="xg-item-left">
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">${pill(r.who, r.no)}<span class="t-footnote" style="color:var(--text-muted);">veut emprunter</span></div>
-        <div class="t-headline" style="color:var(--text);">${r.item}</div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+        ${pill(r.who, r.no)}<span class="t-footnote" style="color:var(--text-muted);">veut emprunter</span>
       </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="flex:1;min-width:0;">
+          <div class="t-headline" style="color:var(--text);margin-bottom:4px;">${r.item}</div>
+          ${pill(owner, '')}
+        </div>
         <button class="obj-cta-btn" style="background:var(--accent);color:var(--accent-ink);">Accepter</button>
-        <button style="background:none;border:none;font-family:var(--font);font-size:12px;color:var(--text-muted);cursor:pointer;padding:0 2px;-webkit-appearance:none;">Décliner</button>
+      </div>
+      <div style="margin-top:10px;text-align:right;">
+        <button style="background:none;border:none;font-family:var(--font);font-size:12px;color:var(--text-muted);cursor:pointer;padding:0;-webkit-appearance:none;">Décliner</button>
       </div>
     `;
     el.querySelector('.obj-cta-btn').onclick = () => showAcceptPopin(r.who);
-    rList.appendChild(el);
+    rCard.appendChild(el);
   });
+  rList.appendChild(rCard);
 
   // Remises en attente (À rendre)
   const hList = document.getElementById('handovers-list');
+  hList.innerHTML = '';
+  const hCard = document.createElement('div');
+  hCard.style.cssText = cardStyle;
   EXCHANGES_DATA.handovers.forEach(h => {
     const el = document.createElement('div');
     el.className = 'xg-item';
     el.innerHTML = `
-      <div class="xg-item-left">
-        <div style="margin-bottom:6px;">${pill(h.who, h.no)}</div>
-        <div class="t-headline" style="color:var(--text);">${h.item}</div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+        ${pill(h.who, h.no)}<span class="t-footnote" style="color:var(--text-muted);">attend la remise</span>
       </div>
-      <button class="obj-cta-btn" style="background:var(--accent);color:var(--accent-ink);">Rendu</button>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="flex:1;min-width:0;">
+          <div class="t-headline" style="color:var(--text);margin-bottom:4px;">${h.item}</div>
+          ${pill(owner, '')}
+        </div>
+        <button class="obj-cta-btn" style="background:var(--accent);color:var(--accent-ink);">Remis</button>
+      </div>
     `;
     el.querySelector('.obj-cta-btn').onclick = showHandoverPopin;
-    hList.appendChild(el);
+    hCard.appendChild(el);
   });
+  hList.appendChild(hCard);
 
   // Retours en cours (À récupérer)
   const retList = document.getElementById('returns-list');
+  retList.innerHTML = '';
+  const retCard = document.createElement('div');
+  retCard.style.cssText = cardStyle;
   EXCHANGES_DATA.returns.forEach(r => {
     const el = document.createElement('div');
     el.className = 'xg-item';
     el.innerHTML = `
-      <div class="xg-item-left">
-        <div style="margin-bottom:6px;">${pill(r.who, r.no)}</div>
-        <div class="t-headline" style="color:var(--text);">${r.item}</div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+        ${pill(r.who, r.no)}<span class="t-footnote" style="color:var(--text-muted);">a emprunté</span>
       </div>
-      <button class="obj-cta-btn" style="background:var(--accent);color:var(--accent-ink);">Récupéré</button>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="flex:1;min-width:0;">
+          <div class="t-headline" style="color:var(--text);margin-bottom:4px;">${r.item}</div>
+          ${pill(owner, '')}
+        </div>
+        <button class="obj-cta-btn" style="background:var(--accent);color:var(--accent-ink);">Récupéré</button>
+      </div>
     `;
     el.querySelector('.obj-cta-btn').onclick = showReturnPopin;
-    retList.appendChild(el);
+    retCard.appendChild(el);
   });
-})();
+  retList.appendChild(retCard);
+}
 
 // ── Popins échanges ───────────────────────────────────────────
 function showAcceptPopin(name) {
