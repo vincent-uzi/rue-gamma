@@ -668,46 +668,87 @@
     .btn-link:active { opacity: .7; }
 
     /* ── Profile screen ─────────────────────────────────────────── */
-    .profile-nav {
+    /* Profile header */
+    .profile-header {
       flex-shrink: 0;
       position: relative;
       display: flex;
       align-items: center;
-      padding: max(14px, var(--sat)) 16px 14px;
-      border-bottom: 0.5px solid var(--line);
+      padding: max(16px, var(--sat)) 16px 16px;
+      gap: 12px;
       background: var(--bg);
     }
-    .circle-btn {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: var(--surface);
-      border: 1px solid var(--line);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--text);
-      cursor: pointer;
-      -webkit-appearance: none;
+    .profile-header-avatar {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-weight: 600; font-size: 20px;
       flex-shrink: 0;
-      transition: opacity .12s;
+    }
+    .profile-header-info { flex: 1; min-width: 0; }
+    .profile-header-name {
+      font-weight: 600; font-size: 16px; color: var(--text); line-height: 1.3;
+    }
+    .profile-header-address {
+      font-size: 13px; color: var(--text-muted); margin-top: 1px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .profile-header-menu-btn {
+      background: none; border: none;
+      font-size: 22px; color: var(--text-muted);
+      cursor: pointer; align-self: center;
+      padding: 4px 8px; -webkit-appearance: none;
+      line-height: 1;
+    }
+    .circle-btn {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--surface); border: 1px solid var(--line);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text); cursor: pointer; -webkit-appearance: none;
+      flex-shrink: 0; transition: opacity .12s;
     }
     .circle-btn:active { opacity: .6; }
-    .profile-nav-title {
-      flex: 1;
-      text-align: center;
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--text);
-      line-height: 21px;
-    }
     .profile-scroll {
       flex: 1;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
-      padding: 24px 20px calc(32px + 64px + 24px + var(--sab));
+      padding-bottom: calc(32px + 64px + 24px + var(--sab));
       overscroll-behavior-y: contain;
     }
+
+    /* Transaction push banners */
+    #transaction-push-slider::-webkit-scrollbar { display: none; }
+    .transaction-push {
+      scroll-snap-align: start;
+      background: linear-gradient(135deg, var(--accent) 0%, #17845C 100%);
+      color: white;
+      padding: 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .transaction-push-title {
+      font-weight: 600; font-size: 15px;
+      margin-bottom: 4px; line-height: 1.3;
+    }
+    .transaction-push-desc { font-size: 13px; opacity: 0.9; }
+
+    /* New profile tabs (pill style) */
+    .profile-tab {
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: none;
+      background: var(--surface-alt);
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background .2s, color .2s;
+      font-family: var(--font);
+      -webkit-appearance: none;
+      white-space: nowrap;
+    }
+    .profile-tab.active { background: var(--accent); color: white; }
 
     /* CO₂ ring card */
     .co2-card {
@@ -907,19 +948,7 @@
     .xg-item-sub   { font-size: 12px; color: var(--text-muted); line-height: 16px; margin-top: 2px; }
 
 
-    /* ── Profile inner tabs ─────────────────────────────────── */
-    .profile-inner-tabs {
-      display: flex; border-bottom: 0.5px solid var(--line); margin-bottom: 16px;
-    }
-    .profile-inner-tab {
-      flex: 1; padding: 10px 4px; text-align: center;
-      font-size: 14px; font-weight: 500; color: var(--text-muted);
-      cursor: pointer; background: none; border: none;
-      border-bottom: 2px solid transparent; margin-bottom: -0.5px;
-      font-family: var(--font); -webkit-appearance: none; white-space: nowrap;
-      transition: color .15s, border-color .15s;
-    }
-    .profile-inner-tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+    /* legacy inner-tab kept for safety — overridden by .profile-tab */
     .profile-tab-pane { display: none; }
     .profile-tab-pane.active { display: block; }
 
@@ -1801,22 +1830,14 @@
 <!-- ── Écran Profil ────────────────────────────────────────────── -->
 <div class="overlay-panel" id="panel-profile">
 
-  <div class="profile-nav">
-    <button class="circle-btn" onclick="closeProfile()" aria-label="Retour">
-      <svg width="11" height="18" viewBox="0 0 12 20" fill="none" aria-hidden="true">
-        <path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.2"
-              stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </button>
-    <span class="profile-nav-title">Profil</span>
-    <button class="circle-btn" id="profile-menu-btn" aria-label="Plus d’options"
-            onclick="toggleProfileMenu(event)">
-      <svg width="18" height="5" viewBox="0 0 22 6" fill="none" aria-hidden="true">
-        <circle cx="3"  cy="3" r="2" fill="currentColor"/>
-        <circle cx="11" cy="3" r="2" fill="currentColor"/>
-        <circle cx="19" cy="3" r="2" fill="currentColor"/>
-      </svg>
-    </button>
+  <!-- Simplified header -->
+  <div class="profile-header">
+    <div class="profile-header-avatar" id="profile-avatar">?</div>
+    <div class="profile-header-info">
+      <div class="profile-header-name" id="profile-name">…</div>
+      <div class="profile-header-address" id="profile-address">…</div>
+    </div>
+    <button class="profile-header-menu-btn" onclick="showProfileMenu(event)" aria-label="Plus d’options">⋮</button>
 
     <!-- Dropdown menu -->
     <div id="profile-menu" style="display:none;position:absolute;top:calc(100% - 4px);right:8px;background:var(--bg);border:1px solid var(--line);border-radius:14px;min-width:196px;box-shadow:0 4px 20px rgba(0,0,0,0.10);z-index:20;overflow:hidden;">
@@ -1830,21 +1851,11 @@
     </div>
   </div>
 
-  <!-- Bloc identité -->
-  <div style="display:flex;align-items:center;gap:14px;padding:18px 20px 0;">
-    <div id="profile-avatar" style="width:44px;height:44px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;flex-shrink:0;">?</div>
-    <div>
-      <div class="t-headline" id="profile-name" style="color:var(--text);font-weight:700;">…</div>
-      <div class="t-footnote" id="profile-address" style="color:var(--text-muted);margin-top:2px;">…</div>
-    </div>
-  </div>
-
   <div class="profile-scroll">
 
     <!-- CO₂ ring card -->
-    <div class="co2-card">
+    <div class="co2-card" style="margin:0 16px 14px;">
       <div class="ring-wrap">
-        <!-- r=52 → circumference=326.73 ; 60% fill → dashOffset=130.69 -->
         <svg width="120" height="120" viewBox="0 0 120 120" aria-hidden="true">
           <circle cx="60" cy="60" r="52"
             stroke="var(--surface-alt)" stroke-width="8" fill="none"/>
@@ -1870,7 +1881,7 @@
     </div>
 
     <!-- Stats row -->
-    <div class="stats-row">
+    <div class="stats-row" style="margin:0 16px 14px;">
       <div class="stat-card">
         <span class="stat-value" id="stat-items">—</span>
         <span class="stat-label">Objets</span>
@@ -1885,34 +1896,44 @@
       </div>
     </div>
 
-    <!-- Mes objets -->
-    <div class="profile-section-hd">
-      <h2 class="t-title3">Mes objets</h2>
-      <button class="add-obj-btn" onclick="profileAddItem()">
-        <svg width="14" height="14" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-          <path d="M9 3v12M3 9h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-        </svg>
-        Ajouter
+    <!-- Transaction push banners -->
+    <div id="transaction-push-container" style="padding:0 16px 16px;overflow:hidden;display:none;">
+      <div id="transaction-push-slider" style="display:flex;gap:12px;scroll-snap-type:x mandatory;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;">
+      </div>
+    </div>
+
+    <!-- Pill tabs -->
+    <div style="display:flex;gap:8px;padding:0 16px 12px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none;">
+      <button onclick="switchProfileTab(‘objets’)" id="tab-objets" class="profile-tab active">
+        <span id="tab-objets-count">—</span> Objets
+      </button>
+      <button onclick="switchProfileTab(‘prete’)" id="tab-prete" class="profile-tab">
+        <span id="tab-prete-count">—</span> Prêté
+      </button>
+      <button onclick="switchProfileTab(‘emprunte’)" id="tab-emprunte" class="profile-tab">
+        <span id="tab-emprunte-count">—</span> Emprunté
       </button>
     </div>
 
-    <!-- Inner tabs profil -->
-    <div class="profile-inner-tabs" role="tablist">
-      <button class="profile-inner-tab active" role="tab" aria-selected="true"
-              id="tab-mes-objets" onclick="switchProfileTab('mes-objets')">Mes objets</button>
-      <button class="profile-inner-tab" role="tab" aria-selected="false"
-              id="tab-pretes" onclick="switchProfileTab('pretes')">Prêtés</button>
-      <button class="profile-inner-tab" role="tab" aria-selected="false"
-              id="tab-empruntes" onclick="switchProfileTab('empruntes')">Empruntés</button>
-    </div>
-
-    <div class="profile-tab-pane active" id="profile-pane-mes-objets">
+    <!-- Tab panes -->
+    <div id="profile-tab-objets" style="display:block;padding:16px 16px 0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <h2 class="t-title3">Mes objets</h2>
+        <button class="add-obj-btn" onclick="profileAddItem()">
+          <svg width="14" height="14" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <path d="M9 3v12M3 9h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          Ajouter
+        </button>
+      </div>
       <div class="items-list" id="profileItemsList" role="list"></div>
     </div>
-    <div class="profile-tab-pane" id="profile-pane-pretes">
+
+    <div id="profile-tab-prete" style="display:none;padding:16px 16px 0;">
       <div class="items-list" id="profileLentList" role="list"></div>
     </div>
-    <div class="profile-tab-pane" id="profile-pane-empruntes">
+
+    <div id="profile-tab-emprunte" style="display:none;padding:16px 16px 0;">
       <div class="items-list" id="profileBorrowedList" role="list"></div>
     </div>
 
@@ -2382,12 +2403,17 @@ async function loadMember() {
   localStorage.setItem('member_id', resolved.id);
 
   // 3. DOM identité
-  const initial = (resolved.first_name || '?')[0].toUpperCase();
-  document.getElementById('profile-avatar').textContent = initial;
-  document.getElementById('profile-name').textContent   = resolved.first_name + ' ' + resolved.last_name;
-  document.getElementById('profile-address').textContent = resolved.address || '';
+  const firstName = resolved.first_name || '';
+  const lastName  = resolved.last_name  || '';
+  const initials  = (firstName[0] || '').toUpperCase() + (lastName[0] || '').toUpperCase() || '?';
+  const avatarEl = document.getElementById('profile-avatar');
+  if (avatarEl) avatarEl.textContent = initials;
+  const nameEl = document.getElementById('profile-name');
+  if (nameEl) nameEl.textContent = firstName + ' ' + lastName;
+  const addrEl = document.getElementById('profile-address');
+  if (addrEl) addrEl.textContent = resolved.address || '';
   const captionEl = document.querySelector('.header-caption');
-  if (captionEl) captionEl.textContent = 'Bonjour ' + resolved.first_name;
+  if (captionEl) captionEl.textContent = 'Bonjour ' + firstName;
 
   // 4. Stats — 3 requêtes parallèles
   const [itemsRes, loansRes, borrowsRes] = await Promise.all([
@@ -2407,11 +2433,12 @@ async function loadMember() {
   if (elBorrows) elBorrows.textContent = borrowsRes.count ?? '—';
 }
 
-function toggleProfileMenu(e) {
+function showProfileMenu(e) {
   e.stopPropagation();
   const menu = document.getElementById('profile-menu');
-  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+  if (menu) menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
 }
+const toggleProfileMenu = showProfileMenu;
 document.addEventListener('click', () => {
   const menu = document.getElementById('profile-menu');
   if (menu) menu.style.display = 'none';
@@ -2546,7 +2573,7 @@ function onPhotoSelected(input) {
   const img = document.createElement('img');
   img.src = URL.createObjectURL(input.files[0]);
   img.className = 'photo-preview';
-  img.alt = "Photo de l’objet";
+  img.alt = "Photo de l'objet";
   area.innerHTML = '';
   area.appendChild(img);
 }
@@ -2613,6 +2640,105 @@ function addAnother() {
   setTimeout(() => { showPanel('panel-add'); _setActiveTab('add'); }, 40);
 }
 
+// ── Profile catchphrases ──────────────────────────────────────
+const CATCHPHRASES = {
+  pending_owner: [
+    '{borrower} miroite votre {item}. La mérite-t-il ?',
+    '{borrower} a flashé sur votre {item}',
+    '{borrower} lorgne votre {item} depuis hier',
+    'Nouveau voisin intéressé par votre {item} !',
+  ],
+  pending_borrower: [
+    'En attente de {owner} pour {item_article}',
+    'Votre demande pour {item_article} est en attente',
+    "{owner} n'a pas encore répondu pour {item_article}",
+  ],
+  accepted_owner: [
+    'Remise à organiser avec {borrower} pour {item_article}',
+    '{borrower} attend {item_article} — planifiez la remise',
+    'Accordé ! Remettez {item_article} à {borrower}',
+  ],
+  accepted_borrower: [
+    '{owner} accepte ! Appelez-le pour récupérer {item_article}',
+    'Prenez rendez-vous avec {owner} pour {item_article}',
+    '{owner} dit oui ! Organisez la remise de {item_article}',
+  ],
+  active_owner: [
+    '{borrower} a {item_article} — retour à confirmer',
+    '{item_article} est chez {borrower}',
+    'Prêt en cours : {item_article} chez {borrower}',
+  ],
+  active_borrower: [
+    'Vous empruntez {item_article} à {owner}',
+    "{item_article} est entre vos mains",
+    "N'oubliez pas de rendre {item_article} à {owner}",
+  ],
+};
+const ARTICLES = {
+  'perceuse': 'la perceuse', 'ponceuse': 'la ponceuse',
+  'echelle': "l'échelle", 'echelle': "l'échelle",
+  'marteau': 'le marteau', 'tondeuse': 'la tondeuse',
+  'karcher': 'le karcher', 'velo': 'le vélo',
+  'trottinette': 'la trottinette', 'barbecue': 'le barbecue',
+  'aspirateur': "l'aspirateur", 'escabeau': "l'escabeau",
+  'scie': 'la scie', 'visseuse': 'la visseuse',
+  'meuleuse': 'la meuleuse', 'souffleur': 'le souffleur',
+  'debroussailleuse': 'la débroussailleuse', 'kayak': 'le kayak',
+  'paddle': 'le paddle', 'tente': 'la tente',
+};
+function _itemArticle(name) {
+  if (!name) return "l'objet";
+  const key = name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+  if (ARTICLES[key]) return ARTICLES[key];
+  const vowels = /^[aeiouâêîôûäëïöü]/i;
+  return (vowels.test(name) ? "l'" : 'le ') + name.toLowerCase();
+}
+function getCatchphrase(type, vars) {
+  const list = CATCHPHRASES[type];
+  if (!list || !list.length) return '';
+  const tpl = list[Math.floor(Math.random() * list.length)];
+  return tpl
+    .replace('{borrower}', vars.borrower || 'votre voisin')
+    .replace('{owner}', vars.owner || 'le propriétaire')
+    .replace('{item}', vars.item || "l'objet")
+    .replace('{item_article}', vars.item_article || _itemArticle(vars.item));
+}
+
+async function renderTransactionPush() {
+  const userId = localStorage.getItem('member_id');
+  if (!userId) return;
+  const { data: loans } = await db.from('loans')
+    .select('id, status, owner_id, borrower_id, item:items!item_id(name), owner:members!owner_id(first_name), borrower:members!borrower_id(first_name)')
+    .or('owner_id.eq.' + userId + ',borrower_id.eq.' + userId)
+    .in('status', ['pending', 'accepted', 'active']);
+  const container = document.getElementById('transaction-push-container');
+  const slider    = document.getElementById('transaction-push-slider');
+  if (!container || !slider) return;
+  if (!loans || !loans.length) { container.style.display = 'none'; return; }
+  slider.innerHTML = '';
+  const single = loans.length === 1;
+  loans.forEach(loan => {
+    const isOwner  = loan.owner_id === userId;
+    const itemName = loan.item?.name || 'objet';
+    const borrower = loan.borrower?.first_name || 'votre voisin';
+    const owner    = loan.owner?.first_name || 'le propriétaire';
+    let type;
+    if (loan.status === 'pending')  type = isOwner ? 'pending_owner'  : 'pending_borrower';
+    if (loan.status === 'accepted') type = isOwner ? 'accepted_owner' : 'accepted_borrower';
+    if (loan.status === 'active')   type = isOwner ? 'active_owner'   : 'active_borrower';
+    const title = getCatchphrase(type, { borrower, owner, item: itemName, item_article: _itemArticle(itemName) });
+    const card = document.createElement('div');
+    card.className = 'transaction-push';
+    card.style.minWidth = single ? '100%' : 'calc(100% - 40px)';
+    card.innerHTML =
+      '<div class="transaction-push-title">' + title + '</div>' +
+      '<div class="transaction-push-desc">Appuyez pour voir les détails</div>';
+    card.addEventListener('click', () => showThread(loan.id));
+    slider.appendChild(card);
+  });
+  container.style.display = 'block';
+}
+
 // ── Profile ───────────────────────────────────────────────────
 function _emptyRow(msg) {
   const el = document.createElement('div');
@@ -2629,21 +2755,29 @@ async function loadProfileTabs() {
     db.from('items').select('id, name, status').eq('owner_id', memberId),
     db.from('loans')
       .select('id, item:items!item_id(name), borrower:members!borrower_id(first_name, address)')
-      .eq('owner_id', memberId).eq('status', 'active'),
+      .eq('owner_id', memberId).in('status', ['accepted', 'active']),
     db.from('loans')
       .select('id, item:items!item_id(name), owner:members!owner_id(first_name, address)')
-      .eq('borrower_id', memberId).eq('status', 'active'),
+      .eq('borrower_id', memberId).in('status', ['accepted', 'active']),
   ]);
+
+  // Update tab counts
+  const items    = itemsRes.data || [];
+  const lent     = lentRes.data || [];
+  const borrowed = borrowedRes.data || [];
+  const cntObjets = document.getElementById('tab-objets-count');
+  const cntPrete  = document.getElementById('tab-prete-count');
+  const cntEmpr   = document.getElementById('tab-emprunte-count');
+  if (cntObjets) cntObjets.textContent = items.length;
+  if (cntPrete)  cntPrete.textContent  = lent.length;
+  if (cntEmpr)   cntEmpr.textContent   = borrowed.length;
 
   // Mes objets
   const itemsList = document.getElementById('profileItemsList');
   if (itemsList) {
     itemsList.innerHTML = '';
-    const items = itemsRes.data || [];
-    const tabItems = document.getElementById('tab-mes-objets');
-    if (tabItems && items.length) tabItems.textContent = 'Mes objets (' + items.length + ')';
     if (!items.length) {
-      itemsList.appendChild(_emptyRow('Aucun objet partagé pour l’instant'));
+      itemsList.appendChild(_emptyRow("Aucun objet partagé pour l'instant"));
     } else {
       items.forEach(item => {
         const on = item.status === 'available';
@@ -2675,9 +2809,6 @@ async function loadProfileTabs() {
   const lentList = document.getElementById('profileLentList');
   if (lentList) {
     lentList.innerHTML = '';
-    const lent = lentRes.data || [];
-    const tabLent = document.getElementById('tab-pretes');
-    if (tabLent) tabLent.textContent = lent.length ? 'Prêtés (' + lent.length + ')' : 'Prêtés';
     if (!lent.length) {
       lentList.appendChild(_emptyRow('Aucun objet prêté en ce moment'));
     } else {
@@ -2703,9 +2834,6 @@ async function loadProfileTabs() {
   const borrowedList = document.getElementById('profileBorrowedList');
   if (borrowedList) {
     borrowedList.innerHTML = '';
-    const borrowed = borrowedRes.data || [];
-    const tabBorrowed = document.getElementById('tab-empruntes');
-    if (tabBorrowed) tabBorrowed.textContent = borrowed.length ? 'Empruntés (' + borrowed.length + ')' : 'Empruntés';
     if (!borrowed.length) {
       borrowedList.appendChild(_emptyRow('Aucun emprunt en cours'));
     } else {
@@ -2726,6 +2854,8 @@ async function loadProfileTabs() {
       });
     }
   }
+
+  renderTransactionPush();
 }
 
 async function markReturned(loanId) {
@@ -2734,15 +2864,13 @@ async function markReturned(loanId) {
 }
 
 function switchProfileTab(tab) {
-  document.querySelectorAll('.profile-inner-tab').forEach(t => {
-    t.classList.remove('active');
-    t.setAttribute('aria-selected', 'false');
+  document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
+  const activeBtn = document.getElementById('tab-' + tab);
+  if (activeBtn) activeBtn.classList.add('active');
+  ['objets', 'prete', 'emprunte'].forEach(id => {
+    const pane = document.getElementById('profile-tab-' + id);
+    if (pane) pane.style.display = id === tab ? 'block' : 'none';
   });
-  document.querySelectorAll('.profile-tab-pane').forEach(p => p.classList.remove('active'));
-  const btn = document.querySelector('.profile-inner-tab[onclick*="' + tab + '"]');
-  if (btn) { btn.classList.add('active'); btn.setAttribute('aria-selected', 'true'); }
-  const pane = document.getElementById('profile-pane-' + tab);
-  if (pane) pane.classList.add('active');
 }
 
 function closeProfile() {
@@ -4222,7 +4350,7 @@ const icon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
 const manifest = {
   name: 'Rue Gamma',
   short_name: 'Rue Gamma',
-  description: "Prêt d’objets entre voisins",
+  description: "Prêt d'objets entre voisins",
   start_url: '/',
   display: 'standalone',
   orientation: 'portrait',
