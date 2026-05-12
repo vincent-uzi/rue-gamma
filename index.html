@@ -3134,9 +3134,7 @@ function _buildStepsFromLoan(loan, userId) {
       type:    'current',
       label:   isOwner ? "Remettre l'objet à " + otherName : "Récupérer l'objet chez " + otherName,
       time:    '',
-      actions: isOwner
-        ? [{ label: 'Valider la remise', fn: () => showQRChoice('hand', loan.id), primary: true }]
-        : [],
+      actions: [{ label: 'Valider la remise', fn: () => showQRChoice('hand', loan.id), primary: true }],
     });
     steps.push({ type: 'pending', label: 'Prêt en cours', time: '', actions: [] });
     return steps;
