@@ -2163,7 +2163,7 @@
   <div class="qr-display-content">
     <div class="qr-display-title">Mon QR code</div>
     <div class="qr-display-sub">Montrez ce code à <span id="qr-recipient-name">votre voisin</span> pour valider</div>
-    <canvas id="qr-code-canvas" width="200" height="200"></canvas>
+    <div id="qr-code-canvas" style="width:200px;height:200px;margin:0 auto 16px;border-radius:12px;overflow:hidden;"></div>
     <div class="qr-display-timer" id="qr-timer">Code valable <span id="qr-countdown">5:00</span></div>
     <button class="qr-display-close" onclick="hideQRDisplay()">Fermer</button>
     <button id="qr-simulate-btn" style="display:none;width:100%;margin-top:8px;padding:12px;border-radius:14px;border:1px dashed #EF4444;background:transparent;font-family:var(--font);font-size:13px;color:#EF4444;cursor:pointer;" onclick="simulateScan()">⚙ Simuler scan (debug)</button>
@@ -3823,19 +3823,6 @@ function showQRDisplay() {
                + '&a=' + encodeURIComponent(action)
                + '&t=' + ts
                + '&s=' + encodeURIComponent(sig);
-  const canvas = document.getElementById('qr-code-canvas');
-
-  if (window.QRCode) {
-    canvas.innerHTML = '';
-    new QRCode(canvas, {
-      text:       qrData,
-      width:      200,
-      height:     200,
-      colorDark:  '#1A1A1C',
-      colorLight: '#ffffff',
-    });
-  }
-
   // Countdown 5 min
   clearInterval(_qrCountdownTimer);
   let seconds = 300;
@@ -3861,6 +3848,18 @@ function showQRDisplay() {
   requestAnimationFrame(() => requestAnimationFrame(() => {
     popin.classList.add('open');
     backdrop.style.opacity = '1';
+    // Generate QR after popin is visible so qrcodejs can compute dimensions
+    if (window.QRCode) {
+      const container = document.getElementById('qr-code-canvas');
+      container.innerHTML = '';
+      new QRCode(container, {
+        text:       qrData,
+        width:      200,
+        height:     200,
+        colorDark:  '#1A1A1C',
+        colorLight: '#ffffff',
+      });
+    }
   }));
   if (loanId) startQRPolling(loanId, action);
 }
