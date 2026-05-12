@@ -2502,7 +2502,7 @@ function _navigateTo(key) {
   if (key === 'objects')        showObjects();
   else if (key === 'add')       showPanel('panel-add');
   else if (key === 'exchanges') { showPanel('panel-exchanges'); loadTransactions(); }
-  else if (key === 'profile')   { showPanel('panel-profile'); loadMember(); loadProfileTabs(); }
+  else if (key === 'profile')   { showPanel('panel-profile'); loadMember().then(() => loadProfileTabs()); }
   // 'home': all panels closed, home visible
 
   _setActiveTab(key);
@@ -2793,22 +2793,26 @@ function _emptyRow(msg) {
 
 async function loadProfileTabs() {
   const memberId = localStorage.getItem('member_id');
-  if (!memberId) return;
+  console.log('[loadProfileTabs] User:', memberId);
+  if (!memberId) { console.warn('[loadProfileTabs] member_id absent — skip'); return; }
 
   const [itemsRes, lentRes, borrowedRes] = await Promise.all([
     db.from('items').select('id, name, status').eq('owner_id', memberId),
     db.from('loans')
       .select('id, item:items!item_id(name), borrower:members!borrower_id(first_name, address)')
-      .eq('owner_id', memberId).in('status', ['accepted', 'active']),
+      .eq('owner_id', memberId).in('status', ['pending', 'accepted', 'active']),
     db.from('loans')
       .select('id, item:items!item_id(name), owner:members!owner_id(first_name, address)')
-      .eq('borrower_id', memberId).in('status', ['accepted', 'active']),
+      .eq('borrower_id', memberId).in('status', ['pending', 'accepted', 'active']),
   ]);
 
   // Update tab counts
   const items    = itemsRes.data || [];
   const lent     = lentRes.data || [];
   const borrowed = borrowedRes.data || [];
+  console.log('[loadProfileTabs] Objets:', items.length, itemsRes.error);
+  console.log('[loadProfileTabs] Prêtés:', lent, lentRes.error);
+  console.log('[loadProfileTabs] Empruntés:', borrowed, borrowedRes.error);
   const cntObjets = document.getElementById('tab-objets-count');
   const cntPrete  = document.getElementById('tab-prete-count');
   const cntEmpr   = document.getElementById('tab-emprunte-count');
