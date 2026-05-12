@@ -719,36 +719,72 @@
     /* Transaction push banners */
     #transaction-push-slider::-webkit-scrollbar { display: none; }
     .transaction-push {
-      scroll-snap-align: start;
-      background: linear-gradient(135deg, var(--accent) 0%, #17845C 100%);
+      position: relative;
+      background: linear-gradient(135deg, #1F9D55 0%, #17845C 100%);
       color: white;
-      padding: 16px;
-      border-radius: 12px;
+      padding: 20px;
+      border-radius: 16px;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 100px;
+      scroll-snap-align: start;
       flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(31,157,85,0.25);
+      -webkit-tap-highlight-color: transparent;
     }
-    .transaction-push-title {
-      font-weight: 600; font-size: 15px;
-      margin-bottom: 4px; line-height: 1.3;
+    .push-content { flex: 1; padding-right: 16px; }
+    .push-title {
+      font-size: 18px; font-weight: 600;
+      line-height: 1.3; margin-bottom: 6px;
     }
-    .transaction-push-desc { font-size: 13px; opacity: 0.9; }
+    .push-subtitle { font-size: 15px; font-weight: 400; opacity: 0.95; }
+    .push-chevron {
+      font-size: 32px; font-weight: 300;
+      opacity: 0.9; flex-shrink: 0; line-height: 1;
+    }
+    .push-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: rgba(31,157,85,0.3);
+      transition: all 0.2s; border: none; padding: 0; cursor: pointer;
+      -webkit-appearance: none;
+    }
+    .push-dot.active { background: var(--accent); }
 
-    /* New profile tabs (pill style) */
+    /* Profile tabs — card style */
     .profile-tab {
-      padding: 8px 16px;
-      border-radius: 20px;
-      border: none;
-      background: var(--surface-alt);
+      flex: 1;
+      padding: 12px 8px;
+      border-radius: 12px;
+      border: 2px solid var(--line);
+      background: white;
       color: var(--text-muted);
-      font-size: 14px;
-      font-weight: 500;
       cursor: pointer;
-      transition: background .2s, color .2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      transition: all 0.2s ease;
       font-family: var(--font);
       -webkit-appearance: none;
-      white-space: nowrap;
     }
-    .profile-tab.active { background: var(--accent); color: white; }
+    .profile-tab.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+    .profile-tab .tab-count {
+      font-weight: 600;
+      font-size: 20px;
+      line-height: 1.2;
+    }
+    .profile-tab .tab-label {
+      font-weight: 500;
+      font-size: 13px;
+      line-height: 1;
+      letter-spacing: 0;
+    }
 
     /* CO₂ ring card */
     .co2-card {
@@ -1897,35 +1933,30 @@
     </div>
 
     <!-- Transaction push banners -->
-    <div id="transaction-push-container" style="padding:0 16px 16px;overflow:hidden;display:none;">
-      <div id="transaction-push-slider" style="display:flex;gap:12px;scroll-snap-type:x mandatory;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;">
+    <div id="transaction-push-container" style="padding:0 16px 8px;display:none;">
+      <div id="transaction-push-slider" style="display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;">
       </div>
+      <div id="push-dots" style="display:flex;gap:6px;justify-content:center;margin-top:12px;"></div>
     </div>
 
-    <!-- Pill tabs -->
-    <div style="display:flex;gap:8px;padding:0 16px 12px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none;">
+    <!-- Tab cards -->
+    <div style="display:flex;gap:8px;padding:16px;border-bottom:1px solid var(--line);">
       <button onclick="switchProfileTab(‘objets’)" id="tab-objets" class="profile-tab active">
-        <span id="tab-objets-count">—</span> Objets
+        <span class="tab-count" id="tab-objets-count">—</span>
+        <span class="tab-label">Objets</span>
       </button>
       <button onclick="switchProfileTab(‘prete’)" id="tab-prete" class="profile-tab">
-        <span id="tab-prete-count">—</span> Prêté
+        <span class="tab-count" id="tab-prete-count">—</span>
+        <span class="tab-label">Prêtés</span>
       </button>
       <button onclick="switchProfileTab(‘emprunte’)" id="tab-emprunte" class="profile-tab">
-        <span id="tab-emprunte-count">—</span> Emprunté
+        <span class="tab-count" id="tab-emprunte-count">—</span>
+        <span class="tab-label">Empruntés</span>
       </button>
     </div>
 
     <!-- Tab panes -->
     <div id="profile-tab-objets" style="display:block;padding:16px 16px 0;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <h2 class="t-title3">Mes objets</h2>
-        <button class="add-obj-btn" onclick="profileAddItem()">
-          <svg width="14" height="14" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-            <path d="M9 3v12M3 9h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-          </svg>
-          Ajouter
-        </button>
-      </div>
       <div class="items-list" id="profileItemsList" role="list"></div>
     </div>
 
@@ -2643,35 +2674,29 @@ function addAnother() {
 // ── Profile catchphrases ──────────────────────────────────────
 const CATCHPHRASES = {
   pending_owner: [
-    '{borrower} miroite votre {item}. La mérite-t-il ?',
-    '{borrower} a flashé sur votre {item}',
-    '{borrower} lorgne votre {item} depuis hier',
-    'Nouveau voisin intéressé par votre {item} !',
+    { title: '{borrower} lorgne votre {item}',        subtitle: 'La mérite-t-il ? Décidez !' },
+    { title: '{borrower} a flashé sur votre {item}',  subtitle: 'Répondez-lui rapidement' },
+    { title: 'Nouvelle demande pour {item_article}',  subtitle: '{borrower} attend votre réponse' },
   ],
   pending_borrower: [
-    'En attente de {owner} pour {item_article}',
-    'Votre demande pour {item_article} est en attente',
-    "{owner} n'a pas encore répondu pour {item_article}",
+    { title: 'En attente de {owner}',                 subtitle: 'Votre demande pour {item_article} est envoyée' },
+    { title: '{owner} doit encore répondre',          subtitle: "Pour {item_article} — patience !" },
   ],
   accepted_owner: [
-    'Remise à organiser avec {borrower} pour {item_article}',
-    '{borrower} attend {item_article} — planifiez la remise',
-    'Accordé ! Remettez {item_article} à {borrower}',
+    { title: 'Remise à planifier avec {borrower}',    subtitle: '{borrower} attend {item_article}' },
+    { title: '{borrower} attend {item_article}',      subtitle: 'Organisez la remise avec lui' },
   ],
   accepted_borrower: [
-    '{owner} accepte ! Appelez-le pour récupérer {item_article}',
-    'Prenez rendez-vous avec {owner} pour {item_article}',
-    '{owner} dit oui ! Organisez la remise de {item_article}',
+    { title: '{owner} accepte !',                     subtitle: 'Appelez-le pour récupérer {item_article}' },
+    { title: 'Super nouvelle !',                      subtitle: '{owner} dit oui pour {item_article}' },
   ],
   active_owner: [
-    '{borrower} a {item_article} — retour à confirmer',
-    '{item_article} est chez {borrower}',
-    'Prêt en cours : {item_article} chez {borrower}',
+    { title: '{item_article} est chez {borrower}',    subtitle: 'Attendez le retour — tout va bien' },
+    { title: 'Prêt en cours',                         subtitle: '{borrower} profite de {item_article}' },
   ],
   active_borrower: [
-    'Vous empruntez {item_article} à {owner}',
-    "{item_article} est entre vos mains",
-    "N'oubliez pas de rendre {item_article} à {owner}",
+    { title: 'Vous empruntez {item_article}',         subtitle: "Merci à {owner} pour sa confiance" },
+    { title: "{item_article} est entre vos mains",    subtitle: "N'oubliez pas de le rendre à {owner}" },
   ],
 };
 const ARTICLES = {
@@ -2693,15 +2718,21 @@ function _itemArticle(name) {
   const vowels = /^[aeiouâêîôûäëïöü]/i;
   return (vowels.test(name) ? "l'" : 'le ') + name.toLowerCase();
 }
-function getCatchphrase(type, vars) {
-  const list = CATCHPHRASES[type];
-  if (!list || !list.length) return '';
-  const tpl = list[Math.floor(Math.random() * list.length)];
-  return tpl
+function _applyVars(str, vars) {
+  return str
     .replace('{borrower}', vars.borrower || 'votre voisin')
     .replace('{owner}', vars.owner || 'le propriétaire')
     .replace('{item}', vars.item || "l'objet")
     .replace('{item_article}', vars.item_article || _itemArticle(vars.item));
+}
+function getCatchphrase(type, vars) {
+  const list = CATCHPHRASES[type];
+  if (!list || !list.length) return { title: '', subtitle: '' };
+  const tpl = list[Math.floor(Math.random() * list.length)];
+  return {
+    title:    _applyVars(tpl.title,    vars),
+    subtitle: _applyVars(tpl.subtitle, vars),
+  };
 }
 
 async function renderTransactionPush() {
@@ -2713,11 +2744,13 @@ async function renderTransactionPush() {
     .in('status', ['pending', 'accepted', 'active']);
   const container = document.getElementById('transaction-push-container');
   const slider    = document.getElementById('transaction-push-slider');
+  const dotsEl    = document.getElementById('push-dots');
   if (!container || !slider) return;
   if (!loans || !loans.length) { container.style.display = 'none'; return; }
   slider.innerHTML = '';
+  if (dotsEl) dotsEl.innerHTML = '';
   const single = loans.length === 1;
-  loans.forEach(loan => {
+  loans.forEach((loan, idx) => {
     const isOwner  = loan.owner_id === userId;
     const itemName = loan.item?.name || 'objet';
     const borrower = loan.borrower?.first_name || 'votre voisin';
@@ -2726,16 +2759,40 @@ async function renderTransactionPush() {
     if (loan.status === 'pending')  type = isOwner ? 'pending_owner'  : 'pending_borrower';
     if (loan.status === 'accepted') type = isOwner ? 'accepted_owner' : 'accepted_borrower';
     if (loan.status === 'active')   type = isOwner ? 'active_owner'   : 'active_borrower';
-    const title = getCatchphrase(type, { borrower, owner, item: itemName, item_article: _itemArticle(itemName) });
+    const phrase = getCatchphrase(type, { borrower, owner, item: itemName, item_article: _itemArticle(itemName) });
     const card = document.createElement('div');
     card.className = 'transaction-push';
     card.style.minWidth = single ? '100%' : 'calc(100% - 40px)';
     card.innerHTML =
-      '<div class="transaction-push-title">' + title + '</div>' +
-      '<div class="transaction-push-desc">Appuyez pour voir les détails</div>';
+      '<div class="push-content">' +
+        '<div class="push-title">' + phrase.title + '</div>' +
+        '<div class="push-subtitle">' + phrase.subtitle + '</div>' +
+      '</div>' +
+      '<div class="push-chevron">&#8250;</div>';
     card.addEventListener('click', () => showThread(loan.id));
     slider.appendChild(card);
+
+    // Dot
+    if (!single && dotsEl) {
+      const dot = document.createElement('button');
+      dot.className = 'push-dot' + (idx === 0 ? ' active' : '');
+      dot.addEventListener('click', () => {
+        slider.scrollTo({ left: card.offsetLeft, behavior: 'smooth' });
+      });
+      dotsEl.appendChild(dot);
+    }
   });
+
+  // Sync dots on scroll
+  if (!single && dotsEl) {
+    slider.addEventListener('scroll', () => {
+      const dots = dotsEl.querySelectorAll('.push-dot');
+      const w = slider.scrollWidth / loans.length;
+      const active = Math.round(slider.scrollLeft / w);
+      dots.forEach((d, i) => d.classList.toggle('active', i === active));
+    }, { passive: true });
+  }
+
   container.style.display = 'block';
 }
 
