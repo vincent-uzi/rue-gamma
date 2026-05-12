@@ -1,3 +1,88 @@
+# SESSION 13 MAI 2026 — PROFIL REDESIGN + ONGLETS DYNAMIQUES
+
+## Contexte
+Suite session précédente (CH-04 parcours emprunt complet fonctionnel avec QR code). Amélioration page Profil avec design plus engageant et onglets dynamiques.
+
+## Redesign Profil — Maquette validée
+
+**Design final :**
+- Header compact : avatar initiales + nom/adresse + menu ⋮ (centré verticalement)
+- Jauge CO₂ inchangée
+- Bandeau(x) push transactions avec accroches catchy, slide horizontal si plusieurs
+- 3 onglets cards (N Objets / N Prêtés / N Empruntés) avec border vert sur actif, compteurs 20px
+- Suppression titre "Mes objets" + ancien bloc stats
+
+## PRD Bandeau Push Incitatif
+
+**Objectif :** Inciter actions via langage naturel engageant
+
+**Variables :** `{owner}`, `{borrower}`, `{item}`, `{item_article}`
+
+**Catchphrases par combinaison (status, rôle) avec variantes aléatoires :**
+- `pending_owner` : "{borrower} lorgne votre {item} — La mérite-t-il ? Décidez !"
+- `pending_borrower` : "En attente de {owner} pour {item_article}"
+- `accepted_owner` : "Remise à planifier avec {borrower}"
+- `accepted_borrower` : "{owner} accepte ! Appelez-le pour récupérer {item_article}"
+- `active_owner` : "{item_article} est chez {borrower}"
+- `active_borrower` : "Vous empruntez {item_article} à {owner}"
+
+**Articles définis :** liste fermée ~15 objets (perceuse→la perceuse, marteau→le marteau, échelle→l'échelle). Fallback `"l'objet"` si inconnu.
+
+**Design :** gradient vert 135deg `#1F9D55→#17845C`, titre 18px bold + sous-titre 15px, chevron `›` à droite (32px), dots indicateurs si 2+, scroll-snap horizontal.
+
+## Implémentation
+
+**Commits :**
+1. Redesign Profil : Header simplifié + Bandeau push + Onglets
+2. Fix Profil : Suppression ancien bloc stats + Texte onglets ferré gauche
+3. Brancher onglets Profil : Prêtés + Empruntés avec vraies listes
+4. Fix : Race condition loadProfileTabs — attendre loadMember()
+5. Fix : Guillemets typographiques onclick (15 occurrences)
+
+**Structure HTML :**
+- `#transaction-push-container` avec slider scroll-snap + `#push-dots`
+- 3 conteneurs `#profile-tab-{objets,prete,emprunte}` avec `display:none/block`
+- `switchProfileTab(tab)` toggle affichage + classes `.active`
+- `loadProfileTabs()` query Supabase `status IN ('pending','accepted','active')`
+- Compteurs dynamiques injectés dans `#tab-{objets,prete,emprunte}-count`
+
+**CSS clé :**
+- `.transaction-push` : gradient 135deg, padding 20px, border-radius 16px, min-height 100px
+- `.push-title` : 18px 600, `.push-subtitle` : 15px 400
+- `.push-chevron` : font-size 32px, à droite
+- `.profile-tab` : flex:1, border 2px solid var(--line), border-radius 12px, align-items flex-start, padding-left 16px
+- `.profile-tab.active` : background + border accent + color white
+- `.profile-tab .tab-count` : 20px 600, `.profile-tab .tab-label` : 13px 500
+
+## Problèmes résolus
+
+### Race Condition loadProfileTabs
+`loadMember()` async écrit `member_id` en localStorage après 2 round-trips Supabase. `loadProfileTabs()` démarrait en parallèle et lisait `member_id` avant définition → retour silencieux, listes vides.
+**Fix :** `loadMember().then(() => loadProfileTabs())` garantit l'attente.
+
+### Guillemets Typographiques (récurrent)
+Guillemets courbes `'` `'` dans attributs `onclick` HTML (ex: `switchProfileTab('prete')`) causaient `SyntaxError: Invalid character '‘'`.
+**Fix :** Script Python ciblant les attributs `on*` + blocs `<script>`. À noter : l'éditeur réintroduit ces guillemets à chaque paste — appliquer `sed -i '' "s/'/'/g; s/'/'/g"` après chaque session si nécessaire.
+
+## Actions terminées ✅
+
+- Header Profil simplifié (avatar initiales + nom + menu ⋮)
+- Bandeau push avec CATCHPHRASES variées par statut/rôle
+- Onglets card design avec compteurs dynamiques
+- Branchement Supabase onglets Prêtés/Empruntés
+- Race condition loadMember/loadProfileTabs fixée
+- Toggle afficher/masquer archivées dans Échanges
+- CH-04 Parcours emprunt complet avec QR scan optimisé (session précédente)
+
+## Actions pendantes ⏸️
+
+- CH-03 Notifications (badge cloche + liste)
+- DT-09 Policies RLS sécurisées ⚠️ CRITIQUE avant prod
+- Splash screen onboarding
+- DT-05 RLS Supabase (voir backlog)
+
+---
+
 # Kolkoze — Documentation projet
 
 # Kolkoze — Documentation projet
