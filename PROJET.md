@@ -227,6 +227,117 @@ Cheminement encore complexe pour l'utilisateur
 
 ---
 
+# RÉCONCILIATION DESIGN SYSTEM
+
+## Contexte
+Un Design System initial a été créé avec Claude Design en début de projet. Au fil des sessions, des écarts se sont créés (bandeau push, onglets pills, couleurs gradient, etc.). Il faut raccrocher les wagons.
+
+## Plan d'action
+
+### 1. Retrouver le DS initial
+- Chercher la conversation Claude.ai où le DS a été créé
+- Extraire les specs (couleurs, typo, composants, spacing)
+- Créer `DESIGN_SYSTEM.md` à la racine avec le DS initial
+
+### 2. Audit des écarts
+Avec Claude Code, comparer DS initial vs implémentation actuelle dans `index.html` :
+- Couleurs qui dérivent
+- Font-sizes hors système
+- Padding/spacing custom
+- Nouveaux composants non documentés
+
+**Produire rapport** : liste des incohérences + plan de migration
+
+### 3. Réconciliation avec Claude Design
+Session Claude.ai pour valider :
+- Nouveaux composants (bandeau push, onglets pills)
+- Écarts à corriger
+- Améliorations cohérentes
+
+**Livrable** : `DESIGN_SYSTEM.md` v2 propre et à jour
+
+### 4. Migration progressive
+Avec Claude Code, remplacer les valeurs hardcodées :
+1. Couleurs (`#hex` → `var(--)`)
+2. Font-sizes (normaliser sur scale DS)
+3. Spacing (padding custom → scale DS)
+4. Border-radius (normaliser)
+
+**1 commit par catégorie** pour rollback si besoin
+
+---
+
+## Fichiers à créer
+
+### DESIGN_SYSTEM.md (structure cible)
+
+```markdown
+# Design System Kolkoze
+
+## État actuel
+Version : 1.1 (13 mai 2026)
+Dernière mise à jour : Session redesign Profil
+
+## Écarts connus vs DS initial
+- Bandeau push : nouveau composant
+- Couleur accent dark (#17845C) : ajoutée pour gradient
+- Onglets pills : nouveau pattern
+
+## Couleurs
+### Primaires
+- `--accent`      : #1F9D55
+- `--accent-dark` : #17845C (gradient bandeau push)
+
+### Neutrals
+- `--text`         : #1A1A1C
+- `--text-muted`   : rgba(60,60,67,0.62)
+- `--line`         : rgba(60,60,67,0.12)
+- `--surface`      : #FFFFFF
+- `--surface-alt`  : #F7F7F5
+
+## Typographie
+[à compléter depuis DS initial]
+
+## Composants
+### Bandeau Push
+**Usage** : Notifications incitatives profil
+**Specs** : [à documenter]
+
+### Onglets Pills (Profile)
+**Usage** : Navigation Profil
+**Specs** : [à documenter]
+```
+
+---
+
+## Workflow Design ↔ Code
+
+### Itération design (Claude.ai)
+1. Ouvrir conversation Claude.ai classique
+2. Brief avec contexte DS actuel
+3. Itérer sur artifact interactif
+4. Extraire specs CSS finales
+
+### Intégration code (Claude Code)
+1. Copier specs CSS validées
+2. Intégrer dans `index.html`
+3. Tester
+4. Commit
+
+---
+
+## TODO IMMÉDIAT
+
+- [ ] Retrouver conversation DS initial (Claude.ai)
+- [ ] Créer `DESIGN_SYSTEM.md` avec DS initial
+- [ ] Audit écarts avec Claude Code
+- [ ] Session réconciliation avec Claude Design
+- [ ] Migration progressive (1 commit par catégorie)
+
+**PRIORISATION** : À faire avant les gros chantiers UI (bandeau push, parcours, etc.) pour assurer la cohérence.
+
+---
+
 # Kolkoze — Documentation projet
 
 # Kolkoze — Documentation projet
