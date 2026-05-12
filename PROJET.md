@@ -83,6 +83,150 @@ Guillemets courbes `'` `'` dans attributs `onclick` HTML (ex: `switchProfileTab(
 
 ---
 
+# CHANTIER : PROFIL & BANDEAU PUSH — Règles de gestion et UI
+
+## 1. RÈGLES DE GESTION BANDEAU PUSH
+
+### Périmètre : Phases de gestion d'une demande uniquement
+
+Le bandeau push ne concerne QUE les 3 phases actives de gestion :
+
+**Phase 1 : Demande d'emprunt**
+- Status : `pending`
+- Affichage :
+  * Owner : "{borrower} miroite votre {item}. La mérite-t-il ?"
+  * Borrower : "En attente de réponse de {owner} pour {item}"
+
+**Phase 2 : Acceptation → Organiser RDV**
+- Status : `accepted`
+- Affichage :
+  * Owner : "Vous avez dit oui ! Organisez la remise avec {borrower}"
+  * Borrower : "{owner} accepte ! Appelez-le pour récupérer {item_article}"
+
+**Phase 3 : Valider l'échange**
+- Status : `accepted` (entre acceptation et handed_at)
+- Affichage : Idem Phase 2 jusqu'à validation QR
+
+**Objets empruntés (status `active`) :**
+- **Règle générale** : PAS de bandeau push — apparaissent dans les onglets Prêtés/Empruntés
+- **Exception** : Si durée > X jours → bandeau rappel :
+  * Owner : "{borrower} a {item_article} depuis {days} jours"
+  * Borrower : "Pensez à rendre {item_article} à {owner} (depuis {days} jours)"
+
+### Durée d'alerte à définir
+- Option 1 : 7 jours
+- Option 2 : 14 jours
+- Option 3 : Paramétrable par objet (durée emprunt attendue)
+
+**⚠️ DÉCISION À PRENDRE** : Quelle durée trigger le bandeau rappel ?
+
+---
+
+## 2. AMÉLIORATION COPYWRITING BANDEAU PUSH
+
+### Problème actuel
+- Accroches pas assez incitatives
+- Ton à affiner selon contexte
+- Manque de variété dans certaines catégories
+
+### Actions
+1. Enrichir CATCHPHRASES avec plus de variantes (5-7 par catégorie)
+2. Tester différents registres :
+   - Urgent : "Répondez vite à {borrower} !"
+   - Amical : "{borrower} compte sur vous"
+   - Ludique : "{borrower} rêve de votre {item}"
+3. A/B test sur engagement (taux de clic)
+
+### Brief design bandeau push
+**Objectif** : Rendre le bandeau plus incitatif et visible
+
+**Problème actuel :**
+- Bandeau coupé visuellement
+- Pas assez accrocheur
+- Manque de hiérarchie visuelle
+
+**Contraintes techniques :**
+- Gradient vert (`#1F9D55 → #17845C`) à conserver
+- Charte Kolkoze
+- Mobile-first (viewport 375px)
+- Slide horizontal si plusieurs bandeaux
+- Chevron `›` à droite
+
+**Éléments à designer :**
+- Titre principal (18px bold actuellement)
+- Sous-titre/CTA (15px actuellement)
+- Chevron/icône d'action
+- Dots indicateurs (si plusieurs)
+- État hover/tap (feedback visuel)
+
+**Inspiration/Direction :**
+- Notification push iOS (élégance + urgence)
+- Cartes Material Design (profondeur)
+- Duolingo notifications (ton friendly + incitatif)
+
+**Livrables attendus :**
+- Spécifications CSS (padding, font-size, border-radius, shadows)
+- États : normal, hover, active
+- Animation si pertinent (ex: pulse subtil)
+
+---
+
+## 3. SIMPLIFICATION PARCOURS TRANSACTION
+
+### Problème
+Cheminement encore complexe pour l'utilisateur
+
+### Actions
+- [ ] Cartographier le parcours actuel (demande → acceptation → remise → retour)
+- [ ] Identifier les points de friction
+- [ ] Simplifier les étapes redondantes
+- [ ] Améliorer feedback utilisateur à chaque étape
+- [ ] Tester avec utilisateurs réels
+
+**TODO** : Session de diagnostic UX avec screenshots du parcours complet
+
+---
+
+## 4. UI À AMÉLIORER (LISTE OUVERTE)
+
+- [ ] Bandeau push (cf. section 2)
+- [ ] Thread transaction (lisibilité, hiérarchie)
+- [ ] Boutons CTA (taille, couleur, position)
+- [ ] Feedback validation (confettis actuels suffisants ?)
+- [ ] ?
+
+**TODO** : Lister précisément les éléments à retravailler
+
+---
+
+## 5. CALCUL ÉQUIVALENTS CARBONE
+
+### Questions ouvertes
+- Source des données CO₂ par objet ?
+- Formule de calcul (achat évité ? production évitée ?)
+- Équivalences parlantes (km en voiture, arbres plantés, etc.)
+- Crédibilité scientifique (source ADEME ?)
+
+### Actions
+- [ ] Rechercher bases de données fiables (ADEME, Base Carbone)
+- [ ] Définir méthodologie transparente
+- [ ] Documenter sources dans l'app (page À propos ?)
+- [ ] Valider calculs avec expert si possible
+
+**TODO** : Session dédiée avec recherche documentaire
+
+---
+
+## PRIORISATION PROPOSÉE
+
+1. **Règles gestion bandeau** (1-2h) → impact immédiat sur l'expérience
+2. **UI bandeau** (1-2h) → amélioration visuelle rapide
+3. **Simplification parcours** (3-4h) → analyse + implémentation
+4. **Calcul CO₂** (4-6h) → recherche + validation + implémentation
+5. **UI générale** (continu) → itérations progressives
+
+---
+
 # Kolkoze — Documentation projet
 
 # Kolkoze — Documentation projet
