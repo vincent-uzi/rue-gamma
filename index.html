@@ -2223,13 +2223,7 @@ const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 })
 
 // ── Items data (fallback statique) ────────────────────────────
-const ITEMS = [
-  { name: 'Perceuse Bosch',  cat: 'Outils',     who: 'Marc',   no: '14', state: 'available', co2: '8,2',  desc: 'Légère, idéale pour les petits travaux' },
-  { name: 'Échelle 3 m',     cat: 'Outils',     who: 'Sophie', no: '22', state: 'borrowed',  co2: '10,5', desc: '' },
-  { name: 'Sorbetière',      cat: 'Cuisine',    who: 'Léa',    no: '8',  state: 'available', co2: '6,5',  desc: '' },
-  { name: 'Tente 4 places',  cat: 'Camping',    who: 'Karim',  no: '31', state: 'available', co2: '12,4', desc: 'Tente 3 saisons, légère et facile à monter' },
-  { name: 'Vidéoprojecteur', cat: 'Multimédia', who: 'Anouk',  no: '5',  state: 'borrowed',  co2: '14,0', desc: '' },
-];
+const ITEMS = [];
 
 // ── Bar chart ─────────────────────────────────────────────────
 // Heights from the design prototype
@@ -3015,20 +3009,9 @@ async function _doSearch(q) {
   });
 }
 // ── Transactions data ───────────────────────────────────────
-const TRANSACTIONS_ACTIVE = [
-  { id: 'perceuse-bosch',       name: 'Perceuse Bosch',       from: 'Sophie', to: 'Vous',  co2: '8,2',  status: 'Emprunté' },
-  { id: 'echelle-telescopique', name: 'Échelle télescopique', from: 'Vous',   to: 'Marie', co2: '12,5', status: 'En attente de validation' },
-];
+const TRANSACTIONS_ACTIVE = [];
 
-const TRANSACTIONS_ARCHIVED = [
-  { id: 'tente-4-places',  name: 'Tente 4 places',  from: 'Karim',  to: 'Vous',        co2: '18,2', status: 'Restitué' },
-  { name: 'Tondeuse',                                from: 'Vous',   to: 'Jean-Pierre', co2: '15,8', status: 'Restitué' },
-  { name: 'Sorbetière',                              from: 'Marie',  to: 'Vous',        co2: '6,5',  status: 'Restitué' },
-  { name: 'Ponceuse',                                from: 'Vous',   to: 'Théo',        co2: '9,1',  status: 'Décliné' },
-  { name: 'Tapis de yoga',                           from: 'Sophie', to: 'Vous',        co2: '4,2',  status: 'Restitué' },
-  { name: 'Vélo de ville',                           from: 'Vous',   to: 'Karim',       co2: '22,0', status: 'Restitué' },
-  { name: 'Robot cuisine',                           from: 'Léa',    to: 'Vous',        co2: '11,3', status: 'Restitué' },
-];
+const TRANSACTIONS_ARCHIVED = [];
 
 // ── DB helpers and mapping ────────────────────────────────────
 const _UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -3580,45 +3563,7 @@ function renderExchanges() {
 
 
 // ── Thread scenarios ─────────────────────────────────────────
-const THREAD_SCENARIOS = {
-  'perceuse-bosch': {
-    name: 'Perceuse Bosch',
-    meta: 'Sophie → Vous • −8,2 kg CO₂',
-    steps: [
-      { type: 'done',    label: 'Vous avez demandé à emprunter', time: 'Il y a 3 jours' },
-      { type: 'done',    label: 'Sophie a accepté',              time: 'Il y a 2 jours',
-        actions: [{ label: 'Contactez Sophie', fn: () => showContactPopin(), primary: true, icon: 'phone' }] },
-      { type: 'done',    label: 'Objet récupéré',                time: 'Le 5 mai' },
-      { type: 'current', label: 'Emprunté depuis 2 jours',       time: '' },
-      { type: 'pending', label: 'Retour à effectuer',            time: '',
-        actions: [{ label: 'Valider le retour', fn: () => showQRChoice('return', 'perceuse-bosch'), primary: true }] },
-    ],
-  },
-  'echelle-telescopique': {
-    name: 'Échelle télescopique',
-    meta: 'Vous → Marie • −12,5 kg CO₂',
-    steps: [
-      { type: 'current', label: 'Marie souhaite emprunter',      time: 'Il y a 30 min',
-        actions: [
-          { label: 'Décliner', fn: () => showDeclineConfirm('echelle-telescopique'), primary: false },
-          { label: 'Accepter', fn: () => acceptRequest('echelle-telescopique'), primary: true  },
-        ] },
-      { type: 'pending', label: 'En attente de votre réponse',   time: '' },
-    ],
-  },
-  'tente-4-places': {
-    name: 'Tente 4 places',
-    meta: 'Karim → Vous • −18,2 kg CO₂',
-    steps: [
-      { type: 'done',    label: 'Vous avez demandé à emprunter', time: 'Il y a 7 jours' },
-      { type: 'done',    label: 'Karim a accepté',               time: 'Il y a 6 jours' },
-      { type: 'done',    label: 'Objet récupéré',                time: 'Le 1er mai' },
-      { type: 'current', label: 'Emprunté depuis 6 jours',       time: '' },
-      { type: 'pending', label: 'Retour à effectuer',            time: '',
-        actions: [{ label: 'Valider le retour', fn: () => showQRChoice('return', 'tente-4-places'), primary: true }] },
-    ],
-  },
-};
+const THREAD_SCENARIOS = {};
 // ── Thread panel ──────────────────────────────────────────────
 function _buildStepEl(step, animate) {
   const stepEl = document.createElement('div');
