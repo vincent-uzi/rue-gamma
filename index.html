@@ -3390,12 +3390,8 @@ async function acceptRequest(loanId) {
   const tx = _findTx(loanId);
   if (!tx) return;
   await updateTransactionStatus(loanId, 'Accepté');
-  addThreadStep(loanId, {
-    type: 'current',
-    label: "Vous avez accepté la demande",
-    time: "À l'instant",
-    actions: [{ label: 'Contactez ' + tx.to, fn: () => showContactPopin(), primary: true, icon: 'phone' }],
-  });
+  // Rebuild thread from DB so the pending step disappears and accepted state renders correctly
+  if (window._transactionsState?.currentThread === loanId) showThread(loanId);
   showToast('✓ Demande acceptée', 'success');
 }
 
@@ -3674,10 +3670,10 @@ async function showThread(id) {
   };
 
   timeline.innerHTML = '';
-  const steps  = _buildStepsFromLoan(loan, userId);
-  const tx     = _findTx(id);
-  const extras = tx ? tx._extraSteps || [] : [];
-  [...steps, ...extras].forEach(s => timeline.appendChild(_buildStepEl(s, false)));
+  const steps = _buildStepsFromLoan(loan, userId);
+  const tx    = _findTx(id);
+  if (tx) tx._extraSteps = []; // DB is source of truth — discard optimistic steps
+  steps.forEach(s => timeline.appendChild(_buildStepEl(s, false)));
 }
 
 
