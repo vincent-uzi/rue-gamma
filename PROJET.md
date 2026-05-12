@@ -1,3 +1,68 @@
+# ÉTAT DES FONCTIONNALITÉS
+
+Dernière mise à jour : 13 mai 2026 00:10
+
+## ✅ TERMINÉ
+
+### CH-04 : Parcours emprunt complet
+- Demander à emprunter
+- Accepter/Décliner
+- Validation QR remise (scan + manuel)
+- Statut Emprunté/Prêté
+- Validation QR retour
+- **Status : COMPLET ET FONCTIONNEL** ✅
+
+### Redesign Profil
+- Header simplifié
+- Bandeau push catchy (avec copywriting à affiner)
+- Onglets pills dynamiques
+- **Status : FONCTIONNEL** ✅
+
+### Toggle archivées
+- Afficher/masquer archivées dans Transactions
+- **Status : FONCTIONNEL** ✅
+
+---
+
+## ❌ À FAIRE
+
+### CH-03 : Notifications
+- Badge rouge sur onglet Transactions
+- Compteur notifications non lues
+- INSERT notifications lors des actions
+- Marquer comme "lu"
+- **Status : PAS COMMENCÉ** ❌
+- **Estimation : 3-4h**
+
+### DT-09 : Policies RLS sécurisées
+- **CRITIQUE AVANT PROD**
+- Remplacer `USING (true)` par policies propres
+- Actuellement tout est public
+- **Status : PAS COMMENCÉ** ❌
+- **Priorité : URGENTE** 🔥
+- **Estimation : 2-3h**
+
+### Splash screen
+- Écran de chargement pendant init
+- Logo + animation fade
+- Disparaît après checkAuth
+- **Status : PAS COMMENCÉ** ❌
+- **Estimation : 1-2h**
+
+---
+
+## 🔄 EN COURS / À AFFINER
+
+### Bandeau push
+- Fonctionnel mais à améliorer (cf. chantier dédié)
+- Copywriting à enrichir
+- UI à retravailler avec Claude Design
+
+### Design System
+- Besoin de réconciliation (cf. chantier dédié)
+
+---
+
 # SESSION 13 MAI 2026 — PROFIL REDESIGN + ONGLETS DYNAMIQUES
 
 ## Contexte
