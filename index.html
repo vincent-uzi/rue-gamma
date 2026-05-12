@@ -2218,6 +2218,8 @@
 const SUPABASE_URL      = 'https://optfcepolcjyregdaxpt.supabase.co'
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wdGZjZXBvbGNqeXJlZ2RheHB0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5NzE1MjgsImV4cCI6MjA5MzU0NzUyOH0.ZvHOCyd8SQYzh7AQw4PexH742aFvPkeq1JKcLMaQytc'
 const COMMUNITY_ID      = 'ed225eef-e9e0-4cf8-9ae9-aaf687b55c42'
+const QR_BASE_URL       = 'https://rue-gamma.vercel.app'
+const QR_SALT           = 'rg-mvp-2025'
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { persistSession: true },
 })
@@ -3365,16 +3367,19 @@ function updateTransactionsBadge(count) {
 // ── QR polling ─────────────────────────────────────────────────
 function startQRPolling(loanId, action) {
   stopQRPolling();
-  let prevStatus = _findTx(loanId) ? _findTx(loanId).status : '';
-  window._qrPolling = setInterval(() => {
-    const tx = _findTx(loanId);
-    if (!tx) { stopQRPolling(); return; }
-    if (tx.status !== prevStatus) {
-      stopQRPolling();
-      showConfetti();
-      showToast(action === 'hand' ? '✓ Remise validée' : '✓ Retour validé', 'success');
-    }
-    prevStatus = tx.status;
+  const targetStatus = action === 'hand' ? 'active' : 'returned';
+  window._qrPolling = setInterval(async () => {
+    try {
+      const { data } = await db.from('loans').select('status').eq('id', loanId).maybeSingle();
+      if (data && data.status === targetStatus) {
+        stopQRPolling();
+        hideQRDisplay();
+        await updateTransactionStatus(loanId, action === 'hand' ? 'Emprunté' : 'Restitué');
+        if (window._transactionsState?.currentThread === loanId) showThread(loanId);
+        showConfetti();
+        showToast(action === 'hand' ? '✓ Remise validée' : '✓ Retour validé', 'success');
+      }
+    } catch (e) { console.error('[QRPolling]', e); }
   }, 5000);
 }
 
@@ -3728,12 +3733,7 @@ let _qrCountdownTimer = null;
 function showQRChoice(action, id) {
   _qrAction = action;
   _qrId     = id;
-  // Derive recipient name from scenario meta (e.g. "Sophie → Vous" → "Sophie")
-  const scenario = id && THREAD_SCENARIOS[id];
-  if (scenario) {
-    const meta = scenario.meta || '';
-    _qrRecipientName = meta.split('→')[action === 'return' ? 0 : 1].split('•')[0].trim();
-  }
+  _qrRecipientName = (window._currentLoanContact && window._currentLoanContact.name) || '';
   const backdrop = document.getElementById('qr-choice-backdrop');
   const popin    = document.getElementById('qr-choice-popin');
   backdrop.style.display = 'block';
@@ -3792,10 +3792,13 @@ function _scanLoop() {
     inversionAttempts: 'dontInvert',
   });
 
-  if (code && code.data.startsWith('kolkoze:')) {
-    stopQRScanner();
-    validateQR(code.data);
-    return;
+  if (code) {
+    const d = code.data;
+    if (d.includes('/v?') || d.startsWith('kolkoze:')) {
+      stopQRScanner();
+      validateQR(d);
+      return;
+    }
   }
 
   _qrRafId = requestAnimationFrame(_scanLoop);
@@ -3816,8 +3819,13 @@ function showQRDisplay() {
 
   document.getElementById('qr-recipient-name').textContent = recipient;
 
-  const qrData = 'kolkoze:' + action + ':' + loanId + ':' + Date.now();
-  const canvas  = document.getElementById('qr-code-canvas');
+  const ts  = Date.now();
+  const sig = btoa(loanId + action + ts + QR_SALT);
+  const qrData = QR_BASE_URL + '/v?l=' + encodeURIComponent(loanId)
+               + '&a=' + encodeURIComponent(action)
+               + '&t=' + ts
+               + '&s=' + encodeURIComponent(sig);
+  const canvas = document.getElementById('qr-code-canvas');
 
   if (window.QRCode) {
     QRCode.toCanvas(canvas, qrData, {
@@ -3869,23 +3877,61 @@ function hideQRDisplay() {
   }, 300);
 }
 
-function validateQR(qrData) {
-  const parts = qrData.split(':');
-  if (parts.length < 3 || parts[0] !== 'kolkoze') {
-    showToast('QR code invalide', 'error');
+async function validateQR(qrData) {
+  let action, loanId;
+
+  if (qrData.includes('/v?') || qrData.startsWith('http')) {
+    // New signed URL format
+    let url;
+    try { url = new URL(qrData); } catch { showToast('QR invalide', 'error'); return; }
+    loanId     = url.searchParams.get('l');
+    action     = url.searchParams.get('a');
+    const ts   = url.searchParams.get('t');
+    const sig  = url.searchParams.get('s');
+
+    if (!loanId || !action || !ts || !sig) { showToast('QR invalide', 'error'); return; }
+
+    // Verify signature
+    const expected = btoa(loanId + action + ts + QR_SALT);
+    if (sig !== expected) { showToast('QR invalide', 'error'); return; }
+
+    // Reject QR older than 1 hour
+    if (Date.now() - Number(ts) > 3_600_000) { showToast('QR expiré', 'error'); return; }
+  } else {
+    // Legacy kolkoze: format (backward compat)
+    const parts = qrData.split(':');
+    if (parts.length < 3 || parts[0] !== 'kolkoze') { showToast('QR invalide', 'error'); return; }
+    action = parts[1];
+    loanId = parts[2];
+  }
+
+  if (!['hand', 'return'].includes(action)) { showToast('QR invalide', 'error'); return; }
+
+  // Verify the current user is a party to this loan
+  const userId = localStorage.getItem('member_id');
+  const { data: loan, error } = await db.from('loans')
+    .select('owner_id, borrower_id, item_id, status')
+    .eq('id', loanId)
+    .maybeSingle();
+  if (error || !loan) { showToast('Transaction introuvable', 'error'); return; }
+  if (loan.owner_id !== userId && loan.borrower_id !== userId) {
+    showToast('Non autorisé', 'error');
     return;
   }
-  const action = parts[1]; // 'hand' or 'return'
-  const loanId = parts[2];
-  const newStatus = action === 'hand' ? 'Emprunté' : 'Restitué';
+
   stopQRPolling();
-  updateTransactionStatus(loanId, newStatus);
-  addThreadStep(loanId, {
-    type: 'done',
-    label: action === 'hand' ? 'Objet remis' : 'Objet restitué',
-    time: "À l'instant",
-    actions: [],
-  });
+  stopQRScanner();
+  hideQRDisplay();
+
+  // Update loan + item in DB
+  const newStatus   = action === 'hand' ? 'Emprunté' : 'Restitué';
+  const itemStatus  = action === 'hand' ? 'borrowed'  : 'available';
+  await updateTransactionStatus(loanId, newStatus);
+  await db.from('items').update({ status: itemStatus }).eq('id', loan.item_id);
+
+  // Rebuild thread to reflect new state
+  if (window._transactionsState?.currentThread === loanId) showThread(loanId);
+
   showConfetti();
   showToast(action === 'hand' ? '✓ Remise validée' : '✓ Retour validé', 'success');
 }
@@ -3957,17 +4003,14 @@ function confirmManualValidation() {
   const loanId = _qrId;
   const action = _qrAction;
   hideManualValidation();
-  setTimeout(() => {
-    const newStatus = action === 'hand' ? 'Emprunté' : 'Restitué';
-    if (loanId) {
-      updateTransactionStatus(loanId, newStatus);
-      addThreadStep(loanId, {
-        type: 'done',
-        label: action === 'hand' ? 'Objet remis (validation manuelle)' : 'Objet restitué (validation manuelle)',
-        time: "À l'instant",
-        actions: [],
-      });
-    }
+  setTimeout(async () => {
+    if (!loanId) return;
+    const newStatus  = action === 'hand' ? 'Emprunté' : 'Restitué';
+    const itemStatus = action === 'hand' ? 'borrowed'  : 'available';
+    await updateTransactionStatus(loanId, newStatus);
+    const { data: loan } = await db.from('loans').select('item_id').eq('id', loanId).maybeSingle();
+    if (loan) await db.from('items').update({ status: itemStatus }).eq('id', loan.item_id);
+    if (window._transactionsState?.currentThread === loanId) showThread(loanId);
     showToast(action === 'hand' ? '✓ Remise validée' : '✓ Retour validé', 'success');
   }, 350);
 }
@@ -3975,13 +4018,27 @@ function confirmManualValidation() {
 // ── /v route handler ──────────────────────────────────────────
 function handleValidation() {
   const params = new URLSearchParams(window.location.search);
-  const action = params.get('action') || 'return';
-  const id     = params.get('id')     || '';
-  _qrAction = action;
-  _qrId     = id;
-  // Remove the /v param from URL without reload
+  // New format: ?l=loanId&a=action&t=timestamp&s=signature
+  const loanId = params.get('l') || params.get('id') || '';
+  const action  = params.get('a') || params.get('action') || 'return';
+  const ts      = params.get('t');
+  const sig     = params.get('s');
+
   history.replaceState(null, '', window.location.pathname);
-  showQRChoice(action, id);
+  _qrAction = action;
+  _qrId     = loanId;
+
+  if (loanId && ts && sig) {
+    // Full signed URL → validate immediately
+    const qrUrl = QR_BASE_URL + '/v?l=' + encodeURIComponent(loanId)
+                + '&a=' + encodeURIComponent(action)
+                + '&t=' + ts
+                + '&s=' + encodeURIComponent(sig);
+    validateQR(qrUrl);
+  } else if (loanId) {
+    // Legacy or incomplete params → show choice panel
+    showQRChoice(action, loanId);
+  }
 }
 
 // ── Share ─────────────────────────────────────────────────────
