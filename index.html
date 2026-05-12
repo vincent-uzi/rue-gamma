@@ -2210,7 +2210,7 @@
 </div><!-- /#app -->
 
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -3826,11 +3826,14 @@ function showQRDisplay() {
   const canvas = document.getElementById('qr-code-canvas');
 
   if (window.QRCode) {
-    QRCode.toCanvas(canvas, qrData, {
-      width:  200,
-      margin: 2,
-      color:  { dark: '#1A1A1C', light: '#ffffff' },
-    }, function(err) { if (err) console.error('[QR]', err); });
+    canvas.innerHTML = '';
+    new QRCode(canvas, {
+      text:       qrData,
+      width:      200,
+      height:     200,
+      colorDark:  '#1A1A1C',
+      colorLight: '#ffffff',
+    });
   }
 
   // Countdown 5 min
