@@ -1550,6 +1550,10 @@
       from { opacity: 0; transform: translateY(12px); }
       to   { opacity: 1; transform: translateY(0); }
     }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
 
     /* ── Toast types ─────────────────────────────────────────── */
     #toast.toast-success { background: #1F9D55; }
@@ -3182,8 +3186,9 @@ function _buildStepsFromLoan(loan, userId) {
 const _LOAN_SELECT = `id,item_id,borrower_id,owner_id,status,requested_at,accepted_at,declined_at,handed_at,returned_at,item:items!item_id(name,co2_saved_kg),owner:members!owner_id(first_name,last_name,address),borrower:members!borrower_id(first_name,last_name,address)`;
 
 // ── Archived pagination state ─────────────────────────────────
-let _archivedOffset = 0;
-let _archivedTotal  = 0;
+let _archivedOffset  = 0;
+let _archivedTotal   = 0;
+let _archivedVisible = false;
 
 async function loadTransactions() {
   const userId = localStorage.getItem('member_id');
@@ -3495,6 +3500,23 @@ function _txCard(tx) {
   return el;
 }
 
+function toggleArchived() {
+  _archivedVisible = !_archivedVisible;
+  const section = document.getElementById('exchanges-archived-section');
+  const btn     = document.getElementById('exchanges-archived-toggle');
+  if (!section || !btn) return;
+  const s            = window._transactionsState;
+  const archivedList = s ? s.archived : TRANSACTIONS_ARCHIVED;
+  const count        = archivedList.length;
+  if (_archivedVisible) {
+    section.style.display = 'block';
+    btn.textContent = "▲ Masquer les archivées";
+  } else {
+    section.style.display = 'none';
+    btn.textContent = "▼ Afficher les archivées" + (count ? " (" + count + ")" : "");
+  }
+}
+
 function renderExchanges() {
   const list = document.getElementById('requests-list');
   list.innerHTML = '';
@@ -3520,20 +3542,28 @@ function renderExchanges() {
     list.appendChild(group);
   }
 
-  // Separator
-  const sep = document.createElement('p');
-  sep.className = 't-caption';
-  sep.style.cssText = 'text-transform:uppercase;color:var(--text-muted);margin-top:32px;margin-bottom:12px;letter-spacing:0.1px;';
-  sep.textContent = 'Archivées';
-  list.appendChild(sep);
+  // Toggle button
+  const count = archivedList.length;
+  const toggleBtn = document.createElement('button');
+  toggleBtn.id = 'exchanges-archived-toggle';
+  toggleBtn.style.cssText = 'display:block;width:100%;background:none;border:none;padding:20px 0 8px;color:var(--text-muted);font-size:13px;font-family:inherit;cursor:pointer;text-align:left;letter-spacing:0.02em;';
+  toggleBtn.textContent = _archivedVisible
+    ? "▲ Masquer les archivées"
+    : "▼ Afficher les archivées" + (count ? " (" + count + ")" : "");
+  toggleBtn.addEventListener('click', toggleArchived);
+  list.appendChild(toggleBtn);
 
-  // Archived
+  // Archived collapsible section
+  const archSection = document.createElement('div');
+  archSection.id = 'exchanges-archived-section';
+  archSection.style.display = _archivedVisible ? 'block' : 'none';
+
   if (!archivedList.length) {
     const empty2 = document.createElement('p');
     empty2.className = 't-callout';
     empty2.style.cssText = 'color:var(--text-muted);text-align:center;padding:16px 0;';
     empty2.textContent = 'Aucun historique';
-    list.appendChild(empty2);
+    archSection.appendChild(empty2);
   } else {
     const archGroup = document.createElement('div');
     archGroup.style.cssText = 'display:flex;flex-direction:column;gap:12px;';
@@ -3542,24 +3572,24 @@ function renderExchanges() {
       el.setAttribute('data-tx', tx.id || '');
       archGroup.appendChild(el);
     });
-    list.appendChild(archGroup);
+    archSection.appendChild(archGroup);
+
+    // Afficher plus
+    const hasMore = s ? archivedList.length < _archivedTotal : false;
+    if (hasMore) {
+      const more = document.createElement('p');
+      more.style.cssText = 'text-align:center;margin-top:16px;';
+      const moreLink = document.createElement('span');
+      moreLink.className = 't-callout';
+      moreLink.style.cssText = 'color:var(--accent);text-decoration:underline;cursor:pointer;';
+      moreLink.textContent = 'Afficher plus';
+      moreLink.addEventListener('click', () => showMoreArchived());
+      more.appendChild(moreLink);
+      archSection.appendChild(more);
+    }
   }
 
-  // Afficher plus
-  const hasMore = s
-    ? archivedList.length < _archivedTotal
-    : TRANSACTIONS_ARCHIVED.length > 5;
-  if (hasMore) {
-    const more = document.createElement('p');
-    more.style.cssText = 'text-align:center;margin-top:16px;';
-    const moreLink = document.createElement('span');
-    moreLink.className = 't-callout';
-    moreLink.style.cssText = 'color:var(--accent);text-decoration:underline;cursor:pointer;';
-    moreLink.textContent = 'Afficher plus';
-    moreLink.addEventListener('click', () => showMoreArchived());
-    more.appendChild(moreLink);
-    list.appendChild(more);
-  }
+  list.appendChild(archSection);
 }
 
 
