@@ -1641,6 +1641,172 @@
       box-shadow:0 -4px 40px rgba(0,0,0,0.15);
     }
     #decline-popin.open { transform:translateX(-50%) translateY(0); }
+
+    /* ── Item Detail Panel ─────────────────────────────────────── */
+    #panel-item-detail {
+      display: none;
+      position: fixed;
+      top: 0; bottom: 0;
+      left: max(0px, calc((100vw - 430px) / 2));
+      width: min(430px, 100vw);
+      background: var(--bg);
+      z-index: 420;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: contain;
+      transform: translateX(100%);
+      transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    #panel-item-detail.open { transform: translateX(0); }
+
+    .item-detail-header {
+      position: sticky;
+      top: 0;
+      display: flex;
+      justify-content: space-between;
+      padding: max(12px, var(--sat)) 16px 12px;
+      background: var(--bg);
+      z-index: 10;
+    }
+    .btn-back, .btn-menu {
+      width: 40px; height: 40px;
+      border-radius: 50%; border: none;
+      background: var(--bg);
+      font-size: 20px; cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text);
+    }
+    .item-photo-carousel {
+      position: relative; width: 100%;
+      aspect-ratio: 4/3; background: var(--surface-alt);
+      overflow: hidden;
+    }
+    #item-detail-photo { width: 100%; height: 100%; object-fit: cover; }
+    .item-photo-placeholder {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 56px;
+    }
+    .photo-dots {
+      position: absolute; bottom: 12px; left: 50%;
+      transform: translateX(-50%);
+      display: flex; gap: 6px;
+    }
+    .item-status-badge {
+      position: absolute; top: 16px; left: 16px;
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border-radius: 20px;
+      font-size: 13px; font-weight: 600;
+      background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .item-status-badge .status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+    }
+    .item-status-badge.available .status-dot { background: var(--accent); }
+    .item-status-badge.borrowed   .status-dot { background: #FF9500; }
+    .item-status-badge.unavailable .status-dot { background: #8E8E93; }
+    .detail-toggle {
+      position: absolute; top: 16px; right: 16px;
+      width: 51px; height: 31px;
+    }
+    .detail-toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #8E8E93; transition: .3s; border-radius: 31px;
+    }
+    .toggle-slider::before {
+      position: absolute; content: '';
+      height: 27px; width: 27px; left: 2px; bottom: 2px;
+      background: white; transition: .3s; border-radius: 50%;
+    }
+    #item-available-toggle:checked + .toggle-slider { background: var(--accent); }
+    #item-available-toggle:checked + .toggle-slider::before { transform: translateX(20px); }
+    #item-available-toggle:disabled + .toggle-slider { opacity: 0.5; cursor: not-allowed; }
+    .item-detail-title {
+      font-size: 20px; font-weight: 700; color: var(--text);
+      margin: 20px 16px 12px; line-height: 1.3;
+    }
+    .item-detail-description {
+      font-size: 15px; color: var(--text-muted);
+      margin: 0 16px 12px; line-height: 1.5;
+    }
+    .item-edit-link {
+      background: none; border: none;
+      font-size: 15px; font-weight: 600; color: var(--text-muted);
+      margin: 0 16px 20px; padding: 0; cursor: pointer;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .item-co2-badge {
+      display: flex; align-items: center; gap: 12px;
+      background: rgba(31,157,85,0.1);
+      border-radius: 12px; padding: 12px; margin: 20px 16px;
+    }
+    .co2-icon { font-size: 24px; }
+    .co2-amount { font-size: 17px; font-weight: 700; color: var(--text); }
+    .co2-label { font-size: 13px; color: var(--text-muted); }
+    .item-owner-card {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: 12px; padding: 12px; margin: 0 16px 120px;
+    }
+    .owner-avatar {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: var(--accent); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-weight: 600; font-size: 18px;
+    }
+    .owner-name { font-size: 16px; font-weight: 600; color: var(--text); }
+    .owner-address { font-size: 13px; color: var(--text-muted); }
+    .btn-sticky {
+      position: fixed;
+      bottom: calc(70px + var(--sab));
+      left: max(16px, calc((100vw - 430px) / 2 + 16px));
+      right: max(16px, calc((100vw - 430px) / 2 + 16px));
+      z-index: 430;
+    }
+    .btn-sticky:disabled { background: #8E8E93 !important; opacity: 0.5; cursor: not-allowed; }
+    .owner-only { display: none !important; }
+    body.is-owner .owner-only { display: flex !important; }
+    body.is-owner #item-borrow-btn { display: none !important; }
+
+    /* ── Edit-item modal ───────────────────────────────────────── */
+    #modal-edit-item {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 520;
+    }
+    .modal-content {
+      background: var(--surface);
+      border-radius: 20px; padding: 24px;
+      width: min(500px, calc(100% - 32px));
+      max-height: 80dvh; overflow-y: auto;
+    }
+    .modal-content h2 {
+      font-size: 18px; font-weight: 700; color: var(--text);
+      margin-bottom: 24px;
+    }
+    .modal-content .form-label { margin-top: 0; }
+    .form-textarea {
+      display: block; width: 100%;
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: 14px; padding: 12px 14px;
+      font-family: var(--font); font-size: 16px; color: var(--text);
+      outline: none; -webkit-appearance: none;
+      transition: border-color .18s; resize: none;
+      line-height: 1.5;
+    }
+    .form-textarea:focus { border-color: var(--accent); }
+    .form-textarea::placeholder { color: var(--text-dim); }
+    .char-counter {
+      font-size: 13px; color: var(--text-muted);
+      text-align: right; margin-top: 4px; margin-bottom: 16px;
+    }
+    .char-counter.warning { color: #FF9500; font-weight: 600; }
+    .modal-actions { display: flex; gap: 12px; margin-top: 24px; }
+    .modal-actions .step-btn { flex: 1; justify-content: center; }
   </style>
 </head>
 <body>
@@ -2112,6 +2278,60 @@
 
 </div><!-- /#panel-item -->
 
+<!-- ── Item Detail Panel ──────────────────────────────────────── -->
+<div id="panel-item-detail">
+
+  <div class="item-detail-header">
+    <button onclick="hideItemDetail()" class="btn-back" aria-label="Retour">&#8592;</button>
+    <button onclick="showItemMenu()" class="btn-menu" aria-label="Plus d'options">&#8942;</button>
+  </div>
+
+  <div class="item-photo-carousel">
+    <img id="item-detail-photo" src="" alt="Photo objet" style="display:none;">
+    <div class="item-photo-placeholder" id="item-detail-placeholder">&#128247;</div>
+    <div class="photo-dots" id="photo-dots"></div>
+
+    <div class="item-status-badge available" id="item-detail-status-badge">
+      <span class="status-dot"></span>
+      <span class="status-text">Disponible</span>
+    </div>
+
+    <label class="detail-toggle owner-only" id="item-detail-toggle-wrap">
+      <input type="checkbox" id="item-available-toggle" onchange="toggleItemAvailability()">
+      <span class="toggle-slider"></span>
+    </label>
+  </div>
+
+  <h1 id="item-detail-title" class="item-detail-title"></h1>
+
+  <p id="item-detail-description" class="item-detail-description"></p>
+
+  <button class="item-edit-link owner-only" id="item-edit-link" onclick="editItemDescription()">
+    &#9999;&#65039; Modifier le descriptif
+  </button>
+
+  <div class="item-co2-badge">
+    <div class="co2-icon">&#127807;</div>
+    <div>
+      <div class="co2-amount" id="item-detail-co2">&#8722;5,0 kg CO&#8322;</div>
+      <div class="co2-label">évités si vous l'empruntez</div>
+    </div>
+  </div>
+
+  <div class="item-owner-card">
+    <div class="owner-avatar" id="item-detail-owner-avatar"></div>
+    <div>
+      <div class="owner-name" id="item-detail-owner-name"></div>
+      <div class="owner-address" id="item-detail-owner-address"></div>
+    </div>
+  </div>
+
+  <button id="item-borrow-btn" class="cta-btn btn-sticky" onclick="borrowItemFromDetail()">
+    Emprunter
+  </button>
+
+</div><!-- /#panel-item-detail -->
+
 <div id="thread-backdrop" onclick="hideThread()"></div>
 <div id="thread-panel">
   <div class="thread-header">
@@ -2306,7 +2526,7 @@ function renderItemRow(list, item) {
       <path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
   `;
-  el.addEventListener('click', () => showItem(item));
+  el.addEventListener('click', () => loadItemDetail(item.id));
   list.appendChild(el);
 }
 
@@ -2848,6 +3068,10 @@ async function loadProfileTabs() {
           newName.style.color = newOn ? 'var(--text)' : 'var(--text-dim)';
           await db.from('items').update({ status: newOn ? 'available' : 'unavailable' }).eq('id', item.id);
         });
+        el.style.cursor = 'pointer';
+        el.addEventListener('click', e => {
+          if (!e.target.closest('.item-toggle')) loadItemDetail(item.id);
+        });
         itemsList.appendChild(el);
       });
     }
@@ -3047,7 +3271,7 @@ function renderObjects(items) {
         </svg>
       `;
       el.style.cursor = 'pointer';
-      el.addEventListener('click', () => showItem(item));
+      el.addEventListener('click', () => loadItemDetail(item.id));
       card.appendChild(el);
     });
 
@@ -3186,7 +3410,7 @@ async function _doSearch(q) {
         <path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     `;
-    el.addEventListener('click', () => showItem(item));
+    el.addEventListener('click', () => loadItemDetail(item.id));
     list.appendChild(el);
   });
 }
@@ -4389,6 +4613,228 @@ async function borrowItem() {
   }
 }
 
+// ── Item Detail Panel ─────────────────────────────────────────
+let _detailItem = null;
+
+async function loadItemDetail(itemId) {
+  const userId = localStorage.getItem('member_id');
+
+  const { data, error } = await db.from('items')
+    .select('*, owner:members!owner_id(first_name, last_name, address)')
+    .eq('id', itemId)
+    .single();
+
+  if (error || !data) {
+    showToast('Objet introuvable', 'error');
+    return;
+  }
+
+  _detailItem = data;
+  _currentItem = {
+    id:       data.id,
+    owner_id: data.owner_id,
+    name:     data.name,
+    state:    data.status,
+    co2:      data.co2_saved_kg != null ? Number(data.co2_saved_kg).toFixed(1).replace('.', ',') : '8,2',
+    desc:     data.description || '',
+    who:      data.owner?.first_name || '',
+    no:       '',
+  };
+
+  document.getElementById('item-detail-title').textContent = data.name;
+  document.getElementById('item-detail-description').textContent = data.description || 'Pas de description';
+
+  const c = data.co2_saved_kg;
+  document.getElementById('item-detail-co2').textContent =
+    '−' + (c != null ? Number(c).toFixed(1).replace('.', ',') : '8,2') + ' kg CO₂';
+
+  const owner = data.owner || {};
+  const firstName = owner.first_name || '';
+  const lastName  = owner.last_name  || '';
+  document.getElementById('item-detail-owner-name').textContent = (firstName + ' ' + lastName).trim() || 'Propriétaire';
+  document.getElementById('item-detail-owner-address').textContent = owner.address || '';
+  const initials = (firstName[0] || '') + (lastName[0] || '');
+  document.getElementById('item-detail-owner-avatar').textContent = initials.toUpperCase();
+
+  const photo = document.getElementById('item-detail-photo');
+  const placeholder = document.getElementById('item-detail-placeholder');
+  if (data.photo_url) {
+    photo.src = data.photo_url;
+    photo.style.display = 'block';
+    placeholder.style.display = 'none';
+  } else {
+    photo.style.display = 'none';
+    placeholder.style.display = 'flex';
+  }
+
+  const badge = document.getElementById('item-detail-status-badge');
+  const statusText = { available: 'Disponible', borrowed: 'Prêté', unavailable: 'Indisponible' };
+  badge.className = 'item-status-badge ' + (data.status || 'available');
+  badge.querySelector('.status-text').textContent = statusText[data.status] || data.status;
+
+  const isOwner = data.owner_id === userId;
+  if (isOwner) {
+    document.body.classList.add('is-owner');
+    const toggle = document.getElementById('item-available-toggle');
+    toggle.checked  = (data.status === 'available');
+    toggle.disabled = (data.status === 'borrowed');
+  } else {
+    document.body.classList.remove('is-owner');
+    const borrowBtn = document.getElementById('item-borrow-btn');
+    borrowBtn.disabled = (data.status !== 'available');
+    borrowBtn.textContent = 'Emprunter';
+  }
+
+  showItemDetail();
+}
+
+function showItemDetail() {
+  const panel = document.getElementById('panel-item-detail');
+  panel.style.display = 'block';
+  requestAnimationFrame(() => requestAnimationFrame(() => panel.classList.add('open')));
+}
+
+function hideItemDetail() {
+  const panel = document.getElementById('panel-item-detail');
+  panel.classList.remove('open');
+  document.body.classList.remove('is-owner');
+  setTimeout(() => { panel.style.display = 'none'; }, 300);
+}
+
+async function toggleItemAvailability() {
+  if (!_detailItem) return;
+  const toggle  = document.getElementById('item-available-toggle');
+  const newStatus = toggle.checked ? 'available' : 'unavailable';
+
+  const { error } = await db.from('items').update({ status: newStatus }).eq('id', _detailItem.id);
+  if (error) {
+    showToast('Erreur lors de la mise à jour', 'error');
+    toggle.checked = !toggle.checked;
+    return;
+  }
+
+  _detailItem.status = newStatus;
+  if (_currentItem) _currentItem.state = newStatus;
+
+  const badge = document.getElementById('item-detail-status-badge');
+  const statusText = { available: 'Disponible', unavailable: 'Indisponible' };
+  badge.className = 'item-status-badge ' + newStatus;
+  badge.querySelector('.status-text').textContent = statusText[newStatus] || newStatus;
+}
+
+function editItemDescription() {
+  if (!_detailItem) return;
+  document.getElementById('edit-item-title').value = _detailItem.name || '';
+  document.getElementById('edit-item-description').value = _detailItem.description || '';
+  updateCharCounters();
+  document.getElementById('modal-edit-item').style.display = 'flex';
+}
+
+function updateCharCounters() {
+  const titleLen = document.getElementById('edit-item-title').value.length;
+  const descLen  = document.getElementById('edit-item-description').value.length;
+
+  const titleCounter = document.getElementById('title-counter');
+  titleCounter.textContent = titleLen + '/100 caractères';
+  if (titleLen > 60) {
+    titleCounter.classList.add('warning');
+    titleCounter.textContent += ' (recommandé : max 60)';
+  } else {
+    titleCounter.classList.remove('warning');
+  }
+
+  document.getElementById('description-counter').textContent = descLen + '/500 caractères';
+}
+
+function cancelEditItem() {
+  document.getElementById('modal-edit-item').style.display = 'none';
+}
+
+async function saveItemDescription() {
+  if (!_detailItem) return;
+  const newTitle = document.getElementById('edit-item-title').value.trim();
+  const newDesc  = document.getElementById('edit-item-description').value;
+
+  if (!newTitle) { showToast('Le titre est obligatoire', 'error'); return; }
+
+  const saveBtn = document.querySelector('#modal-edit-item .step-btn-primary');
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Enregistrement…';
+
+  const { error } = await db.from('items')
+    .update({ name: newTitle, description: newDesc })
+    .eq('id', _detailItem.id);
+
+  saveBtn.disabled = false;
+  saveBtn.textContent = 'Enregistrer';
+
+  if (error) {
+    showToast('Erreur lors de la sauvegarde', 'error');
+    return;
+  }
+
+  _detailItem.name = newTitle;
+  _detailItem.description = newDesc;
+  if (_currentItem) { _currentItem.name = newTitle; _currentItem.desc = newDesc; }
+
+  document.getElementById('item-detail-title').textContent = newTitle;
+  document.getElementById('item-detail-description').textContent = newDesc || 'Pas de description';
+
+  cancelEditItem();
+  showToast('Objet mis à jour', 'success');
+}
+
+function showItemMenu() {
+  console.log('Show item menu — TODO');
+}
+
+async function borrowItemFromDetail() {
+  const item = _currentItem;
+  if (!item?.id) return;
+
+  const userId = localStorage.getItem('member_id');
+  if (!userId) { showToast('Connexion requise', 'error'); return; }
+
+  if (item.owner_id === userId) {
+    showToast("C'est votre propre objet", 'error');
+    return;
+  }
+
+  const btn = document.getElementById('item-borrow-btn');
+  btn.disabled    = true;
+  btn.textContent = 'Envoi…';
+
+  const { data, error } = await db.from('loans').insert([{
+    item_id:      item.id,
+    owner_id:     item.owner_id,
+    borrower_id:  userId,
+    status:       'pending',
+    requested_at: new Date().toISOString(),
+  }]).select(_LOAN_SELECT).single();
+
+  btn.disabled    = false;
+  btn.textContent = 'Emprunter';
+
+  if (error) {
+    showToast('Erreur lors de la demande', 'error');
+    return;
+  }
+
+  hideItemDetail();
+  showToast('Demande envoyée !', 'success');
+
+  const s = window._transactionsState;
+  if (s && data) {
+    const tx = _loanToTx(data, userId);
+    s.active.unshift(tx);
+    const panel = document.getElementById('panel-exchanges');
+    if (panel && panel.style.display !== 'none') renderExchanges();
+    updateTransactionsBadge(s.active.filter(
+      t => (t._dbStatus === 'pending' || t.status === 'En attente de validation') && t.from === 'Vous'
+    ).length);
+  }
+}
+
 // ── PWA manifest inline ───────────────────────────────────────
 const icon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
   <rect width="192" height="192" rx="42" fill="#1F9D55"/>
@@ -4419,5 +4865,32 @@ const mLink = Object.assign(document.createElement('link'), {
 });
 document.head.appendChild(mLink);
 </script>
+
+<!-- ── Edit-item modal ─────────────────────────────────────────── -->
+<div id="modal-edit-item" style="display:none;">
+  <div class="modal-content">
+    <h2>Modifier l'objet</h2>
+
+    <div class="form-section">
+      <div class="form-label">Titre de l'objet</div>
+      <input type="text" id="edit-item-title" class="form-input" maxlength="100"
+             autocomplete="off" autocorrect="off" spellcheck="false"
+             oninput="updateCharCounters()">
+      <div id="title-counter" class="char-counter">0/100 caractères</div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-label">Description</div>
+      <textarea id="edit-item-description" class="form-textarea" maxlength="500" rows="6"
+                oninput="updateCharCounters()"></textarea>
+      <div id="description-counter" class="char-counter">0/500 caractères</div>
+    </div>
+
+    <div class="modal-actions">
+      <button onclick="cancelEditItem()" class="step-btn step-btn-secondary">Annuler</button>
+      <button onclick="saveItemDescription()" class="step-btn step-btn-primary">Enregistrer</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
