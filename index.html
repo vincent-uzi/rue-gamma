@@ -4691,15 +4691,22 @@ function hideItemDetail() {
 
 async function toggleItemAvailability() {
   const item = _detailItem || window._detailItem;
-  if (!item?.id) { console.error('[toggle] _detailItem.id undefined'); return; }
+  if (!item?.id) { console.error('[toggle] item.id absent — _detailItem:', _detailItem); return; }
   const toggle    = document.getElementById('item-available-toggle');
   const isChecked = toggle.checked;
   const newStatus = isChecked ? 'available' : 'unavailable';
 
-  const { error } = await db.from('items')
+  console.log('[toggle] PATCH items — id:', item.id, '| newStatus:', newStatus);
+
+  const { data, error } = await db.from('items')
     .update({ status: newStatus })
-    .eq('id', item.id);
+    .eq('id', item.id)
+    .select('id, status');
+
+  console.log('[toggle] result — data:', data, '| error:', error);
+
   if (error) {
+    console.error('[toggle] error details:', JSON.stringify(error));
     showToast('Erreur lors de la mise à jour', 'error');
     toggle.checked = !isChecked;
     return;
