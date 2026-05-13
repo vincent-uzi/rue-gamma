@@ -1772,6 +1772,48 @@
     body.is-owner .owner-only { display: flex !important; }
     body.is-owner #item-borrow-btn { display: none !important; }
 
+    /* ── Action sheet ──────────────────────────────────────────── */
+    #action-sheet-backdrop {
+      display:none; position:fixed; inset:0;
+      background:rgba(0,0,0,0.4); z-index:540;
+      opacity:0; transition:opacity 300ms;
+    }
+    #action-sheet {
+      display:none; position:fixed; bottom:0; left:50%;
+      width:min(430px,100%); background:var(--surface);
+      border-radius:20px 20px 0 0;
+      padding:0 0 max(20px, var(--sab));
+      z-index:550; transform:translateX(-50%) translateY(100%);
+      transition:transform 300ms cubic-bezier(0.32,0.72,0,1);
+      box-shadow:0 -4px 40px rgba(0,0,0,0.15);
+    }
+    #action-sheet.open { transform:translateX(-50%) translateY(0); }
+    .action-sheet-handle {
+      width:36px; height:4px; border-radius:2px;
+      background:var(--line); margin:12px auto 8px;
+    }
+    .action-sheet-label {
+      font-size:13px; color:var(--text-muted);
+      text-align:center; padding:4px 20px 12px; line-height:18px;
+    }
+    .action-sheet-item {
+      display:block; width:100%; padding:16px 20px;
+      border:none; border-top:0.5px solid var(--line);
+      background:none; font-family:var(--font);
+      font-size:17px; font-weight:400; color:var(--text);
+      text-align:left; cursor:pointer;
+      -webkit-appearance:none; transition:background .1s;
+    }
+    .action-sheet-item:active { background:var(--surface-alt); }
+    .action-sheet-item.destructive { color:#EF4444; }
+    .action-sheet-cancel {
+      display:block; width:calc(100% - 32px); margin:8px 16px 0;
+      padding:16px; border-radius:14px; border:none;
+      background:var(--surface-alt); font-family:var(--font);
+      font-size:17px; font-weight:600; color:var(--text);
+      cursor:pointer; -webkit-appearance:none;
+    }
+
     /* ── Edit-item modal ───────────────────────────────────────── */
     #modal-edit-item {
       position: fixed; inset: 0;
@@ -2471,6 +2513,15 @@
 </div>
 
 
+<!-- ── Action sheet ──────────────────────────────────────────── -->
+<div id="action-sheet-backdrop" onclick="hideActionSheet()"></div>
+<div id="action-sheet">
+  <div class="action-sheet-handle"></div>
+  <div id="action-sheet-label" class="action-sheet-label" style="display:none;"></div>
+  <div id="action-sheet-items"></div>
+  <button class="action-sheet-cancel" onclick="hideActionSheet()">Annuler</button>
+</div>
+
 </div><!-- /#app -->
 
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
@@ -2671,15 +2722,11 @@ async function loadMember() {
 }
 
 function showProfileMenu(e) {
-  e.stopPropagation();
-  const menu = document.getElementById('profile-menu');
-  if (menu) menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+  if (e) e.stopPropagation();
+  showActionSheet(null, [
+    { label: 'Se déconnecter', destructive: true, action: signOut },
+  ]);
 }
-const toggleProfileMenu = showProfileMenu;
-document.addEventListener('click', () => {
-  const menu = document.getElementById('profile-menu');
-  if (menu) menu.style.display = 'none';
-});
 
 async function signOut() {
   await db.auth.signOut();
@@ -4786,7 +4833,60 @@ async function saveItemDescription() {
 }
 
 function showItemMenu() {
-  console.log('Show item menu — TODO');
+  const userId  = localStorage.getItem('member_id');
+  const isOwner = (_detailItem || window._detailItem)?.owner_id === userId;
+  const items   = [{ label: 'Signaler', action: () => showToast('Signalement envoyé', 'success') }];
+  if (isOwner) {
+    items.push({ label: 'Supprimer l\'objet', destructive: true, action: confirmDeleteItem });
+  }
+  showActionSheet(null, items);
+}
+
+function confirmDeleteItem() {
+  showActionSheet('Cette action est irréversible.', [
+    { label: 'Supprimer définitivement', destructive: true, action: deleteItem },
+  ]);
+}
+
+async function deleteItem() {
+  const item = _detailItem || window._detailItem;
+  if (!item?.id) return;
+  const { error } = await db.from('items').delete().eq('id', item.id);
+  if (error) { showToast('Erreur lors de la suppression', 'error'); return; }
+  hideItemDetail();
+  showToast('Objet supprimé', 'success');
+  _setActiveTab('profile');
+}
+
+function showActionSheet(label, items) {
+  const labelEl = document.getElementById('action-sheet-label');
+  const itemsEl = document.getElementById('action-sheet-items');
+  labelEl.textContent = label || '';
+  labelEl.style.display = label ? 'block' : 'none';
+  itemsEl.innerHTML = '';
+  items.forEach(item => {
+    const btn = document.createElement('button');
+    btn.className = 'action-sheet-item' + (item.destructive ? ' destructive' : '');
+    btn.textContent = item.label;
+    btn.onclick = () => { hideActionSheet(); setTimeout(item.action, 50); };
+    itemsEl.appendChild(btn);
+  });
+  const backdrop = document.getElementById('action-sheet-backdrop');
+  const sheet    = document.getElementById('action-sheet');
+  backdrop.style.display = 'block';
+  sheet.style.display    = 'block';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    backdrop.style.opacity = '1';
+    sheet.classList.add('open');
+  }));
+}
+
+function hideActionSheet() {
+  const backdrop = document.getElementById('action-sheet-backdrop');
+  const sheet    = document.getElementById('action-sheet');
+  backdrop.style.opacity = '0';
+  sheet.classList.remove('open');
+  setTimeout(() => { backdrop.style.display = 'none'; sheet.style.display = 'none'; }, 300);
 }
 
 async function borrowItemFromDetail() {
