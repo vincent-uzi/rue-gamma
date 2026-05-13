@@ -4835,7 +4835,7 @@ async function saveItemDescription() {
 function showItemMenu() {
   const userId  = localStorage.getItem('member_id');
   const isOwner = (_detailItem || window._detailItem)?.owner_id === userId;
-  const items   = [{ label: 'Signaler', action: () => showToast('Signalement envoyé', 'success') }];
+  const items   = [{ label: 'Signaler', destructive: true, action: () => showToast('Signalement envoyé', 'success') }];
   if (isOwner) {
     items.push({ label: 'Supprimer l\'objet', destructive: true, action: confirmDeleteItem });
   }
