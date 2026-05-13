@@ -4705,20 +4705,22 @@ function hideItemDetail() {
 }
 
 async function toggleItemAvailability() {
-  if (!window._detailItem) return;
+  const item = _detailItem || window._detailItem;
+  if (!item?.id) { console.error('[toggle] _detailItem.id undefined'); return; }
   const toggle    = document.getElementById('item-available-toggle');
   const isChecked = toggle.checked;
   const newStatus = isChecked ? 'available' : 'unavailable';
 
-  const { error } = await db.from('items').update({ status: newStatus }).eq('id', window._detailItem.id);
+  const { error } = await db.from('items')
+    .update({ status: newStatus })
+    .eq('id', item.id);
   if (error) {
     showToast('Erreur lors de la mise à jour', 'error');
     toggle.checked = !isChecked;
     return;
   }
 
-  _detailItem.status = newStatus;
-  window._detailItem.status = newStatus;
+  item.status = newStatus;
   if (_currentItem) _currentItem.state = newStatus;
 
   showToast('Statut mis à jour', 'success');
