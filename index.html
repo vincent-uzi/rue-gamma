@@ -1679,7 +1679,7 @@
     }
     .item-photo-carousel {
       position: relative; width: 100%;
-      aspect-ratio: 4/3; background: var(--surface-alt);
+      aspect-ratio: 4/3; background: #F5F5F5;
       overflow: hidden;
     }
     #item-detail-photo { width: 100%; height: 100%; object-fit: cover; }
@@ -4617,6 +4617,7 @@ async function borrowItem() {
 let _detailItem = null;
 
 async function loadItemDetail(itemId) {
+  document.body.classList.remove('is-owner');
   const userId = localStorage.getItem('member_id');
 
   const { data, error } = await db.from('items')
@@ -4630,6 +4631,7 @@ async function loadItemDetail(itemId) {
   }
 
   _detailItem = data;
+  window._detailItem = data;
   _currentItem = {
     id:       data.id,
     owner_id: data.owner_id,
@@ -4663,8 +4665,9 @@ async function loadItemDetail(itemId) {
     photo.style.display = 'block';
     placeholder.style.display = 'none';
   } else {
+    photo.src = '';
     photo.style.display = 'none';
-    placeholder.style.display = 'flex';
+    placeholder.style.display = 'none';
   }
 
   const badge = document.getElementById('item-detail-status-badge');
@@ -4702,19 +4705,23 @@ function hideItemDetail() {
 }
 
 async function toggleItemAvailability() {
-  if (!_detailItem) return;
-  const toggle  = document.getElementById('item-available-toggle');
-  const newStatus = toggle.checked ? 'available' : 'unavailable';
+  if (!window._detailItem) return;
+  const toggle    = document.getElementById('item-available-toggle');
+  const isChecked = toggle.checked;
+  const newStatus = isChecked ? 'available' : 'unavailable';
 
-  const { error } = await db.from('items').update({ status: newStatus }).eq('id', _detailItem.id);
+  const { error } = await db.from('items').update({ status: newStatus }).eq('id', window._detailItem.id);
   if (error) {
     showToast('Erreur lors de la mise à jour', 'error');
-    toggle.checked = !toggle.checked;
+    toggle.checked = !isChecked;
     return;
   }
 
   _detailItem.status = newStatus;
+  window._detailItem.status = newStatus;
   if (_currentItem) _currentItem.state = newStatus;
+
+  showToast('Statut mis à jour', 'success');
 
   const badge = document.getElementById('item-detail-status-badge');
   const statusText = { available: 'Disponible', unavailable: 'Indisponible' };
