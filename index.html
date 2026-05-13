@@ -1773,45 +1773,41 @@
     body.is-owner #item-borrow-btn { display: none !important; }
 
     /* ── Action sheet ──────────────────────────────────────────── */
-    #action-sheet-backdrop {
-      display:none; position:fixed; inset:0;
-      background:rgba(0,0,0,0.4); z-index:540;
-      opacity:0; transition:opacity 300ms;
+    /* ── Dropdown menu ─────────────────────────────────────────── */
+    #dropdown-backdrop {
+      display:none; position:fixed; inset:0; z-index:430;
     }
-    #action-sheet {
-      display:none; position:fixed; bottom:0; left:50%;
-      width:min(430px,100%); background:var(--surface);
-      border-radius:20px 20px 0 0;
-      padding:0 0 max(20px, var(--sab));
-      z-index:550; transform:translateX(-50%) translateY(100%);
-      transition:transform 300ms cubic-bezier(0.32,0.72,0,1);
-      box-shadow:0 -4px 40px rgba(0,0,0,0.15);
+    .dropdown {
+      position:fixed; background:white;
+      border-radius:12px; min-width:200px; padding:4px 0;
+      box-shadow:0 2px 12px rgba(0,0,0,0.15); z-index:440;
     }
-    #action-sheet.open { transform:translateX(-50%) translateY(0); }
-    .action-sheet-handle {
-      width:36px; height:4px; border-radius:2px;
-      background:var(--line); margin:12px auto 8px;
-    }
-    .action-sheet-label {
-      font-size:13px; color:var(--text-muted);
-      text-align:center; padding:4px 20px 12px; line-height:18px;
-    }
-    .action-sheet-item {
-      display:block; width:100%; padding:16px 20px;
-      border:none; border-top:0.5px solid var(--line);
-      background:none; font-family:var(--font);
-      font-size:17px; font-weight:400; color:var(--text);
+    .dropdown-item {
+      display:block; width:100%; padding:12px 16px;
+      border:none; background:none; font-family:var(--font);
+      font-size:15px; font-weight:400; color:#1A1A1C;
       text-align:left; cursor:pointer;
-      -webkit-appearance:none; transition:background .1s;
+      -webkit-appearance:none; transition:background 0.2s ease;
     }
-    .action-sheet-item:active { background:var(--surface-alt); }
-    .action-sheet-item.destructive { color:#EF4444; }
-    .action-sheet-cancel {
-      display:block; width:calc(100% - 32px); margin:8px 16px 0;
-      padding:16px; border-radius:14px; border:none;
-      background:var(--surface-alt); font-family:var(--font);
-      font-size:17px; font-weight:600; color:var(--text);
-      cursor:pointer; -webkit-appearance:none;
+    .dropdown-item:active { background:rgba(0,0,0,0.05); }
+    .dropdown-item.danger { color:#FF3B30; }
+    /* ── Toast undo ─────────────────────────────────────────────── */
+    #toast-undo {
+      position:fixed;
+      bottom:calc(90px + var(--sab));
+      left:16px; right:16px;
+      background:rgba(0,0,0,0.9); color:white;
+      border-radius:12px; padding:14px 16px;
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      font-size:15px; z-index:560;
+      opacity:0; transform:translateY(8px); pointer-events:none;
+      transition:opacity 0.22s ease, transform 0.22s ease;
+    }
+    #toast-undo.show { opacity:1; transform:translateY(0); pointer-events:auto; }
+    .toast-undo-btn {
+      background:none; border:none; color:var(--accent);
+      font-family:var(--font); font-size:15px; font-weight:700;
+      cursor:pointer; padding:0; flex-shrink:0;
     }
 
     /* ── Edit-item modal ───────────────────────────────────────── */
@@ -2086,17 +2082,6 @@
       <div class="profile-header-address" id="profile-address">…</div>
     </div>
     <button class="profile-header-menu-btn" onclick="showProfileMenu(event)" aria-label="Plus d’options">⋮</button>
-
-    <!-- Dropdown menu -->
-    <div id="profile-menu" style="display:none;position:absolute;top:calc(100% - 4px);right:8px;background:var(--bg);border:1px solid var(--line);border-radius:14px;min-width:196px;box-shadow:0 4px 20px rgba(0,0,0,0.10);z-index:20;overflow:hidden;">
-      <button onclick="signOut()" style="display:flex;align-items:center;gap:10px;width:100%;padding:14px 16px;background:none;border:none;font-family:var(--font);font-size:15px;font-weight:500;color:#A14545;cursor:pointer;-webkit-appearance:none;text-align:left;">
-        <svg width="17" height="17" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-          <path d="M7 3H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h4" stroke="#A14545" stroke-width="1.5" stroke-linecap="round"/>
-          <path d="M12 12l3-3-3-3M15 9H7" stroke="#A14545" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        Se déconnecter
-      </button>
-    </div>
   </div>
 
   <div class="profile-scroll">
@@ -2513,16 +2498,16 @@
 </div>
 
 
-<!-- ── Action sheet ──────────────────────────────────────────── -->
-<div id="action-sheet-backdrop" onclick="hideActionSheet()"></div>
-<div id="action-sheet">
-  <div class="action-sheet-handle"></div>
-  <div id="action-sheet-label" class="action-sheet-label" style="display:none;"></div>
-  <div id="action-sheet-items"></div>
-  <button class="action-sheet-cancel" onclick="hideActionSheet()">Annuler</button>
-</div>
-
 </div><!-- /#app -->
+
+<!-- ── Dropdown menus (fixed, outside #app) ──────────────────── -->
+<div id="dropdown-backdrop" onclick="hideDropdown()"></div>
+<div id="item-menu"    class="dropdown" style="display:none;"></div>
+<div id="profile-menu" class="dropdown" style="display:none;"></div>
+<div id="toast-undo">
+  <span id="toast-undo-msg"></span>
+  <button class="toast-undo-btn" onclick="undoDelete()">Annuler</button>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -2721,12 +2706,7 @@ async function loadMember() {
   if (elBorrows) elBorrows.textContent = borrowsRes.count ?? '—';
 }
 
-function showProfileMenu(e) {
-  if (e) e.stopPropagation();
-  showActionSheet(null, [
-    { label: 'Se déconnecter', destructive: true, action: signOut },
-  ]);
-}
+
 
 async function signOut() {
   await db.auth.signOut();
@@ -4835,58 +4815,99 @@ async function saveItemDescription() {
 function showItemMenu() {
   const userId  = localStorage.getItem('member_id');
   const isOwner = (_detailItem || window._detailItem)?.owner_id === userId;
-  const items   = [{ label: 'Signaler', destructive: true, action: () => showToast('Signalement envoyé', 'success') }];
-  if (isOwner) {
-    items.push({ label: 'Supprimer l\'objet', destructive: true, action: confirmDeleteItem });
-  }
-  showActionSheet(null, items);
+  const btn     = document.querySelector('#panel-item-detail .btn-menu');
+  const items   = isOwner
+    ? [{ label: 'Supprimer l\'objet', danger: true, action: deleteItem }]
+    : [{ label: 'Signaler', action: reportItem }];
+  _showDropdown('item-menu', btn, items);
 }
 
-function confirmDeleteItem() {
-  showActionSheet('Cette action est irréversible.', [
-    { label: 'Supprimer définitivement', destructive: true, action: deleteItem },
+function showProfileMenu(e) {
+  if (e) e.stopPropagation();
+  const btn = document.querySelector('.profile-header-menu-btn');
+  _showDropdown('profile-menu', btn, [
+    { label: 'Se déconnecter', danger: true, action: signOut },
   ]);
 }
+
+function _showDropdown(id, anchorBtn, items) {
+  hideDropdown();
+  const menu = document.getElementById(id);
+  menu.innerHTML = '';
+  items.forEach(item => {
+    const btn = document.createElement('button');
+    btn.className = 'dropdown-item' + (item.danger ? ' danger' : '');
+    btn.textContent = item.label;
+    btn.onclick = () => { hideDropdown(); item.action(); };
+    menu.appendChild(btn);
+  });
+  if (anchorBtn) {
+    const r = anchorBtn.getBoundingClientRect();
+    menu.style.top   = (r.bottom + 8) + 'px';
+    menu.style.right = (window.innerWidth - r.right) + 'px';
+    menu.style.left  = 'auto';
+  }
+  menu.style.display = 'block';
+  document.getElementById('dropdown-backdrop').style.display = 'block';
+}
+
+function hideDropdown() {
+  ['item-menu', 'profile-menu'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  document.getElementById('dropdown-backdrop').style.display = 'none';
+}
+
+function reportItem() {
+  const name = (_detailItem || window._detailItem)?.name || 'L\'objet';
+  showToast(name + ' a été signalé', 'success');
+}
+
+let _deletedItem = null;
+let _undoTimer   = null;
 
 async function deleteItem() {
   const item = _detailItem || window._detailItem;
   if (!item?.id) return;
   const { error } = await db.from('items').delete().eq('id', item.id);
   if (error) { showToast('Erreur lors de la suppression', 'error'); return; }
+  _deletedItem = { ...item };
   hideItemDetail();
-  showToast('Objet supprimé', 'success');
   _setActiveTab('profile');
+  _showToastUndo((item.name || 'Objet') + ' supprimé');
 }
 
-function showActionSheet(label, items) {
-  const labelEl = document.getElementById('action-sheet-label');
-  const itemsEl = document.getElementById('action-sheet-items');
-  labelEl.textContent = label || '';
-  labelEl.style.display = label ? 'block' : 'none';
-  itemsEl.innerHTML = '';
-  items.forEach(item => {
-    const btn = document.createElement('button');
-    btn.className = 'action-sheet-item' + (item.destructive ? ' destructive' : '');
-    btn.textContent = item.label;
-    btn.onclick = () => { hideActionSheet(); setTimeout(item.action, 50); };
-    itemsEl.appendChild(btn);
-  });
-  const backdrop = document.getElementById('action-sheet-backdrop');
-  const sheet    = document.getElementById('action-sheet');
-  backdrop.style.display = 'block';
-  sheet.style.display    = 'block';
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    backdrop.style.opacity = '1';
-    sheet.classList.add('open');
-  }));
+function _showToastUndo(msg) {
+  document.getElementById('toast-undo-msg').textContent = msg;
+  const el = document.getElementById('toast-undo');
+  el.classList.add('show');
+  clearTimeout(_undoTimer);
+  _undoTimer = setTimeout(() => {
+    el.classList.remove('show');
+    _deletedItem = null;
+  }, 5000);
 }
 
-function hideActionSheet() {
-  const backdrop = document.getElementById('action-sheet-backdrop');
-  const sheet    = document.getElementById('action-sheet');
-  backdrop.style.opacity = '0';
-  sheet.classList.remove('open');
-  setTimeout(() => { backdrop.style.display = 'none'; sheet.style.display = 'none'; }, 300);
+async function undoDelete() {
+  clearTimeout(_undoTimer);
+  document.getElementById('toast-undo').classList.remove('show');
+  if (!_deletedItem) return;
+  const restore = {
+    id:           _deletedItem.id,
+    community_id: _deletedItem.community_id,
+    owner_id:     _deletedItem.owner_id,
+    name:         _deletedItem.name,
+    description:  _deletedItem.description,
+    category:     _deletedItem.category,
+    co2_saved_kg: _deletedItem.co2_saved_kg,
+    status:       'available',
+  };
+  const { error } = await db.from('items').insert([restore]);
+  _deletedItem = null;
+  if (error) { showToast('Restauration impossible', 'error'); return; }
+  showToast('Objet restauré', 'success');
+  loadProfileTabs();
 }
 
 async function borrowItemFromDetail() {
