@@ -3017,7 +3017,7 @@ async function loadProfileTabs() {
   if (!memberId) { console.warn('[loadProfileTabs] member_id absent — skip'); return; }
 
   const [itemsRes, lentRes, borrowedRes] = await Promise.all([
-    db.from('items').select('id, name, status').eq('owner_id', memberId),
+    db.from('items').select('id, name, status, co2_saved_kg').eq('owner_id', memberId),
     db.from('loans')
       .select('id, item:items!item_id(name), borrower:members!borrower_id(first_name, address)')
       .eq('owner_id', memberId).in('status', ['pending', 'accepted', 'active']),
@@ -3048,31 +3048,16 @@ async function loadProfileTabs() {
       itemsList.appendChild(_emptyRow("Aucun objet partagé pour l'instant"));
     } else {
       items.forEach(item => {
-        const on = item.status === 'available';
-        const nameColor = on ? 'var(--text)' : 'var(--text-dim)';
-        const el = document.createElement('div');
-        el.className = 'item-row';
-        el.setAttribute('role', 'listitem');
-        el.innerHTML =
-          '<div class="item-left">' +
-          '<div class="t-headline item-name" style="color:' + nameColor + ';">' + item.name + '</div>' +
-          '</div>' +
-          '<button class="item-toggle' + (on ? '' : ' off') + '" aria-checked="' + on + '" role="switch"></button>';
-        el.querySelector('.item-toggle').addEventListener('click', async e => {
-          e.stopPropagation();
-          const btn = e.currentTarget;
-          const newOn = btn.classList.contains('off');
-          btn.classList.toggle('off', !newOn);
-          btn.setAttribute('aria-checked', String(newOn));
-          const newName = el.querySelector('.item-name');
-          newName.style.color = newOn ? 'var(--text)' : 'var(--text-dim)';
-          await db.from('items').update({ status: newOn ? 'available' : 'unavailable' }).eq('id', item.id);
+        const c = item.co2_saved_kg;
+        renderItemRow(itemsList, {
+          id:       item.id,
+          owner_id: memberId,
+          name:     item.name,
+          state:    item.status,
+          co2:      c != null ? Number(c).toFixed(1).replace('.', ',') : '8,2',
+          who:      _me || '',
+          no:       '',
         });
-        el.style.cursor = 'pointer';
-        el.addEventListener('click', e => {
-          if (!e.target.closest('.item-toggle')) loadItemDetail(item.id);
-        });
-        itemsList.appendChild(el);
       });
     }
   }
