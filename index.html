@@ -2549,6 +2549,7 @@ function renderItemRow(list, item) {
   const el = document.createElement('div');
   el.className = 'item-row' + (ok ? '' : ' item-unavailable');
   el.setAttribute('role', 'listitem');
+  el.dataset.itemId = item.id;
   el.innerHTML = `
     <div class="item-left">
       <div class="t-headline item-name" style="margin-bottom:4px;">${item.name}</div>
@@ -4873,6 +4874,7 @@ async function deleteItem() {
   const { error } = await db.from('items').delete().eq('id', item.id);
   if (error) { showToast('Erreur lors de la suppression', 'error'); return; }
   _deletedItem = { ...item };
+  document.querySelector('#profileItemsList [data-item-id="' + item.id + '"]')?.remove();
   hideItemDetail();
   _setActiveTab('profile');
   _showToastUndo((item.name || 'Objet') + ' supprimé');
@@ -4906,8 +4908,20 @@ async function undoDelete() {
   const { error } = await db.from('items').insert([restore]);
   _deletedItem = null;
   if (error) { showToast('Restauration impossible', 'error'); return; }
+  const itemsList = document.getElementById('profileItemsList');
+  if (itemsList) {
+    const c = restore.co2_saved_kg;
+    renderItemRow(itemsList, {
+      id:       restore.id,
+      owner_id: restore.owner_id,
+      name:     restore.name,
+      state:    'available',
+      co2:      c != null ? Number(c).toFixed(1).replace('.', ',') : '8,2',
+      who:      _me || '',
+      no:       '',
+    });
+  }
   showToast('Objet restauré', 'success');
-  loadProfileTabs();
 }
 
 async function borrowItemFromDetail() {
