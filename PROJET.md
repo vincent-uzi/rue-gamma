@@ -85,6 +85,62 @@ Dernière mise à jour : 13 mai 2026 00:10
 **Statut :** À FAIRE ⏸️
 **Impact UX :** Élevé 🔥
 
+### RESP-01 : Responsive webapp mobile - Adaptation multi-tailles smartphones
+**Contexte :** Rue Gamma est une webapp mobile-first. L'interface doit s'adapter à toutes les tailles de smartphones, pas desktop/tablet.
+
+**Problème actuel :**
+- Bandeau push déborde sur certains écrans (visible sur petits smartphones)
+- Alignement incohérent entre éléments (card CO₂, bandeau, onglets, listes)
+- Valeurs fixes en pixels qui ne s'adaptent pas
+- Pas testé sur différentes tailles de smartphones
+
+**Tailles smartphones à supporter :**
+- **Petits** : 320px-375px (iPhone SE, petits Android)
+- **Standards** : 375px-414px (iPhone 12/13/14, majorité des users)
+- **Grands** : 414px-428px (iPhone Pro Max, grands Android)
+
+**Solution technique :**
+
+1. **Unités relatives partout** :
+   - `width: 100%` au lieu de valeurs fixes
+   - `box-sizing: border-box` sur tous les éléments
+   - Padding cohérent en pixels (16px OK)
+
+2. **Conteneur parent unique** :
+```css
+   .main-container {
+     padding: 0 16px;
+     width: 100%;
+     max-width: 100vw;
+     box-sizing: border-box;
+   }
+```
+
+3. **Enfants à 100%** :
+```css
+   .card-co2, .bandeau-push, .onglets, .listes {
+     width: 100%;
+     margin: 0;
+     box-sizing: border-box;
+   }
+```
+
+4. **Tests sur 3 tailles** :
+   - 320px (iPhone SE)
+   - 375px (iPhone standard)
+   - 414px (iPhone Pro Max)
+
+**Livrable :**
+- Tous les éléments (card CO₂, bandeau, onglets, listes) parfaitement alignés verticalement
+- Même bords gauche/droit sur toutes les tailles d'écran
+- Pas de débordement horizontal
+- Interface fluide de 320px à 428px
+
+**Priorité :** Moyenne (fonctionne sur la majorité des écrans, mais pas parfait)  
+**Estimation :** 4-6h (audit complet + refonte responsive)  
+**Statut :** À FAIRE ⏸️  
+**Impact UX :** Moyen à élevé (critique pour petits écrans)
+
 ---
 
 ## 🔄 EN COURS / À AFFINER
