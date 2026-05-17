@@ -49,6 +49,42 @@ Dernière mise à jour : 13 mai 2026 00:10
 - **Status : PAS COMMENCÉ** ❌
 - **Estimation : 1-2h**
 
+### CH-05 : Amélioration Upload Photo
+**Contexte :** Upload photo basique fonctionnel (Supabase Storage Items-photos + RLS policies OK), mais expérience utilisateur à améliorer.
+
+**Objectifs :**
+1. **Compression automatique** : Réduire taille fichiers (~80% compression) pour :
+   - Chargement plus rapide (mobile)
+   - Économie de stockage
+   - Meilleure performance globale
+
+2. **Crop manuel avec preview** : Interface de recadrage style Instagram
+   - L'utilisateur choisit la zone à garder
+   - Preview en temps réel du résultat carré 800x800px
+   - Évite les objets coupés ou mal cadrés
+   - UX familière et intuitive
+
+3. **Preview amélioré** : Meilleur aperçu avant sauvegarde
+   - Affichage du résultat final (après compression + crop)
+   - Feedback visuel clair
+   - Possibilité de recommencer si insatisfait
+
+**Approches envisagées pour le crop :**
+- ❌ Option 1 : Crop centré automatique (risque de couper l'objet)
+- ❌ Option 2 : Resize intelligent avec bandes blanches (pas esthétique)
+- ✅ **Option 3 : Crop manuel avec preview** (choix retenu)
+- ❌ Option 4 : Détection IA de l'objet (trop complexe/coûteux)
+
+**Librairies envisagées :**
+- Compression : `browser-image-compression` ou `compressor.js`
+- Crop : `cropperjs` ou solution custom Canvas API
+- Format cible : JPEG 800x800px, qualité 85%
+
+**Estimation :** 2-3h
+**Prérequis :** Upload photo basique fonctionnel ✅ (fait 17 mai 2026)
+**Statut :** À FAIRE ⏸️
+**Impact UX :** Élevé 🔥
+
 ---
 
 ## 🔄 EN COURS / À AFFINER
@@ -490,9 +526,9 @@ Complexité : 🔴 Élevée — ~15 000 tokens
 Vestige React Native — pollue le repo.
 Complexité : 🟢 Faible — ~200 tokens
 
-### DT-03 — Upload photos non fonctionnel
-Bouton présent mais pas de Supabase Storage.
-Complexité : 🟡 Moyenne — ~3 000 tokens
+### DT-03 — Upload photos ✅ RÉSOLU (17 mai 2026)
+Upload vers Supabase Storage (bucket Items-photos) + photo_url en DB.
+Amélioration UX (compression + crop) → voir CH-05.
 
 ### DT-04 — Catégorisation IA non robuste
 Pas de gestion d'erreur ni fallback sur l'appel Anthropic.

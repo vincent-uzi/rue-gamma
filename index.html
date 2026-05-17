@@ -2135,8 +2135,8 @@
     </div>
 
     <!-- Transaction push banners -->
-    <div id="transaction-push-container" style="margin:0 16px 16px;display:none;">
-      <div id="transaction-push-slider" style="display:flex;align-items:flex-start;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;-ms-overflow-style:none;">
+    <div id="transaction-push-container" style="padding:0 16px 16px;display:none;">
+      <div id="transaction-push-slider" style="display:flex;align-items:flex-start;width:100%;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;-ms-overflow-style:none;">
       </div>
       <div id="push-dots" style="display:flex;gap:6px;justify-content:center;margin-top:12px;"></div>
     </div>
@@ -3035,7 +3035,8 @@ async function renderTransactionPush() {
     const phrase = getCatchphrase(type, { borrower, owner, item: itemName, item_article: _itemArticle(itemName) });
     const card = document.createElement('div');
     card.className = 'transaction-push';
-    card.style.minWidth = single ? '100%' : 'calc(100% - 24px)';
+    card.style.width    = single ? '100%' : 'calc(100% - 24px)';
+    card.style.flexShrink = '0';
     card.innerHTML =
       '<div class="push-content">' +
         '<div class="push-title">' + phrase.title + '</div>' +
