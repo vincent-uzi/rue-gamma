@@ -4839,7 +4839,10 @@ function showItemMenu() {
   const isOwner = (_detailItem || window._detailItem)?.owner_id === userId;
   const btn     = document.querySelector('#panel-item-detail .btn-menu');
   const items   = isOwner
-    ? [{ label: 'Supprimer l\'objet', danger: true, action: deleteItem }]
+    ? [
+        { label: 'Modifier',          action: editItemDescription },
+        { label: 'Supprimer l\'objet', danger: true, action: deleteItem },
+      ]
     : [{ label: 'Signaler', action: reportItem }];
   _showDropdown('item-menu', btn, items);
 }
