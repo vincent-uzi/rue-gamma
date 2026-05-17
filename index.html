@@ -1846,6 +1846,25 @@
     .char-counter.warning { color: #FF9500; font-weight: 600; }
     .modal-actions { display: flex; gap: 12px; margin-top: 24px; }
     .modal-actions .step-btn { flex: 1; justify-content: center; }
+    .edit-photo-preview {
+      width: 200px; height: 200px; border-radius: 12px;
+      object-fit: cover; display: block; margin: 0 auto 10px;
+    }
+    .edit-photo-placeholder {
+      width: 200px; height: 200px; border-radius: 12px;
+      background: #F7F7F5; display: flex; align-items: center;
+      justify-content: center; margin: 0 auto 10px; font-size: 40px;
+    }
+    .edit-photo-btns { display: flex; gap: 8px; margin-bottom: 20px; }
+    .edit-photo-btn {
+      flex: 1; padding: 12px 16px; border-radius: 12px;
+      font-size: 15px; font-weight: 600; border: none; cursor: pointer;
+      transition: opacity 0.2s ease;
+    }
+    .edit-photo-btn:active { opacity: 0.7; }
+    .edit-photo-btn-change  { background: #F7F7F5; color: #1A1A1C; }
+    .edit-photo-btn-add     { background: #1F9D55; color: #fff; }
+    .edit-photo-btn-delete  { background: rgba(255,59,48,0.1); color: #FF3B30; }
   </style>
 </head>
 <body>
@@ -4772,12 +4791,49 @@ async function toggleItemAvailability() {
   badge.querySelector('.status-text').textContent = statusText[newStatus] || newStatus;
 }
 
+let _editPhotoAction = null; // null | 'upload' | 'delete'
+
 function editItemDescription() {
   if (!_detailItem) return;
   document.getElementById('edit-item-title').value = _detailItem.name || '';
   document.getElementById('edit-item-description').value = _detailItem.description || '';
   updateCharCounters();
+  _editPhotoAction = null;
+  document.getElementById('editPhotoInput').value = '';
+  _refreshEditPhotoUI(_detailItem.photo_url || null);
   document.getElementById('modal-edit-item').style.display = 'flex';
+}
+
+function _refreshEditPhotoUI(url) {
+  const preview      = document.getElementById('edit-photo-preview');
+  const placeholder  = document.getElementById('edit-photo-placeholder');
+  const btnsWith     = document.getElementById('edit-photo-btns-with');
+  const btnsWithout  = document.getElementById('edit-photo-btns-without');
+  if (url) {
+    preview.src = url;
+    preview.style.display     = 'block';
+    placeholder.style.display = 'none';
+    btnsWith.style.display    = 'flex';
+    btnsWithout.style.display = 'none';
+  } else {
+    preview.src = '';
+    preview.style.display     = 'none';
+    placeholder.style.display = 'flex';
+    btnsWith.style.display    = 'none';
+    btnsWithout.style.display = 'flex';
+  }
+}
+
+function onEditPhotoSelected(input) {
+  if (!input.files[0]) return;
+  _editPhotoAction = 'upload';
+  _refreshEditPhotoUI(URL.createObjectURL(input.files[0]));
+}
+
+function removeEditPhoto() {
+  _editPhotoAction = 'delete';
+  document.getElementById('editPhotoInput').value = '';
+  _refreshEditPhotoUI(null);
 }
 
 function updateCharCounters() {
@@ -4797,6 +4853,8 @@ function updateCharCounters() {
 }
 
 function cancelEditItem() {
+  _editPhotoAction = null;
+  document.getElementById('editPhotoInput').value = '';
   document.getElementById('modal-edit-item').style.display = 'none';
 }
 
@@ -4811,24 +4869,64 @@ async function saveItemDescription() {
   saveBtn.disabled = true;
   saveBtn.textContent = 'Enregistrement…';
 
-  const { error } = await db.from('items')
-    .update({ name: newTitle, description: newDesc })
-    .eq('id', _detailItem.id);
+  // Handle photo change
+  let newPhotoUrl = undefined; // undefined = no change
+  if (_editPhotoAction === 'delete') {
+    newPhotoUrl = null;
+  } else if (_editPhotoAction === 'upload') {
+    const file = document.getElementById('editPhotoInput').files[0];
+    if (file) {
+      const ext      = file.name.split('.').pop();
+      const fileName = `item-${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+      const { error: uploadError } = await db.storage.from('Items-photos').upload(fileName, file);
+      if (uploadError) {
+        showToast('Erreur upload photo', 'error');
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Enregistrer';
+        return;
+      }
+      const { data: urlData } = db.storage.from('Items-photos').getPublicUrl(fileName);
+      newPhotoUrl = urlData.publicUrl;
+    }
+  }
+
+  const updateData = { name: newTitle, description: newDesc };
+  if (newPhotoUrl !== undefined) updateData.photo_url = newPhotoUrl;
+
+  const { error } = await db.from('items').update(updateData).eq('id', _detailItem.id);
 
   saveBtn.disabled = false;
   saveBtn.textContent = 'Enregistrer';
 
-  if (error) {
-    showToast('Erreur lors de la sauvegarde', 'error');
-    return;
-  }
+  if (error) { showToast('Erreur lors de la sauvegarde', 'error'); return; }
 
+  // Update in-memory
   _detailItem.name = newTitle;
   _detailItem.description = newDesc;
+  if (newPhotoUrl !== undefined) _detailItem.photo_url = newPhotoUrl;
+  if (window._detailItem) {
+    window._detailItem.name = newTitle;
+    window._detailItem.description = newDesc;
+    if (newPhotoUrl !== undefined) window._detailItem.photo_url = newPhotoUrl;
+  }
   if (_currentItem) { _currentItem.name = newTitle; _currentItem.desc = newDesc; }
 
+  // Update detail panel
   document.getElementById('item-detail-title').textContent = newTitle;
   document.getElementById('item-detail-description').textContent = newDesc || 'Pas de description';
+  if (newPhotoUrl !== undefined) {
+    const photo       = document.getElementById('item-detail-photo');
+    const placeholder = document.getElementById('item-detail-placeholder');
+    if (newPhotoUrl) {
+      photo.src             = newPhotoUrl;
+      photo.style.display   = 'block';
+      placeholder.style.display = 'none';
+    } else {
+      photo.src             = '';
+      photo.style.display   = 'none';
+      placeholder.style.display = 'none';
+    }
+  }
 
   cancelEditItem();
   showToast('Objet mis à jour', 'success');
@@ -5044,6 +5142,20 @@ document.head.appendChild(mLink);
 <div id="modal-edit-item" style="display:none;">
   <div class="modal-content">
     <h2>Modifier l'objet</h2>
+
+    <div class="form-section">
+      <div class="form-label">Photo</div>
+      <img id="edit-photo-preview" class="edit-photo-preview" src="" alt="Photo de l'objet" style="display:none;">
+      <div id="edit-photo-placeholder" class="edit-photo-placeholder" style="display:none;">📷</div>
+      <div id="edit-photo-btns-with" class="edit-photo-btns" style="display:none;">
+        <button class="edit-photo-btn edit-photo-btn-change" onclick="document.getElementById('editPhotoInput').click()">Changer</button>
+        <button class="edit-photo-btn edit-photo-btn-delete" onclick="removeEditPhoto()">Supprimer</button>
+      </div>
+      <div id="edit-photo-btns-without" class="edit-photo-btns" style="display:none;">
+        <button class="edit-photo-btn edit-photo-btn-add" onclick="document.getElementById('editPhotoInput').click()">Ajouter une photo</button>
+      </div>
+      <input type="file" id="editPhotoInput" accept="image/*" style="display:none" onchange="onEditPhotoSelected(this)">
+    </div>
 
     <div class="form-section">
       <div class="form-label">Titre de l'objet</div>
