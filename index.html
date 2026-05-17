@@ -735,20 +735,24 @@
       box-shadow: 0 4px 12px rgba(31,157,85,0.25);
       -webkit-tap-highlight-color: transparent;
     }
-    .push-content { flex: 1; padding-right: 16px; }
+    .push-content { flex: 1; min-width: 0; padding-right: 16px; }
     .push-title {
       font-size: 18px; font-weight: 600;
       line-height: 1.3; margin-bottom: 6px;
+      word-wrap: break-word; overflow-wrap: break-word;
     }
-    .push-subtitle { font-size: 15px; font-weight: 400; opacity: 0.95; }
+    .push-subtitle {
+      font-size: 15px; font-weight: 400; opacity: 0.95;
+      word-wrap: break-word; overflow-wrap: break-word;
+    }
     .push-chevron {
       font-size: 32px; font-weight: 300;
       opacity: 0.9; flex-shrink: 0; line-height: 1;
     }
     .push-dot {
       width: 8px; height: 8px; border-radius: 50%;
-      background: rgba(31,157,85,0.3);
-      transition: all 0.2s; border: none; padding: 0; cursor: pointer;
+      background: rgba(0,0,0,0.15);
+      transition: background 0.2s ease; border: none; padding: 0; cursor: pointer;
       -webkit-appearance: none;
     }
     .push-dot.active { background: var(--accent); }
@@ -3033,7 +3037,7 @@ async function renderTransactionPush() {
     const phrase = getCatchphrase(type, { borrower, owner, item: itemName, item_article: _itemArticle(itemName) });
     const card = document.createElement('div');
     card.className = 'transaction-push';
-    card.style.minWidth = single ? '100%' : 'calc(100% - 40px)';
+    card.style.minWidth = single ? '100%' : 'calc(100% - 24px)';
     card.innerHTML =
       '<div class="push-content">' +
         '<div class="push-title">' + phrase.title + '</div>' +
@@ -3054,14 +3058,19 @@ async function renderTransactionPush() {
     }
   });
 
-  // Sync dots on scroll
+  // Sync dots on scroll via IntersectionObserver
   if (!single && dotsEl) {
-    slider.addEventListener('scroll', () => {
-      const dots = dotsEl.querySelectorAll('.push-dot');
-      const w = slider.scrollWidth / loans.length;
-      const active = Math.round(slider.scrollLeft / w);
-      dots.forEach((d, i) => d.classList.toggle('active', i === active));
-    }, { passive: true });
+    const cards = slider.querySelectorAll('.transaction-push');
+    const dots  = dotsEl.querySelectorAll('.push-dot');
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.intersectionRatio >= 0.5) {
+          const idx = Array.from(cards).indexOf(entry.target);
+          dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+        }
+      });
+    }, { root: slider, threshold: 0.5 });
+    cards.forEach(card => obs.observe(card));
   }
 
   container.style.display = 'block';
