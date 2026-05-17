@@ -81,9 +81,28 @@
 
 ### `pending_borrower` - Demande d'emprunt (côté emprunteur)
 
-**Situation** : Tu as demandé à emprunter la scie de Vincent
+**Situation** : Tu as demandé à emprunter la scie de Vincent, tu attends sa réponse
 
-**À COMPLÉTER** (10-12 variantes)
+**12 variantes :**
+
+1. "{item_le_la} de {owner} : la balle est dans son camp."
+2. "{owner} consulte son cœur (et son calendrier de travaux) pour {item_le_la}."
+3. "{item_le_la} : {owner} pèse le pour et le contre."
+4. "Demande envoyée à {owner} pour {item_le_la}. Réponse sous peu !"
+5. "{owner} étudie votre demande pour {item_le_la}."
+6. "En attente de {owner} pour {item_le_la}. Suspense !"
+7. "Demande transmise à {owner} pour {item_le_la}. Réponse bientôt !"
+8. "{item_le_la} demandé·e à {owner}. {owner_il_elle_maj} réfléchit..."
+9. "{owner} prend son temps pour {item_le_la}. Patience !"
+10. "Votre demande pour {item_le_la} attend le feu vert de {owner}."
+11. "{item_le_la} : {owner} consulte son agenda et son stock de bonne volonté."
+12. "Demande pour {item_le_la} envoyée. {owner} va-t-{owner_il_elle} dire banco ?"
+
+**Tonalité :**
+- ✅ Ludique ("la balle est dans son camp", "stock de bonne volonté", "banco")
+- ✅ L'objet est TOUJOURS mentionné
+- ✅ Varié (neutre à joueur)
+- ✅ Pas culpabilisant
 
 ---
 
