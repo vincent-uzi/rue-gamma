@@ -2851,6 +2851,25 @@ async function submitForm() {
   const ctaBtn = document.querySelector('#panel-add .cta-btn');
   if (ctaBtn) { ctaBtn.disabled = true; ctaBtn.textContent = 'En cours…'; }
 
+  // Upload photo if selected
+  let photo_url = null;
+  const photoFile = document.getElementById('photoInput').files[0];
+  if (photoFile) {
+    const fileExt = photoFile.name.split('.').pop();
+    const fileName = `item-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const { error: uploadError } = await db.storage
+      .from('Items-photos')
+      .upload(fileName, photoFile);
+    if (uploadError) {
+      console.error('Upload photo error:', uploadError);
+      showToast('Erreur upload photo', 'error');
+      if (ctaBtn) { ctaBtn.disabled = false; ctaBtn.textContent = 'Mettre à disposition'; }
+      return;
+    }
+    const { data: urlData } = db.storage.from('Items-photos').getPublicUrl(fileName);
+    photo_url = urlData.publicUrl;
+  }
+
   const { error } = await db
     .from('items')
     .insert([{
@@ -2861,6 +2880,7 @@ async function submitForm() {
       category:     detectedCategory || null,
       co2_saved_kg: detectedCo2,
       status:       'available',
+      photo_url,
     }]);
 
   if (ctaBtn) { ctaBtn.disabled = false; ctaBtn.textContent = 'Mettre à disposition'; }
