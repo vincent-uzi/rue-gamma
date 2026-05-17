@@ -3269,6 +3269,7 @@ function renderObjects(items) {
       };
       const el = document.createElement('div');
       el.style.cssText = 'display:flex;align-items:center;padding:14px 16px;' + (i < grouped[cat].length - 1 ? 'border-bottom:0.5px solid var(--line);' : '');
+      el.dataset.itemId = row.id;
       if (!ok) el.classList.add('item-unavailable');
       const nColor = ok ? 'var(--text)' : 'var(--text-dim)';
       el.innerHTML = `
@@ -4874,7 +4875,11 @@ async function deleteItem() {
   const { error } = await db.from('items').delete().eq('id', item.id);
   if (error) { showToast('Erreur lors de la suppression', 'error'); return; }
   _deletedItem = { ...item };
+  // Remove from all lists immediately
   document.querySelector('#profileItemsList [data-item-id="' + item.id + '"]')?.remove();
+  document.querySelector('#itemsList [data-item-id="' + item.id + '"]')?.remove();
+  _allObjects = _allObjects.filter(r => r.id !== item.id);
+  if (_objectsLoaded) renderObjects(_allObjects);
   hideItemDetail();
   _setActiveTab('profile');
   _showToastUndo((item.name || 'Objet') + ' supprimé');
@@ -4908,19 +4913,29 @@ async function undoDelete() {
   const { error } = await db.from('items').insert([restore]);
   _deletedItem = null;
   if (error) { showToast('Restauration impossible', 'error'); return; }
-  const itemsList = document.getElementById('profileItemsList');
-  if (itemsList) {
-    const c = restore.co2_saved_kg;
-    renderItemRow(itemsList, {
-      id:       restore.id,
-      owner_id: restore.owner_id,
-      name:     restore.name,
-      state:    'available',
-      co2:      c != null ? Number(c).toFixed(1).replace('.', ',') : '8,2',
-      who:      _me || '',
-      no:       '',
-    });
+  const c = restore.co2_saved_kg;
+  const rowData = {
+    id:       restore.id,
+    owner_id: restore.owner_id,
+    name:     restore.name,
+    state:    'available',
+    co2:      c != null ? Number(c).toFixed(1).replace('.', ',') : '8,2',
+    who:      _me || '',
+    no:       '',
+  };
+  // Restore in profile list
+  const profileList = document.getElementById('profileItemsList');
+  if (profileList) renderItemRow(profileList, rowData);
+  // Restore in home list (prepend — most recently restored)
+  const homeList = document.getElementById('itemsList');
+  if (homeList) {
+    const tempList = document.createElement('div');
+    renderItemRow(tempList, rowData);
+    homeList.prepend(tempList.firstChild);
   }
+  // Restore in objects tab (re-render from updated _allObjects)
+  _allObjects.push({ id: restore.id, owner_id: restore.owner_id, name: restore.name, category: restore.category, status: 'available', co2_saved_kg: restore.co2_saved_kg, description: restore.description, owner: { first_name: _me || '' } });
+  if (_objectsLoaded) renderObjects(_allObjects);
   showToast('Objet restauré', 'success');
 }
 
