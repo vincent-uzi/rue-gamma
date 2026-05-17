@@ -734,7 +734,7 @@
       box-shadow: 0 4px 12px rgba(31,157,85,0.25);
       -webkit-tap-highlight-color: transparent;
     }
-    .push-content { flex: 1; min-width: 0; padding-right: 16px; }
+    .push-content { flex: 1; min-width: 0; padding-right: 16px; display: flex; flex-direction: column; gap: 6px; }
     .push-title {
       font-size: 18px; font-weight: 600;
       line-height: 1.3; margin-bottom: 6px;
@@ -2136,8 +2136,8 @@
     </div>
 
     <!-- Transaction push banners -->
-    <div id="transaction-push-container" style="padding:0 16px 8px;display:none;">
-      <div id="transaction-push-slider" style="display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;">
+    <div id="transaction-push-container" style="padding:0 16px 16px;display:none;">
+      <div id="transaction-push-slider" style="display:flex;align-items:flex-start;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;-ms-overflow-style:none;">
       </div>
       <div id="push-dots" style="display:flex;gap:6px;justify-content:center;margin-top:12px;"></div>
     </div>
@@ -3055,6 +3055,13 @@ async function renderTransactionPush() {
       });
       dotsEl.appendChild(dot);
     }
+  });
+
+  // Fix: forcer la hauteur du slider = hauteur du contenu (évite le clip overflow-y auto)
+  requestAnimationFrame(() => {
+    const tallest = Array.from(slider.querySelectorAll('.transaction-push'))
+      .reduce((max, c) => Math.max(max, c.scrollHeight), 0);
+    if (tallest > 0) slider.style.height = tallest + 'px';
   });
 
   // Sync dots on scroll via IntersectionObserver
