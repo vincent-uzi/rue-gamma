@@ -550,3 +550,36 @@ Complexité : 🟡 Moyenne — ~4 000 tokens
 ### DT-08 — Pas de back-office admin
 Gestion membres et communautés en SQL uniquement.
 Complexité : 🔴 Élevée — ~10 000 tokens
+
+---
+
+## HISTORIQUE DES SESSIONS
+
+### Session 17 Mai 2026 - Dimanche après-midi
+
+**Durée** : ~3h  
+**Tokens utilisés** : 45% hebdo  
+**Reste** : 55% hebdo
+
+**Réalisations :**
+
+✅ **Menus contextuels dropdown** - Option Modifier + Supprimer + Se déconnecter  
+✅ **Suppression objets** - Mise à jour multi-listes (Profil, Home, Objets) + toast Annuler  
+✅ **Upload photo fonctionnel** - Supabase Storage Items-photos + RLS policies  
+✅ **Édition photo dans modale** - Upload/Supprimer/Changer photo  
+✅ **Bandeau push amélioré** - Hauteur adaptative + alignement largeur  
+✅ **Documentation messages push** - MESSAGES_PUSH.md créé avec 3 types sur 7 documentés
+
+**Bugs identifiés :**
+
+⚠️ **Responsive global** - Bandeau déborde sur certains écrans → TODO RESP-01 créé
+
+**Prochaines étapes :**
+
+- [ ] Compléter 4 types messages push restants (accepted_owner, accepted_borrower, active_owner, active_borrower)
+- [ ] Implémenter système génération/stockage messages push
+- [ ] Gérer genre utilisateur + objet
+- [ ] CH-05 : Amélioration upload photo (compression + crop)
+- [ ] RESP-01 : Responsive global
+
+**Commits :** 10 commits effectués
