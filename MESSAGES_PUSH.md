@@ -106,6 +106,34 @@
 
 ---
 
+### `accepted_borrower` - Accepté, organiser RDV (côté emprunteur)
+
+**Situation** : Vincent a accepté de te prêter son escabeau, c'est à TOI de l'appeler pour organiser
+
+**Règle** : C'est à l'emprunteur de contacter le prêteur pour organiser l'échange
+
+**12 variantes :**
+
+1. "{owner} accepte de vous prêter {item_le_la} ! Contactez-{owner_le_la} pour organiser l'échange."
+2. "C'est oui ! Contactez {owner} pour récupérer {item_le_la}."
+3. "{owner} dit banco ! À vous de fixer un RDV pour récupérer {item_le_la}."
+4. "Bonne nouvelle : {owner} vous prête {item_le_la}. Contactez-{owner_le_la} !"
+5. "{item_le_la} est disponible ! Reste à appeler {owner} pour organiser ça."
+6. "Youpi ! {owner} vous prête {item_le_la}. Fixez un créneau avec {owner_le_la}."
+7. "{owner} valide ! Contactez-{owner_le_la} pour récupérer {item_le_la}."
+8. "Échange conclu ! Organisez la remise de {item_le_la} avec {owner}."
+9. "{item_le_la} vous attend ! Prenez RDV avec {owner}."
+10. "C'est dans la poche ! Contactez {owner} pour la passation de {item_le_la}."
+11. "{owner} vous fait confiance. À vous de jouer pour récupérer {item_le_la} !"
+12. "Ça roule ! Téléphonez à {owner} pour récupérer {item_le_la}."
+
+**Tonalité :**
+- ✅ Encourageant ("C'est oui !", "Youpi !", "Ça roule !")
+- ✅ Appel à l'action clair ("Contactez", "Appelez", "Organisez")
+- ✅ Responsabilisation emprunteur ("À vous de...", "Reste à...")
+
+---
+
 ### `accepted_owner` - Accepté → organiser RDV (côté propriétaire)
 
 **Situation** : Tu as accepté de prêter ta ponceuse à Marie
