@@ -4343,7 +4343,7 @@ function _buildStepEl(step, animate) {
       // Ligne contact : toute en vert, seul le mot-lien souligné
       if (b.contact) {
         const line = document.createElement('div');
-        line.style.cssText = 'color:#1F9D55;margin-bottom:12px;';
+        line.style.cssText = 'color:#1F9D55;font-size:13px;margin-bottom:12px;';
         const a = document.createElement('span');
         a.style.cssText = 'text-decoration:underline;cursor:pointer;';
         a.textContent = b.contact.link || b.contact.label;
@@ -4355,7 +4355,7 @@ function _buildStepEl(step, animate) {
       // Hint
       if (b.nextHint) {
         const p = document.createElement('div');
-        p.style.cssText = 'font-size:13px;color:#999;margin-bottom:8px;';
+        p.style.cssText = 'font-size:13px;color:#999;margin-bottom:4px;';
         p.textContent = b.nextHint;
         wrap.appendChild(p);
       }
