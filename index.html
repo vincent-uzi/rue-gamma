@@ -1763,11 +1763,11 @@
     .owner-name { font-size: 16px; font-weight: 600; color: var(--text); }
     .owner-address { font-size: 13px; color: var(--text-muted); }
     .btn-sticky {
-      position: fixed;
-      bottom: calc(70px + var(--sab));
-      left: max(16px, calc((100vw - 430px) / 2 + 16px));
-      right: max(16px, calc((100vw - 430px) / 2 + 16px));
-      z-index: 430;
+      position: sticky;
+      bottom: calc(16px + var(--sab));
+      z-index: 10;
+      margin: 8px 16px;
+      width: calc(100% - 32px);
     }
     .btn-sticky:disabled { background: #8E8E93 !important; opacity: 0.5; cursor: not-allowed; }
     .owner-only { display: none !important; }
