@@ -3833,13 +3833,13 @@ function _buildStepsFromLoan(loan, userId) {
         : { info: otherName + ' doit valider cet échange' };
       case 1: return {
         sectionTitle: 'Prochaines étapes',
-        contact:  { label: "Contactez-vous pour organiser l'échange", fn: contactFn },
+        contact:  { link: 'Contactez-vous', suffix: " pour organiser l'échange", fn: contactFn },
         nextHint: 'Puis : le jour de la remise',
         actions:  [{ label: "Valider l'échange (QR)", fn: () => showQRChoice('hand', loan.id), primary: true }],
       };
       case 2: return {
         sectionTitle: 'Prochaines étapes',
-        contact:  { label: 'Contactez-vous pour organiser le retour', fn: contactFn },
+        contact:  { link: 'Contactez-vous', suffix: ' pour organiser le retour', fn: contactFn },
         nextHint: 'Puis : le jour du retour',
         actions:  [{ label: 'Valider le retour (QR)', fn: () => showQRChoice('return', loan.id), primary: true }],
       };
@@ -4333,36 +4333,73 @@ function _buildStepEl(step, animate) {
       card.appendChild(p);
     }
     if (b.sectionTitle) {
+      // Block 1 : titre + lien contact
+      const block1 = document.createElement('div');
+      block1.style.marginTop = '12px';
       const t = document.createElement('div');
-      t.style.cssText = 'font-weight:500;font-size:14px;color:#1A1A1C;margin:12px 0 8px;';
+      t.style.cssText = 'font-weight:500;font-size:14px;color:#1A1A1C;margin-bottom:8px;';
       t.textContent = b.sectionTitle;
-      card.appendChild(t);
-    }
-    if (b.contact) {
-      const btn = document.createElement('button');
-      btn.className = 'step-contact-link';
-      btn.textContent = b.contact.label;
-      btn.addEventListener('click', b.contact.fn);
-      card.appendChild(btn);
-    }
-    if (b.nextHint) {
-      const p = document.createElement('p');
-      p.className = 'step-next-hint';
-      p.style.marginTop = '16px';
-      p.textContent = b.nextHint;
-      card.appendChild(p);
-    }
-    if (b.actions?.length) {
-      const actEl = document.createElement('div');
-      actEl.className = 'step-actions';
-      b.actions.forEach(action => {
+      block1.appendChild(t);
+      if (b.contact) {
+        const line = document.createElement('div');
+        line.style.marginBottom = '16px';
+        const a = document.createElement('button');
+        a.className = 'step-contact-link';
+        a.textContent = b.contact.link || b.contact.label;
+        a.addEventListener('click', b.contact.fn);
+        line.appendChild(a);
+        if (b.contact.suffix) line.appendChild(document.createTextNode(b.contact.suffix));
+        block1.appendChild(line);
+      }
+      card.appendChild(block1);
+      // Block 2 : hint + CTA
+      const block2 = document.createElement('div');
+      if (b.nextHint) {
+        const p = document.createElement('div');
+        p.className = 'step-next-hint';
+        p.style.marginBottom = '8px';
+        p.textContent = b.nextHint;
+        block2.appendChild(p);
+      }
+      if (b.actions?.length) {
+        const actEl = document.createElement('div');
+        actEl.className = 'step-actions';
+        b.actions.forEach(action => {
+          const btn = document.createElement('button');
+          btn.className = 'step-btn ' + (action.primary ? 'step-btn-primary' : 'step-btn-secondary');
+          btn.textContent = action.label;
+          btn.addEventListener('click', action.fn);
+          actEl.appendChild(btn);
+        });
+        block2.appendChild(actEl);
+      }
+      card.appendChild(block2);
+    } else {
+      if (b.contact) {
         const btn = document.createElement('button');
-        btn.className = 'step-btn ' + (action.primary ? 'step-btn-primary' : 'step-btn-secondary');
-        btn.textContent = action.label;
-        btn.addEventListener('click', action.fn);
-        actEl.appendChild(btn);
-      });
-      card.appendChild(actEl);
+        btn.className = 'step-contact-link';
+        btn.textContent = b.contact.label || b.contact.link;
+        btn.addEventListener('click', b.contact.fn);
+        card.appendChild(btn);
+      }
+      if (b.nextHint) {
+        const p = document.createElement('p');
+        p.className = 'step-next-hint';
+        p.textContent = b.nextHint;
+        card.appendChild(p);
+      }
+      if (b.actions?.length) {
+        const actEl = document.createElement('div');
+        actEl.className = 'step-actions';
+        b.actions.forEach(action => {
+          const btn = document.createElement('button');
+          btn.className = 'step-btn ' + (action.primary ? 'step-btn-primary' : 'step-btn-secondary');
+          btn.textContent = action.label;
+          btn.addEventListener('click', action.fn);
+          actEl.appendChild(btn);
+        });
+        card.appendChild(actEl);
+      }
     }
     stepEl.appendChild(card);
   }
