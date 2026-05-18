@@ -3355,11 +3355,11 @@ async function loadProfileTabs() {
   const [itemsRes, lentRes, borrowedRes] = await Promise.all([
     db.from('items').select('id, name, status, co2_saved_kg').eq('owner_id', memberId),
     db.from('loans')
-      .select('id, status, item:items!item_id(name, co2_saved_kg), borrower:members!borrower_id(first_name)')
-      .eq('owner_id', memberId).in('status', ['pending', 'accepted', 'active']),
+      .select('id, status, handed_at, item:items!item_id(name, co2_saved_kg), borrower:members!borrower_id(first_name)')
+      .eq('owner_id', memberId).eq('status', 'active').not('handed_at', 'is', null),
     db.from('loans')
-      .select('id, status, item:items!item_id(name, co2_saved_kg), owner:members!owner_id(first_name)')
-      .eq('borrower_id', memberId).in('status', ['pending', 'accepted', 'active']),
+      .select('id, status, handed_at, item:items!item_id(name, co2_saved_kg), owner:members!owner_id(first_name)')
+      .eq('borrower_id', memberId).eq('status', 'active').not('handed_at', 'is', null),
   ]);
 
   // Update tab counts
