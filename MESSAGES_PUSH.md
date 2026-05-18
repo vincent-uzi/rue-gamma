@@ -134,37 +134,78 @@
 
 ---
 
-### `accepted_owner` - Accepté → organiser RDV (côté propriétaire)
+### `accepted_owner` - Accepté, attendre que l'emprunteur contacte
 
-**Situation** : Tu as accepté de prêter ta ponceuse à Marie
+**Situation** : Tu as accepté de prêter ta ponceuse à Marie, c'est à ELLE de t'appeler pour organiser
 
-**À COMPLÉTER** (10-12 variantes)
+**Règle** : C'est l'emprunteur qui contacte le prêteur (pas l'inverse)
 
----
+**8 variantes :**
 
-### `accepted_borrower` - Accepté → organiser RDV (côté emprunteur)
+1. "Vous avez dit oui ! {borrower} va vous contacter pour récupérer {item_le_la}."
+2. "{borrower} sait que vous acceptez. {borrower_il_elle_maj} devrait vous appeler bientôt."
+3. "Deal validé ! Attendez l'appel de {borrower} pour {item_le_la}."
+4. "Vous prêtez {item_le_la} à {borrower}. {borrower_il_elle_maj} va organiser la remise."
+5. "C'est parti ! {borrower} va prendre contact pour récupérer {item_le_la}."
+6. "Bravo pour le partage ! {borrower} vous appellera pour {item_le_la}."
+7. "{borrower} est prévenu·e. Attendez son appel pour {item_le_la}."
+8. "Vous avez accepté ! {borrower} va vous contacter pour fixer un RDV."
 
-**Situation** : Vincent a accepté de te prêter son escabeau
-
-**À COMPLÉTER** (10-12 variantes)
+**Tonalité :**
+- ✅ Encourageant ("Bravo", "C'est parti")
+- ✅ Clair sur le process (emprunteur contacte prêteur)
+- ✅ Pas d'action requise côté propriétaire (attente passive)
 
 ---
 
 ### `active_owner` - En cours, rappel après X jours (côté propriétaire)
 
-**Situation** : Jean-Pierre a ta perceuse depuis 10 jours
+**Situation** : Jean-Pierre a ta perceuse depuis 10 jours, petit rappel pour organiser le retour
 
-**À COMPLÉTER** (10-12 variantes)
+**Déclenchement** : Afficher ce bandeau si l'objet est emprunté depuis plus de X jours (à définir : 7, 10, 14 jours ?)
+
+**8 variantes :**
+
+1. "Votre {item} est chez {borrower} depuis {days} jours. Organisez son retour !"
+2. "Votre {item} vous manque ? Demandez à {borrower} de vous {item_le_la} rendre."
+3. "Avez-vous récupéré {item_le_la} ? {borrower} a peut-être oublié..."
+4. "Votre {item} manque à l'appel ? Contactez {borrower}."
+5. "{borrower} a {item_le_la} depuis {days} jours. Contactez-{borrower_le_la} !"
+6. "{days} jours que {borrower} utilise {item_le_la}. Prévoyez le retour."
+7. "Besoin de {item_le_la} ? {borrower} {item_le_la} a depuis {days} jours."
+8. "{days} jours déjà ! Rappelez à {borrower} de rendre {item_le_la}."
+
+**Tonalité :**
+- ✅ Direct et responsabilisant ("Organisez", "Demandez", "Contactez")
+- ✅ Pas accusateur (questions, suggestions)
+- ✅ Informatif (durée claire avec {days})
 
 ---
 
 ### `active_borrower` - En cours, rappel après X jours (côté emprunteur)
 
-**Situation** : Tu as l'échelle de Marie depuis 12 jours
+**Situation** : Tu as l'échelle de Marie depuis 12 jours, rappel pour organiser le retour
 
-**À COMPLÉTER** (10-12 variantes)
+**Déclenchement** : Afficher ce bandeau si l'emprunteur a l'objet depuis plus de X jours (à définir : 7, 10, 14 jours ?)
 
----
+**10 variantes :**
+
+1. "Vous avez {item_le_la} de {owner} depuis {days} jours. Pensez au retour !"
+2. "{item_le_la} de {owner} est chez vous depuis {days} jours. Organisez le retour."
+3. "{days} jours déjà ! Pensez à rendre {item_le_la} à {owner}."
+4. "N'oubliez pas de rendre {item_le_la} à {owner} ({days} jours)."
+5. "Vous utilisez {item_le_la} depuis {days} jours. {owner} attend peut-être..."
+6. "{item_le_la} chez vous depuis {days} jours. Contactez {owner} pour le retour !"
+7. "{days} jours que vous avez {item_le_la}. Prévoyez la restitution à {owner}."
+8. "Avez-vous fini avec {item_le_la} ? {owner} attend depuis {days} jours."
+9. "{item_le_la} : {days} jours chez vous. Appelez {owner} pour organiser le retour."
+10. "Vous gardez {item_le_la} de {owner} depuis {days} jours. Pensez au retour !"
+
+**Tonalité :**
+- ✅ Rappel amical mais ferme ("Pensez à", "N'oubliez pas")
+- ✅ Responsabilisant ("Organisez", "Contactez", "Prévoyez")
+- ✅ Pas culpabilisant (suggestions, pas accusations)
+- ✅ Informatif (durée claire avec {days})
 
 ### `onboarding_create` - Inciter à créer des objets
 
@@ -174,18 +215,18 @@
 
 **12 variantes :**
 
-1. "Votre perceuse dort au garage ? Partagez-la avec vos voisins !"
-2. "Un objet qui traîne chez vous pourrait servir à quelqu'un d'autre."
-3. "Vous avez sûrement des outils à partager. Ajoutez-en un !"
-4. "Plus vous partagez, plus vous pouvez emprunter. Ajoutez un objet !"
-5. "Votre rue regorge d'objets inutilisés. Commencez par le vôtre !"
-6. "Partagez ce qui dort chez vous. Quelqu'un en a besoin."
-7. "Un objet ajouté = une rue plus solidaire. C'est parti ?"
-8. "Cette perceuse que vous utilisez 2 fois par an ? Partagez-la !"
-9. "Transformez vos objets dormants en ressources utiles."
-10. "Ajoutez un objet, c'est ouvrir la porte à vos voisins."
-11. "Votre échelle, votre perceuse, votre scie... Partagez-les !"
-12. "Un objet partagé, c'est un objet qui vit vraiment."
+1. "Votre garage regorge d'objets inutilisés. Vos voisins peuvent les utiliser - **partagez-les !**"
+2. "Cet objet que vous utilisez 2 fois par an ? **Partagez-le !**"
+3. "Challenge : ajoutez 5 objets (ou plus) à la communauté. **C'est parti !**"
+4. "Rencontrez vos voisins grâce aux objets que vous partagez. **Ajoutez un objet !**"
+5. "Un objet qui traîne chez vous pourrait servir à quelqu'un. **Ajoutez-le !**"
+6. "Vous avez sûrement des outils à partager. **Ajoutez-en un !**"
+7. "Plus vous partagez, plus vous pouvez emprunter. **Ajoutez un objet !**"
+8. "Partagez ce qui dort chez vous. Quelqu'un en a besoin. **Ajoutez-le !**"
+9. "Un objet ajouté = une rue plus solidaire. **Lancez-vous !**"
+10. "Transformez vos objets dormants en ressources utiles. **Ajoutez un objet !**"
+11. "Votre échelle, votre perceuse, votre scie... **Partagez-les !**"
+12. "Votre perceuse dort au garage ? **Ajoutez-la à la communauté !**"
 
 **Tonalité :**
 - ✅ Encourageant (pas culpabilisant)
@@ -194,6 +235,10 @@
 - ✅ Questions ouvertes ("C'est parti ?")
 
 **CTA** : Clic sur le bandeau → Redirection vers le formulaire "Ajouter un objet"
+
+---
+
+**TOUS LES 7 TYPES DE MESSAGES PUSH SONT MAINTENANT COMPLÉTÉS !** ✅
 
 ---
 
@@ -225,4 +270,5 @@ Le message reste **persistant** pour toute la durée de la transaction.
 ---
 
 **Date de création** : 17 mai 2026  
-**Statut** : En cours (pending_owner complété, reste 5 types)
+**Dernière mise à jour** : 18 mai 2026  
+**Statut** : Complété ✅ (7 types documentés)
