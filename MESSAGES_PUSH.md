@@ -211,7 +211,10 @@
 
 **Situation** : L'utilisateur a 0-2 objets, on veut l'encourager à en ajouter pour participer
 
-**Déclenchement** : Afficher ce bandeau si l'utilisateur a moins de 3 objets
+**Déclenchement** :
+- **Condition 1** : S'affiche UNIQUEMENT s'il n'y a AUCUN message transaction à afficher
+- **Condition 2** : Ne s'affiche PAS si l'utilisateur a ajouté ≥3 objets au cours des 15 derniers jours
+- **Objectif** : Incitation régulière à partager, mais masquée si activité récente ou transactions en cours
 
 **12 variantes :**
 
