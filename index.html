@@ -3303,15 +3303,27 @@ function _renderLoanRow(list, loan, role) {
   const roleLabel = role === 'lent' ? 'emprunteur' : 'propriétaire';
 
   let btnLabel, btnStyle;
-  if (loan.status === 'active') {
-    btnLabel = role === 'lent' ? 'Récupérer' : 'Rendre';
-    btnStyle = 'background:var(--accent);color:var(--accent-ink);';
-  } else if (loan.status === 'accepted') {
-    btnLabel = 'Accepté';
-    btnStyle = 'background:var(--surface-alt);color:var(--text-muted);';
+  if (role === 'borrowed') {
+    // Borrower always sees "Rendre" (green) — pending is the only exception
+    if (loan.status === 'pending') {
+      btnLabel = 'En attente';
+      btnStyle = 'background:var(--surface-alt);color:var(--text-muted);';
+    } else {
+      btnLabel = 'Rendre';
+      btnStyle = 'background:var(--accent);color:var(--accent-ink);';
+    }
   } else {
-    btnLabel = 'En attente';
-    btnStyle = 'background:var(--surface-alt);color:var(--text-muted);';
+    // Owner (lent)
+    if (loan.status === 'active') {
+      btnLabel = 'Récupérer';
+      btnStyle = 'background:var(--accent);color:var(--accent-ink);';
+    } else if (loan.status === 'accepted') {
+      btnLabel = 'Récupérer';
+      btnStyle = 'background:var(--accent);color:var(--accent-ink);';
+    } else {
+      btnLabel = 'En attente';
+      btnStyle = 'background:var(--surface-alt);color:var(--text-muted);';
+    }
   }
 
   const el = document.createElement('div');
