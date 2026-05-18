@@ -4333,34 +4333,33 @@ function _buildStepEl(step, animate) {
       card.appendChild(p);
     }
     if (b.sectionTitle) {
-      // Block 1 : titre + lien contact
-      const block1 = document.createElement('div');
-      block1.style.marginTop = '12px';
+      const wrap = document.createElement('div');
+      wrap.style.marginTop = '12px';
+      // Titre
       const t = document.createElement('div');
       t.style.cssText = 'font-weight:500;font-size:14px;color:#1A1A1C;margin-bottom:8px;';
       t.textContent = b.sectionTitle;
-      block1.appendChild(t);
+      wrap.appendChild(t);
+      // Ligne contact : toute en vert, seul le mot-lien souligné
       if (b.contact) {
         const line = document.createElement('div');
-        line.style.marginBottom = '16px';
-        const a = document.createElement('button');
-        a.className = 'step-contact-link';
+        line.style.cssText = 'color:#1F9D55;margin-bottom:12px;';
+        const a = document.createElement('span');
+        a.style.cssText = 'text-decoration:underline;cursor:pointer;';
         a.textContent = b.contact.link || b.contact.label;
         a.addEventListener('click', b.contact.fn);
         line.appendChild(a);
         if (b.contact.suffix) line.appendChild(document.createTextNode(b.contact.suffix));
-        block1.appendChild(line);
+        wrap.appendChild(line);
       }
-      card.appendChild(block1);
-      // Block 2 : hint + CTA
-      const block2 = document.createElement('div');
+      // Hint
       if (b.nextHint) {
         const p = document.createElement('div');
-        p.className = 'step-next-hint';
-        p.style.marginBottom = '8px';
+        p.style.cssText = 'font-size:13px;color:#999;margin-bottom:8px;';
         p.textContent = b.nextHint;
-        block2.appendChild(p);
+        wrap.appendChild(p);
       }
+      // CTA
       if (b.actions?.length) {
         const actEl = document.createElement('div');
         actEl.className = 'step-actions';
@@ -4371,9 +4370,9 @@ function _buildStepEl(step, animate) {
           btn.addEventListener('click', action.fn);
           actEl.appendChild(btn);
         });
-        block2.appendChild(actEl);
+        wrap.appendChild(actEl);
       }
-      card.appendChild(block2);
+      card.appendChild(wrap);
     } else {
       if (b.contact) {
         const btn = document.createElement('button');
