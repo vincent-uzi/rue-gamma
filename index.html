@@ -3832,13 +3832,15 @@ function _buildStepsFromLoan(loan, userId) {
             ] }
         : { info: otherName + ' doit valider cet échange' };
       case 1: return {
+        sectionTitle: 'Prochaines étapes',
         contact:  { label: "Contactez-vous pour organiser l'échange", fn: contactFn },
-        nextHint: 'Prochaine étape : le jour de la remise',
+        nextHint: 'Puis : le jour de la remise',
         actions:  [{ label: "Valider l'échange (QR)", fn: () => showQRChoice('hand', loan.id), primary: true }],
       };
       case 2: return {
+        sectionTitle: 'Prochaines étapes',
         contact:  { label: 'Contactez-vous pour organiser le retour', fn: contactFn },
-        nextHint: 'Prochaine étape : le jour du retour',
+        nextHint: 'Puis : le jour du retour',
         actions:  [{ label: 'Valider le retour (QR)', fn: () => showQRChoice('return', loan.id), primary: true }],
       };
       case 3: return {
@@ -4330,6 +4332,12 @@ function _buildStepEl(step, animate) {
       p.textContent = b.badge;
       card.appendChild(p);
     }
+    if (b.sectionTitle) {
+      const t = document.createElement('div');
+      t.style.cssText = 'font-weight:500;font-size:14px;color:#1A1A1C;margin:12px 0 8px;';
+      t.textContent = b.sectionTitle;
+      card.appendChild(t);
+    }
     if (b.contact) {
       const btn = document.createElement('button');
       btn.className = 'step-contact-link';
@@ -4340,6 +4348,7 @@ function _buildStepEl(step, animate) {
     if (b.nextHint) {
       const p = document.createElement('p');
       p.className = 'step-next-hint';
+      p.style.marginTop = '16px';
       p.textContent = b.nextHint;
       card.appendChild(p);
     }
