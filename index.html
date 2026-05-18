@@ -735,8 +735,8 @@
     }
     .push-content { flex: 1; min-width: 0; padding-right: 16px; display: flex; flex-direction: column; gap: 6px; }
     .push-title {
-      font-size: 18px; font-weight: 600;
-      line-height: 1.3; margin-bottom: 6px;
+      font-size: 15px; font-weight: 500;
+      line-height: 1.4;
       word-wrap: break-word; overflow-wrap: break-word;
     }
     .push-subtitle {
@@ -2672,7 +2672,7 @@ async function loadMember() {
   // 2. Member row
   const { data: member, error: memberError } = await db
     .from('members')
-    .select('id, first_name, last_name, address')
+    .select('id, first_name, last_name, address, gender')
     .eq('id', uid)
     .maybeSingle();
   console.log('[loadMember] member by id:', member, memberError);
@@ -2683,7 +2683,7 @@ async function loadMember() {
     // Fallback: cherche par email (anciens comptes sans auth.id)
     const { data: byEmail, error: emailError } = await db
       .from('members')
-      .select('id, first_name, last_name, address')
+      .select('id, first_name, last_name, address, gender')
       .eq('email', session.user.email)
       .maybeSingle();
     console.log('[loadMember] member by email:', byEmail, emailError);
@@ -2693,6 +2693,7 @@ async function loadMember() {
   if (!resolved) { console.warn('[loadMember] aucun membre trouvé'); return; }
 
   _me = resolved.first_name || '';
+  _myGender = resolved.gender || 'N';
   localStorage.setItem('member_id', resolved.id);
 
   // 3. DOM identité
@@ -3008,56 +3009,235 @@ function getCatchphrase(type, vars) {
   };
 }
 
+// ── Push Messages v2 ─────────────────────────────────────────
+const _PUSH_MESSAGES = {
+  pending_owner: [
+    "{borrower} s'intéresse de près à votre {item}. Accepterez-vous le deal ?",
+    "Votre {item} fait de l'œil à {borrower}. Vous lui prêtez ?",
+    "{borrower} veut emprunter votre {item}. Partant·e ?",
+    "Votre {item} est convoité·e par {borrower}. On dit oui ?",
+    "{borrower} aimerait emprunter {item_le_la}. Ça vous tente ?",
+    "Demande de {borrower} : emprunter {item_le_la}. Banco ?",
+    "{borrower} voudrait bien {item_le_la}. Ça marche pour vous ?",
+    "{borrower} lorgne {item_le_la}. Go ou no go ?",
+    "{borrower} rêve de votre {item}. Allez-vous céder ?",
+    "{borrower} demande {item_le_la}. On partage ?",
+    "Faites plaisir à {borrower} en lui prêtant votre {item}.",
+    "{borrower} rêve de votre {item}. Exaucez-le !",
+  ],
+  pending_borrower: [
+    "{item_le_la} de {owner} : la balle est dans son camp.",
+    "{owner} consulte son cœur (et son calendrier de travaux) pour {item_le_la}.",
+    "{item_le_la} : {owner} pèse le pour et le contre.",
+    "Demande envoyée à {owner} pour {item_le_la}. Réponse sous peu !",
+    "{owner} étudie votre demande pour {item_le_la}.",
+    "En attente de {owner} pour {item_le_la}. Suspense !",
+    "Demande transmise à {owner} pour {item_le_la}. Réponse bientôt !",
+    "{item_le_la} demandé·e à {owner}. {owner_il_elle_maj} réfléchit...",
+    "{owner} prend son temps pour {item_le_la}. Patience !",
+    "Votre demande pour {item_le_la} attend le feu vert de {owner}.",
+    "{item_le_la} : {owner} consulte son agenda et son stock de bonne volonté.",
+    "Demande pour {item_le_la} envoyée. {owner} va-t-{owner_il_elle} dire banco ?",
+  ],
+  accepted_borrower: [
+    "{owner} accepte de vous prêter {item_le_la} ! Contactez-{owner_le_la} pour organiser l'échange.",
+    "C'est oui ! Contactez {owner} pour récupérer {item_le_la}.",
+    "{owner} dit banco ! À vous de fixer un RDV pour récupérer {item_le_la}.",
+    "Bonne nouvelle : {owner} vous prête {item_le_la}. Contactez-{owner_le_la} !",
+    "{item_le_la} est disponible ! Reste à appeler {owner} pour organiser ça.",
+    "Youpi ! {owner} vous prête {item_le_la}. Fixez un créneau avec {owner_le_la}.",
+    "{owner} valide ! Contactez-{owner_le_la} pour récupérer {item_le_la}.",
+    "Échange conclu ! Organisez la remise de {item_le_la} avec {owner}.",
+    "{item_le_la} vous attend ! Prenez RDV avec {owner}.",
+    "C'est dans la poche ! Contactez {owner} pour la passation de {item_le_la}.",
+    "{owner} vous fait confiance. À vous de jouer pour récupérer {item_le_la} !",
+    "Ça roule ! Téléphonez à {owner} pour récupérer {item_le_la}.",
+  ],
+  accepted_owner: [
+    "Vous avez dit oui ! {borrower} va vous contacter pour récupérer {item_le_la}.",
+    "{borrower} sait que vous acceptez. {borrower_il_elle_maj} devrait vous appeler bientôt.",
+    "Deal validé ! Attendez l'appel de {borrower} pour {item_le_la}.",
+    "Vous prêtez {item_le_la} à {borrower}. {borrower_il_elle_maj} va organiser la remise.",
+    "C'est parti ! {borrower} va prendre contact pour récupérer {item_le_la}.",
+    "Bravo pour le partage ! {borrower} vous appellera pour {item_le_la}.",
+    "{borrower} est prévenu·e. Attendez son appel pour {item_le_la}.",
+    "Vous avez accepté ! {borrower} va vous contacter pour fixer un RDV.",
+  ],
+  onboarding_create: [
+    "Votre garage regorge d'objets inutilisés. Vos voisins peuvent les utiliser — <strong>partagez-les !</strong>",
+    "Cet objet que vous utilisez 2 fois par an ? <strong>Partagez-le !</strong>",
+    "Challenge : ajoutez 5 objets (ou plus) à la communauté. <strong>C'est parti !</strong>",
+    "Rencontrez vos voisins grâce aux objets que vous partagez. <strong>Ajoutez un objet !</strong>",
+    "Un objet qui traîne chez vous pourrait servir à quelqu'un. <strong>Ajoutez-le !</strong>",
+    "Vous avez sûrement des outils à partager. <strong>Ajoutez-en un !</strong>",
+    "Plus vous partagez, plus vous pouvez emprunter. <strong>Ajoutez un objet !</strong>",
+    "Partagez ce qui dort chez vous. Quelqu'un en a besoin. <strong>Ajoutez-le !</strong>",
+    "Un objet ajouté = une rue plus solidaire. <strong>Lancez-vous !</strong>",
+    "Transformez vos objets dormants en ressources utiles. <strong>Ajoutez un objet !</strong>",
+    "Votre échelle, votre perceuse, votre scie... <strong>Partagez-les !</strong>",
+    "Votre perceuse dort au garage ? <strong>Ajoutez-la à la communauté !</strong>",
+  ],
+};
+
+const _ITEM_GENDERS = {
+  marteau: 'M', tournevis: 'M', escabeau: 'M', aspirateur: 'M',
+  karcher: 'M', compresseur: 'M', niveau: 'M', metre: 'M',
+  etabli: 'M', secateur: 'M', rateau: 'M', tuyau: 'M',
+  velo: 'M', paddle: 'M', souffleur: 'M', kayak: 'M', barbecue: 'M',
+  perceuse: 'F', ponceuse: 'F', scie: 'F', echelle: 'F',
+  visseuse: 'F', debroussailleuse: 'F', tondeuse: 'F', meuleuse: 'F',
+  pelle: 'F', brouette: 'F', pioche: 'F', beche: 'F',
+  trottinette: 'F', tente: 'F',
+};
+
+function _getItemGender(name) {
+  if (!name) return 'M';
+  const k = name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+  return _ITEM_GENDERS[k] || 'M';
+}
+
+function _seededPick(list, seed) {
+  let h = 0;
+  const s = String(seed);
+  for (let i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; }
+  return list[Math.abs(h) % list.length];
+}
+
+function _resolvePushVars(tpl, vars) {
+  const iN = vars.item || 'objet';
+  const iG = vars.itemGender || 'M';
+  const bG = vars.borrowerGender || 'N';
+  const oG = vars.ownerGender || 'N';
+  const vowel = /^[aeiouéèêëàâîïôûù]/i;
+  const iLeLa = vowel.test(iN)
+    ? "l'" + iN.toLowerCase()
+    : (iG === 'F' ? 'la ' : 'le ') + iN.toLowerCase();
+  return tpl
+    .replace(/\{borrower\}/g,             vars.borrower || 'votre voisin')
+    .replace(/\{owner\}/g,                vars.owner || 'le propriétaire')
+    .replace(/\{item\}/g,                 iN)
+    .replace(/\{item_le_la\}/g,           iLeLa)
+    .replace(/\{item_article\}/g,         iLeLa)
+    .replace(/\{item_un_une\}/g,          (iG === 'F' ? 'une ' : 'un ') + iN.toLowerCase())
+    .replace(/\{item_ce_cette\}/g,        (iG === 'F' ? 'cette ' : 'ce ') + iN.toLowerCase())
+    .replace(/\{borrower_il_elle\}/g,     bG === 'F' ? 'elle' : 'il')
+    .replace(/\{borrower_il_elle_maj\}/g, bG === 'F' ? 'Elle' : 'Il')
+    .replace(/\{borrower_le_la\}/g,       bG === 'F' ? 'la' : 'le')
+    .replace(/\{borrower_son_sa\}/g,      bG === 'F' ? 'sa' : 'son')
+    .replace(/\{owner_il_elle\}/g,        oG === 'F' ? 'elle' : 'il')
+    .replace(/\{owner_il_elle_maj\}/g,    oG === 'F' ? 'Elle' : 'Il')
+    .replace(/\{owner_le_la\}/g,          oG === 'F' ? 'la' : 'le')
+    .replace(/\{owner_son_sa\}/g,         oG === 'F' ? 'sa' : 'son')
+    .replace(/\{days\}/g,                 String(vars.days || 0));
+}
+
+function _generatePushMsg(type, vars, seed) {
+  const list = _PUSH_MESSAGES[type];
+  if (!list?.length) return '';
+  const tpl = (seed !== undefined) ? _seededPick(list, seed) : list[Math.floor(Math.random() * list.length)];
+  return _resolvePushVars(tpl, vars);
+}
+
 async function renderTransactionPush() {
   const userId = localStorage.getItem('member_id');
   if (!userId) return;
-  const { data: loans } = await db.from('loans')
-    .select('id, status, owner_id, borrower_id, item:items!item_id(name), owner:members!owner_id(first_name), borrower:members!borrower_id(first_name)')
-    .or('owner_id.eq.' + userId + ',borrower_id.eq.' + userId)
-    .in('status', ['pending', 'accepted', 'active']);
+
   const container = document.getElementById('transaction-push-container');
   const slider    = document.getElementById('transaction-push-slider');
   const dotsEl    = document.getElementById('push-dots');
   if (!container || !slider) return;
-  if (!loans || !loans.length) { container.style.display = 'none'; return; }
+
+  const { data: loans } = await db.from('loans')
+    .select('id, status, owner_id, borrower_id, handed_at, requested_at, push_message, item:items!item_id(name), owner:members!owner_id(first_name,gender), borrower:members!borrower_id(first_name,gender)')
+    .or('owner_id.eq.' + userId + ',borrower_id.eq.' + userId)
+    .in('status', ['pending', 'accepted'])
+    .order('requested_at', { ascending: true });
+
+  const _PRIORITY = { accepted_borrower: 1, pending_owner: 2, pending_borrower: 5, accepted_owner: 6 };
+  const banners = [];
+
+  (loans || []).forEach(loan => {
+    const isOwner = loan.owner_id === userId;
+    let type;
+    if (loan.status === 'pending')                          type = isOwner ? 'pending_owner'  : 'pending_borrower';
+    if (loan.status === 'accepted' && !loan.handed_at)      type = isOwner ? 'accepted_owner' : 'accepted_borrower';
+    if (!type) return;
+
+    const iN = loan.item?.name || 'objet';
+    const iG = _getItemGender(iN);
+    const bN = loan.borrower?.first_name || 'votre voisin';
+    const bG = loan.borrower?.gender || 'N';
+    const oN = loan.owner?.first_name || 'le propriétaire';
+    const oG = loan.owner?.gender || 'N';
+    const vars = { item: iN, itemGender: iG, borrower: bN, borrowerGender: bG, owner: oN, ownerGender: oG };
+
+    // Use stored message when available (persistent UX); otherwise generate deterministically
+    let message;
+    if ((type === 'pending_owner' || type === 'accepted_borrower') && loan.push_message) {
+      message = loan.push_message;
+    } else {
+      message = _generatePushMsg(type, vars, loan.id + '-' + type);
+    }
+
+    banners.push({ loan, type, message, priority: _PRIORITY[type] || 99 });
+  });
+
+  // Priority sort (lower = first); loans already in chronological order from DB
+  banners.sort((a, b) => a.priority - b.priority);
+
+  // Onboarding: only when no transaction banners
+  if (!banners.length) {
+    const ago15 = new Date(Date.now() - 15 * 86400000).toISOString();
+    const { count } = await db.from('items')
+      .select('id', { count: 'exact', head: true })
+      .eq('owner_id', userId)
+      .gte('created_at', ago15);
+    if ((count || 0) < 3) {
+      banners.push({
+        loan: null, type: 'onboarding_create',
+        message: _generatePushMsg('onboarding_create', {}, 'ob-' + userId),
+        priority: 7,
+      });
+    }
+  }
+
   slider.innerHTML = '';
   if (dotsEl) dotsEl.innerHTML = '';
-  const single = loans.length === 1;
-  loans.forEach((loan, idx) => {
-    const isOwner  = loan.owner_id === userId;
-    const itemName = loan.item?.name || 'objet';
-    const borrower = loan.borrower?.first_name || 'votre voisin';
-    const owner    = loan.owner?.first_name || 'le propriétaire';
-    let type;
-    if (loan.status === 'pending')  type = isOwner ? 'pending_owner'  : 'pending_borrower';
-    if (loan.status === 'accepted') type = isOwner ? 'accepted_owner' : 'accepted_borrower';
-    if (loan.status === 'active')   type = isOwner ? 'active_owner'   : 'active_borrower';
-    const phrase = getCatchphrase(type, { borrower, owner, item: itemName, item_article: _itemArticle(itemName) });
+
+  if (!banners.length) { container.style.display = 'none'; return; }
+
+  const toShow = banners.slice(0, 5);
+  const single = toShow.length === 1;
+
+  toShow.forEach((banner, idx) => {
     const card = document.createElement('div');
     card.className = 'transaction-push';
-    card.style.width    = single ? '100%' : 'calc(100% - 24px)';
+    card.style.width      = single ? '100%' : 'calc(100% - 24px)';
     card.style.flexShrink = '0';
+    card.style.cursor     = 'pointer';
     card.innerHTML =
       '<div class="push-content">' +
-        '<div class="push-title">' + phrase.title + '</div>' +
-        '<div class="push-subtitle">' + phrase.subtitle + '</div>' +
+        '<div class="push-title">' + banner.message + '</div>' +
       '</div>' +
       '<div class="push-chevron">&#8250;</div>';
-    card.addEventListener('click', () => showThread(loan.id));
+
+    if (banner.loan) {
+      card.addEventListener('click', () => { _setActiveTab('exchanges'); showThread(banner.loan.id); });
+    } else {
+      card.addEventListener('click', () => _setActiveTab('add'));
+    }
+
     slider.appendChild(card);
 
-    // Dot
     if (!single && dotsEl) {
       const dot = document.createElement('button');
       dot.className = 'push-dot' + (idx === 0 ? ' active' : '');
-      dot.addEventListener('click', () => {
-        slider.scrollTo({ left: card.offsetLeft, behavior: 'smooth' });
-      });
+      dot.addEventListener('click', () => slider.scrollTo({ left: card.offsetLeft, behavior: 'smooth' }));
       dotsEl.appendChild(dot);
     }
   });
 
-  // Fix: forcer la hauteur du slider = hauteur du contenu (évite le clip overflow-y auto)
+  // Fix height to avoid overflow-y clip on iOS
   requestAnimationFrame(() => {
     const tallest = Array.from(slider.querySelectorAll('.transaction-push'))
       .reduce((max, c) => Math.max(max, c.scrollHeight), 0);
@@ -3071,12 +3251,12 @@ async function renderTransactionPush() {
     const obs = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.intersectionRatio >= 0.5) {
-          const idx = Array.from(cards).indexOf(entry.target);
-          dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+          const i = Array.from(cards).indexOf(entry.target);
+          dots.forEach((d, j) => d.classList.toggle('active', j === i));
         }
       });
     }, { root: slider, threshold: 0.5 });
-    cards.forEach(card => obs.observe(card));
+    cards.forEach(c => obs.observe(c));
   }
 
   container.style.display = 'block';
@@ -3236,6 +3416,7 @@ function profileAddItem() {
 
 // ── Objects screen ────────────────────────────────────────────
 let _me = '';            // prénom du membre courant, rempli par loadMember()
+let _myGender = 'N';    // genre du membre courant ('M'|'F'|'N')
 let _objectsLoaded = false;
 let _allObjects = [];
 
@@ -3864,6 +4045,23 @@ async function acceptRequest(loanId) {
   const tx = _findTx(loanId);
   if (!tx) return;
   await updateTransactionStatus(loanId, 'Accepté');
+
+  // Generate accepted_borrower push message (seen by the borrower after acceptance)
+  try {
+    const { data: ld } = await db.from('loans')
+      .select('item:items!item_id(name), owner:members!owner_id(first_name,gender)')
+      .eq('id', loanId).single();
+    if (ld) {
+      const iN = ld.item?.name || 'objet';
+      const msg = _generatePushMsg('accepted_borrower', {
+        item: iN, itemGender: _getItemGender(iN),
+        owner: ld.owner?.first_name || 'le propriétaire',
+        ownerGender: ld.owner?.gender || 'N',
+      });
+      if (msg) await db.from('loans').update({ push_message: msg }).eq('id', loanId);
+    }
+  } catch (e) { console.warn('[acceptRequest] push_message:', e); }
+
   // Rebuild thread from DB so the pending step disappears and accepted state renders correctly
   if (window._transactionsState?.currentThread === loanId) showThread(loanId);
   showToast('✓ Demande acceptée', 'success');
@@ -5104,6 +5302,17 @@ async function borrowItemFromDetail() {
     showToast('Erreur lors de la demande', 'error');
     return;
   }
+
+  // Generate and store pending_owner push message (seen by the owner on their Profile)
+  try {
+    const iN = item.name || 'objet';
+    const msg = _generatePushMsg('pending_owner', {
+      item: iN, itemGender: _getItemGender(iN),
+      borrower: _me || 'votre voisin',
+      borrowerGender: _myGender || 'N',
+    });
+    if (msg && data?.id) await db.from('loans').update({ push_message: msg }).eq('id', data.id);
+  } catch (e) { console.warn('[borrowItemFromDetail] push_message:', e); }
 
   hideItemDetail();
   showToast('Demande envoyée !', 'success');
