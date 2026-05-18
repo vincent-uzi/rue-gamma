@@ -3270,6 +3270,46 @@ function _emptyRow(msg) {
   return el;
 }
 
+function _renderLoanRow(list, loan, role) {
+  const iN     = loan.item?.name || '—';
+  const c      = loan.item?.co2_saved_kg;
+  const co2    = c != null ? Number(c).toFixed(1).replace('.', ',') : '8,2';
+  const person = role === 'lent' ? (loan.borrower?.first_name || '—') : (loan.owner?.first_name || '—');
+  const roleLabel = role === 'lent' ? 'emprunteur' : 'propriétaire';
+
+  let btnLabel, btnStyle;
+  if (loan.status === 'active') {
+    btnLabel = role === 'lent' ? 'Récupérer' : 'Rendre';
+    btnStyle = 'background:var(--accent);color:var(--accent-ink);';
+  } else if (loan.status === 'accepted') {
+    btnLabel = 'Accepté';
+    btnStyle = 'background:var(--surface-alt);color:var(--text-muted);';
+  } else {
+    btnLabel = 'En attente';
+    btnStyle = 'background:var(--surface-alt);color:var(--text-muted);';
+  }
+
+  const el = document.createElement('div');
+  el.className = 'item-row';
+  el.setAttribute('role', 'listitem');
+  el.style.cursor = 'pointer';
+  el.innerHTML =
+    '<div class="item-left">' +
+      '<div class="t-headline item-name" style="margin-bottom:4px;">' + iN + '</div>' +
+      '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">' +
+        pill(person, '') +
+        '<span class="t-footnote" style="color:var(--text-muted);">' + roleLabel + '</span>' +
+        '<span class="co2-badge">' + _leafSvg + '−' + co2 + ' kg</span>' +
+      '</div>' +
+    '</div>' +
+    '<button class="obj-cta-btn" style="' + btnStyle + 'font-size:14px;padding:8px 14px;">' + btnLabel + '</button>';
+
+  const openThread = (e) => { e.stopPropagation(); _setActiveTab('exchanges'); showThread(loan.id); };
+  el.addEventListener('click', () => { _setActiveTab('exchanges'); showThread(loan.id); });
+  el.querySelector('.obj-cta-btn').addEventListener('click', openThread);
+  list.appendChild(el);
+}
+
 async function loadProfileTabs() {
   const memberId = localStorage.getItem('member_id');
   console.log('[loadProfileTabs] User:', memberId);
@@ -3278,10 +3318,10 @@ async function loadProfileTabs() {
   const [itemsRes, lentRes, borrowedRes] = await Promise.all([
     db.from('items').select('id, name, status, co2_saved_kg').eq('owner_id', memberId),
     db.from('loans')
-      .select('id, item:items!item_id(name), borrower:members!borrower_id(first_name, address)')
+      .select('id, status, item:items!item_id(name, co2_saved_kg), borrower:members!borrower_id(first_name)')
       .eq('owner_id', memberId).in('status', ['pending', 'accepted', 'active']),
     db.from('loans')
-      .select('id, item:items!item_id(name), owner:members!owner_id(first_name, address)')
+      .select('id, status, item:items!item_id(name, co2_saved_kg), owner:members!owner_id(first_name)')
       .eq('borrower_id', memberId).in('status', ['pending', 'accepted', 'active']),
   ]);
 
@@ -3328,21 +3368,7 @@ async function loadProfileTabs() {
     if (!lent.length) {
       lentList.appendChild(_emptyRow('Aucun objet prêté en ce moment'));
     } else {
-      lent.forEach(loan => {
-        const name = loan.item?.name || '—';
-        const who  = loan.borrower?.first_name || '—';
-        const el = document.createElement('div');
-        el.className = 'item-row';
-        el.setAttribute('role', 'listitem');
-        el.innerHTML =
-          '<div class="item-left">' +
-          '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">' + pill(who, '') + '<span class="t-footnote" style="color:var(--text-muted);">emprunteur</span></div>' +
-          '<div class="t-headline item-name" style="color:var(--text);">' + name + '</div>' +
-          '</div>' +
-          '<button class="obj-cta-btn" style="background:var(--accent);color:var(--accent-ink);">Récupéré</button>';
-        el.querySelector('.obj-cta-btn').addEventListener('click', () => markReturned(loan.id));
-        lentList.appendChild(el);
-      });
+      lent.forEach(loan => _renderLoanRow(lentList, loan, 'lent'));
     }
   }
 
@@ -3353,21 +3379,7 @@ async function loadProfileTabs() {
     if (!borrowed.length) {
       borrowedList.appendChild(_emptyRow('Aucun emprunt en cours'));
     } else {
-      borrowed.forEach(loan => {
-        const name = loan.item?.name || '—';
-        const who  = loan.owner?.first_name || '—';
-        const el = document.createElement('div');
-        el.className = 'item-row';
-        el.setAttribute('role', 'listitem');
-        el.innerHTML =
-          '<div class="item-left">' +
-          '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">' + pill(who, '') + '<span class="t-footnote" style="color:var(--text-muted);">propriétaire</span></div>' +
-          '<div class="t-headline item-name" style="color:var(--text);">' + name + '</div>' +
-          '</div>' +
-          '<button class="obj-cta-btn" style="background:var(--accent);color:var(--accent-ink);">Rendu</button>';
-        el.querySelector('.obj-cta-btn').addEventListener('click', () => markReturned(loan.id));
-        borrowedList.appendChild(el);
-      });
+      borrowed.forEach(loan => _renderLoanRow(borrowedList, loan, 'borrowed'));
     }
   }
 
