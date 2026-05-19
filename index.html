@@ -3759,6 +3759,9 @@ async function _doSearch(q) {
     ctaBtn.addEventListener('click', function() {
       console.log('[ctaBtn] clic — appel showRequestToCommunityModal');
       showRequestToCommunityModal();
+      ctaBtn.disabled = true;
+      ctaBtn.innerHTML = '✓ Demande envoyée';
+      ctaBtn.style.cssText = 'background:#00A651;color:white;padding:16px 24px;border:none;border-radius:12px;font-size:16px;font-weight:500;width:100%;max-width:300px;cursor:not-allowed;display:block;margin:0 auto;opacity:0.7;';
     });
 
     const p3 = document.createElement('p');
