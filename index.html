@@ -731,19 +731,24 @@
     .transaction-card {
       background: var(--surface); border: 1px solid var(--line);
       border-radius: 12px; padding: 14px 16px; margin-bottom: 10px;
-      display: flex; justify-content: space-between; align-items: flex-end;
-      cursor: pointer; transition: background .12s; overflow: hidden;
+      display: flex; flex-direction: column; gap: 8px;
+      cursor: pointer; transition: background .12s;
     }
     .transaction-card:active { background: var(--surface-alt); }
     .transaction-card.needs-action { border: 2px solid #1F9D55; }
-    .tx-card-content { flex: 1; min-width: 0; margin-right: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .tx-card-header {
+      display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    }
     .tx-item-name {
+      flex: 1; min-width: 0;
       font-size: 15px; font-weight: 500; color: var(--text);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
+    .tx-card-footer {
+      display: flex; justify-content: space-between; align-items: center;
+    }
     .tx-participants {
-      font-size: 13px; color: var(--text-muted);
-      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+      display: flex; align-items: center; gap: 6px;
     }
     .pill-vous {
       background: #00A651; color: white;
@@ -756,7 +761,6 @@
       font-weight: 500; font-size: 12px; white-space: nowrap;
     }
     .tx-arrow { color: var(--text-dim); font-size: 13px; }
-    .tx-card-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; margin-left: 12px; }
     .pill-co2 {
       background: #E8F5E9; color: #00A651;
       padding: 3px 10px; border-radius: 10px;
@@ -3419,47 +3423,46 @@ function _emptyRow(msg) {
 }
 
 function _renderLoanRow(list, loan, role) {
-  const iN         = loan.item?.name || '—';
-  const isLent     = role === 'lent';
-  const otherName  = isLent ? (loan.borrower?.first_name || '—') : (loan.owner?.first_name || '—');
+  const iN        = loan.item?.name || '—';
+  const isLent    = role === 'lent';
+  const otherName = isLent ? (loan.borrower?.first_name || '—') : (loan.owner?.first_name || '—');
 
   const el = document.createElement('div');
   el.className = 'transaction-card';
 
-  const content = document.createElement('div');
-  content.className = 'tx-card-content';
-
+  // Header : nom + chevron
+  const header = document.createElement('div');
+  header.className = 'tx-card-header';
   const nameEl = document.createElement('div');
   nameEl.className = 'tx-item-name';
   nameEl.textContent = iN;
-  content.appendChild(nameEl);
+  const chevron = document.createElement('div');
+  chevron.style.flexShrink = '0';
+  chevron.innerHTML = '<svg width="7" height="12" viewBox="0 0 8 14" fill="none" aria-hidden="true" style="color:var(--text-dim);"><path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  header.appendChild(nameEl);
+  header.appendChild(chevron);
 
+  // Footer : pills owner → borrower
+  const footer = document.createElement('div');
+  footer.className = 'tx-card-footer';
   const parts = document.createElement('div');
   parts.className = 'tx-participants';
-
-  // Owner always first
   const ownerEl = document.createElement('span');
   ownerEl.className = isLent ? 'pill-vous' : 'pill-other';
   ownerEl.textContent = isLent ? 'Vous' : otherName;
-
   const arrowEl = document.createElement('span');
   arrowEl.className = 'tx-arrow';
   arrowEl.textContent = '→';
-
   const borrowerEl = document.createElement('span');
   borrowerEl.className = isLent ? 'pill-other' : 'pill-vous';
   borrowerEl.textContent = isLent ? otherName : 'Vous';
-
   parts.appendChild(ownerEl);
   parts.appendChild(arrowEl);
   parts.appendChild(borrowerEl);
-  content.appendChild(parts);
+  footer.appendChild(parts);
 
-  const chevron = document.createElement('div');
-  chevron.innerHTML = '<svg width="7" height="12" viewBox="0 0 8 14" fill="none" aria-hidden="true" style="flex-shrink:0;color:var(--text-dim);"><path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-
-  el.appendChild(content);
-  el.appendChild(chevron);
+  el.appendChild(header);
+  el.appendChild(footer);
   el.addEventListener('click', () => { _setActiveTab('exchanges'); showThread(loan.id); });
   list.appendChild(el);
 }
@@ -3473,36 +3476,32 @@ function _renderProfileItemCard(list, item) {
   el.className = 'transaction-card';
   el.dataset.itemId = item.id;
 
-  const content = document.createElement('div');
-  content.className = 'tx-card-content';
-
+  // Header : nom + chevron
+  const header = document.createElement('div');
+  header.className = 'tx-card-header';
   const nameEl = document.createElement('div');
   nameEl.className = 'tx-item-name';
   nameEl.textContent = item.name || '—';
-  content.appendChild(nameEl);
+  const chevron = document.createElement('div');
+  chevron.style.flexShrink = '0';
+  chevron.innerHTML = '<svg width="7" height="12" viewBox="0 0 8 14" fill="none" aria-hidden="true" style="color:var(--text-dim);"><path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  header.appendChild(nameEl);
+  header.appendChild(chevron);
 
-  const parts = document.createElement('div');
-  parts.className = 'tx-participants';
+  // Footer : pill Vous + pill CO2
+  const footer = document.createElement('div');
+  footer.className = 'tx-card-footer';
   const vousPill = document.createElement('span');
   vousPill.className = 'pill-vous';
   vousPill.textContent = 'Vous';
-  parts.appendChild(vousPill);
-  content.appendChild(parts);
-
-  const right = document.createElement('div');
-  right.className = 'tx-card-right';
-
   const co2Pill = document.createElement('span');
   co2Pill.className = 'pill-co2';
   co2Pill.textContent = '🍃 −' + co2 + ' kg';
-  right.appendChild(co2Pill);
+  footer.appendChild(vousPill);
+  footer.appendChild(co2Pill);
 
-  const chevron = document.createElement('div');
-  chevron.innerHTML = '<svg width="7" height="12" viewBox="0 0 8 14" fill="none" aria-hidden="true" style="flex-shrink:0;color:var(--text-dim);"><path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  right.appendChild(chevron);
-
-  el.appendChild(content);
-  el.appendChild(right);
+  el.appendChild(header);
+  el.appendChild(footer);
   el.addEventListener('click', () => loadItemDetail(item.id));
   list.appendChild(el);
 }
@@ -4644,46 +4643,39 @@ function _txSectionCard(tx) {
   el.className = 'transaction-card' + (tx._dbStatus === 'pending' && tx._isOwner ? ' needs-action' : '');
   el.setAttribute('data-tx', tx.id || '');
 
-  const content = document.createElement('div');
-  content.className = 'tx-card-content';
-
+  // Header : nom + chevron
+  const header = document.createElement('div');
+  header.className = 'tx-card-header';
   const nameEl = document.createElement('div');
   nameEl.className = 'tx-item-name';
   nameEl.textContent = tx.name;
-  content.appendChild(nameEl);
+  const chevron = document.createElement('div');
+  chevron.style.flexShrink = '0';
+  chevron.innerHTML = '<svg width="7" height="12" viewBox="0 0 8 14" fill="none" aria-hidden="true" style="color:var(--text-dim);"><path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  header.appendChild(nameEl);
+  header.appendChild(chevron);
 
+  // Footer : pills participants
+  const footer = document.createElement('div');
+  footer.className = 'tx-card-footer';
   const parts = document.createElement('div');
   parts.className = 'tx-participants';
-  // Owner always first
   const ownerEl = document.createElement('span');
-  if (tx.from === 'Vous') {
-    ownerEl.className = 'pill-vous';
-    ownerEl.textContent = 'Vous';
-  } else {
-    ownerEl.className = 'pill-other';
-    ownerEl.textContent = tx.from;
-  }
+  ownerEl.className = tx.from === 'Vous' ? 'pill-vous' : 'pill-other';
+  ownerEl.textContent = tx.from;
   const arrowEl = document.createElement('span');
   arrowEl.className = 'tx-arrow';
   arrowEl.textContent = '→';
   const borrowerEl = document.createElement('span');
-  if (tx.to === 'Vous') {
-    borrowerEl.className = 'pill-vous';
-    borrowerEl.textContent = 'Vous';
-  } else {
-    borrowerEl.className = 'pill-other';
-    borrowerEl.textContent = tx.to;
-  }
+  borrowerEl.className = tx.to === 'Vous' ? 'pill-vous' : 'pill-other';
+  borrowerEl.textContent = tx.to;
   parts.appendChild(ownerEl);
   parts.appendChild(arrowEl);
   parts.appendChild(borrowerEl);
-  content.appendChild(parts);
+  footer.appendChild(parts);
 
-  const chevron = document.createElement('div');
-  chevron.innerHTML = '<svg width="7" height="12" viewBox="0 0 8 14" fill="none" aria-hidden="true" style="flex-shrink:0;color:var(--text-dim);"><path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-
-  el.appendChild(content);
-  el.appendChild(chevron);
+  el.appendChild(header);
+  el.appendChild(footer);
   el.addEventListener('click', () => tx.id ? showThread(tx.id) : null);
   return el;
 }
