@@ -719,6 +719,38 @@
 
     /* Transaction push banners */
     #transaction-push-slider::-webkit-scrollbar { display: none; }
+    .tx-section { margin-bottom: 28px; }
+    .tx-section-title {
+      font-size: 12px; font-weight: 600; color: var(--text-muted);
+      letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 10px;
+    }
+    .tx-section-empty {
+      font-size: 14px; color: var(--text-muted);
+      text-align: center; padding: 16px 0;
+    }
+    .transaction-card {
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: 12px; padding: 14px 16px; margin-bottom: 10px;
+      display: flex; justify-content: space-between; align-items: center;
+      cursor: pointer; transition: background .12s;
+    }
+    .transaction-card:active { background: var(--surface-alt); }
+    .transaction-card.needs-action { border: 2px solid #1F9D55; }
+    .tx-card-content { flex: 1; min-width: 0; margin-right: 12px; }
+    .tx-item-name {
+      font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 8px;
+    }
+    .tx-participants {
+      font-size: 13px; color: var(--text-muted);
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    }
+    .pill-vous {
+      background: #00A651; color: white;
+      padding: 3px 10px; border-radius: 10px;
+      font-weight: 500; font-size: 12px; white-space: nowrap;
+    }
+    .tx-other-user { color: var(--text); }
+    .tx-arrow { color: var(--text-dim); font-size: 13px; }
     .transaction-push {
       position: relative;
       background: linear-gradient(135deg, #1F9D55 0%, #17845C 100%);
@@ -2014,7 +2046,7 @@
         </svg>
         <span class="tab-badge" id="tab-badge-exchanges">2</span>
       </div>
-      <span class="tab-label">Demandes</span>
+      <span class="tab-label">Transactions</span>
     </div>
 
     <div class="tab-item" data-tab="profile" role="tab" aria-selected="false" tabindex="0">
@@ -2236,7 +2268,7 @@
 <div class="overlay-panel" id="panel-exchanges">
 
   <div class="obj-nav">
-    <h1 class="t-title2 obj-nav-title">Demandes</h1>
+    <h1 class="t-title2 obj-nav-title">Transactions</h1>
   </div>
 
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px 20px 60px;overscroll-behavior-y:contain;">
@@ -4104,7 +4136,7 @@ async function loadTransactions() {
   }
 
   const count = (window._transactionsState.active || []).filter(
-    t => (t._dbStatus === 'pending' || t.status === 'En attente de validation') && t.from === 'Vous'
+    t => t._dbStatus === 'pending' && t._isOwner
   ).length;
   updateTransactionsBadge(count);
   renderExchanges();
@@ -4570,72 +4602,120 @@ function toggleArchived() {
   }
 }
 
+function _txSectionCard(tx) {
+  const el = document.createElement('div');
+  el.className = 'transaction-card' + (tx._dbStatus === 'pending' && tx._isOwner ? ' needs-action' : '');
+  el.setAttribute('data-tx', tx.id || '');
+
+  const content = document.createElement('div');
+  content.className = 'tx-card-content';
+
+  const nameEl = document.createElement('div');
+  nameEl.className = 'tx-item-name';
+  nameEl.textContent = tx.name;
+  content.appendChild(nameEl);
+
+  const parts = document.createElement('div');
+  parts.className = 'tx-participants';
+  // Owner always first
+  const ownerEl = document.createElement('span');
+  if (tx.from === 'Vous') {
+    ownerEl.className = 'pill-vous';
+    ownerEl.textContent = 'Vous';
+  } else {
+    ownerEl.className = 'tx-other-user';
+    ownerEl.textContent = tx.from;
+  }
+  const arrowEl = document.createElement('span');
+  arrowEl.className = 'tx-arrow';
+  arrowEl.textContent = '→';
+  const borrowerEl = document.createElement('span');
+  if (tx.to === 'Vous') {
+    borrowerEl.className = 'pill-vous';
+    borrowerEl.textContent = 'Vous';
+  } else {
+    borrowerEl.className = 'tx-other-user';
+    borrowerEl.textContent = tx.to;
+  }
+  parts.appendChild(ownerEl);
+  parts.appendChild(arrowEl);
+  parts.appendChild(borrowerEl);
+  content.appendChild(parts);
+
+  const chevron = document.createElement('div');
+  chevron.innerHTML = '<svg width="7" height="12" viewBox="0 0 8 14" fill="none" aria-hidden="true" style="flex-shrink:0;color:var(--text-dim);"><path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  el.appendChild(content);
+  el.appendChild(chevron);
+  el.addEventListener('click', () => tx.id ? showThread(tx.id) : null);
+  return el;
+}
+
+function _txSection(title, txList, emptyMsg) {
+  const wrap = document.createElement('div');
+  wrap.className = 'tx-section';
+  const titleEl = document.createElement('p');
+  titleEl.className = 'tx-section-title';
+  titleEl.textContent = title;
+  wrap.appendChild(titleEl);
+  if (!txList.length) {
+    const empty = document.createElement('p');
+    empty.className = 'tx-section-empty';
+    empty.textContent = emptyMsg;
+    wrap.appendChild(empty);
+  } else {
+    txList.forEach(tx => wrap.appendChild(_txSectionCard(tx)));
+  }
+  return wrap;
+}
+
 function renderExchanges() {
   const list = document.getElementById('requests-list');
   list.innerHTML = '';
-  const s = window._transactionsState;
-  const activeList    = s ? s.active         : TRANSACTIONS_ACTIVE;
-  const archivedList  = s ? s.archived       : TRANSACTIONS_ARCHIVED;
-  const searchReqList = s ? (s.searchRequests || []) : [];
-  const userId        = localStorage.getItem('member_id');
+  const s           = window._transactionsState;
+  const activeList  = s ? s.active    : TRANSACTIONS_ACTIVE;
+  const archivedList = s ? s.archived : TRANSACTIONS_ARCHIVED;
 
-  // Avis de recherche
-  console.log('[renderExchanges] searchRequests:', searchReqList?.length, '| userId:', userId);
-  const srSection = _buildSearchRequestsSection(searchReqList, userId);
-  console.log('[renderExchanges] srSection built:', !!srSection);
-  if (srSection) list.appendChild(srSection);
+  // Section 1 : Demandes à valider (owner + pending)
+  const sec1 = activeList.filter(t => t._dbStatus === 'pending' && t._isOwner);
+  list.appendChild(_txSection('Demandes de prêts à valider', sec1, 'Aucune demande à valider'));
 
-  // Active
-  if (!activeList.length) {
-    const empty = document.createElement('p');
-    empty.className = 't-callout';
-    empty.style.cssText = 'color:var(--text-muted);text-align:center;padding:28px 0;';
-    empty.textContent = 'Aucune transaction en cours';
-    list.appendChild(empty);
-  } else {
-    const group = document.createElement('div');
-    group.style.cssText = 'display:flex;flex-direction:column;gap:12px;';
-    activeList.forEach(tx => {
-      const el = _txCard(tx);
-      el.setAttribute('data-tx', tx.id || '');
-      group.appendChild(el);
-    });
-    list.appendChild(group);
-  }
+  // Section 2 : En attente du propriétaire (borrower + pending)
+  const sec2 = activeList.filter(t => t._dbStatus === 'pending' && !t._isOwner);
+  list.appendChild(_txSection('En attente du propriétaire', sec2, 'Aucune demande en attente'));
 
-  // Toggle button
+  // Section 3 : Organiser la remise (accepted)
+  const sec3 = activeList.filter(t => t._dbStatus === 'accepted');
+  list.appendChild(_txSection('Organiser la remise de ces objets', sec3, 'Aucune remise à organiser'));
+
+  // Section 4 : Planifier le retour (active + handed_at set)
+  const sec4 = activeList.filter(t => t._dbStatus === 'active' && t._loan?.handed_at);
+  list.appendChild(_txSection('Planifier le retour de ces objets', sec4, 'Aucun retour à planifier'));
+
+  // Toggle archivées
   const count = archivedList.length;
   const toggleBtn = document.createElement('button');
   toggleBtn.id = 'exchanges-archived-toggle';
   toggleBtn.style.cssText = 'display:block;width:100%;background:none;border:none;padding:20px 0 8px;color:var(--text-muted);font-size:13px;font-family:inherit;cursor:pointer;text-align:left;letter-spacing:0.02em;';
   toggleBtn.textContent = _archivedVisible
-    ? "▲ Masquer les archivées"
-    : "▼ Afficher les archivées" + (count ? " (" + count + ")" : "");
+    ? '▲ Masquer les archivées'
+    : '▼ Afficher les archivées' + (count ? ' (' + count + ')' : '');
   toggleBtn.addEventListener('click', toggleArchived);
   list.appendChild(toggleBtn);
 
-  // Archived collapsible section
   const archSection = document.createElement('div');
   archSection.id = 'exchanges-archived-section';
   archSection.style.display = _archivedVisible ? 'block' : 'none';
-
   if (!archivedList.length) {
     const empty2 = document.createElement('p');
-    empty2.className = 't-callout';
-    empty2.style.cssText = 'color:var(--text-muted);text-align:center;padding:16px 0;';
+    empty2.className = 'tx-section-empty';
     empty2.textContent = 'Aucun historique';
     archSection.appendChild(empty2);
   } else {
-    const archGroup = document.createElement('div');
-    archGroup.style.cssText = 'display:flex;flex-direction:column;gap:12px;';
     archivedList.forEach(tx => {
-      const el = _txCard(tx);
-      el.setAttribute('data-tx', tx.id || '');
-      archGroup.appendChild(el);
+      const el = _txSectionCard(tx);
+      archSection.appendChild(el);
     });
-    archSection.appendChild(archGroup);
-
-    // Afficher plus
     const hasMore = s ? archivedList.length < _archivedTotal : false;
     if (hasMore) {
       const more = document.createElement('p');
@@ -4649,7 +4729,6 @@ function renderExchanges() {
       archSection.appendChild(more);
     }
   }
-
   list.appendChild(archSection);
 }
 
