@@ -3758,6 +3758,7 @@ async function _doSearch(q) {
     ctaBtn.textContent = 'Demander à la communauté';
     ctaBtn.addEventListener('click', function() {
       console.log('[ctaBtn] clic — appel showRequestToCommunityModal');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       showRequestToCommunityModal();
       ctaBtn.disabled = true;
       ctaBtn.innerHTML = '✓ Demande envoyée';
