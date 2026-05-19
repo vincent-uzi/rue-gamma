@@ -732,13 +732,14 @@
       background: var(--surface); border: 1px solid var(--line);
       border-radius: 12px; padding: 14px 16px; margin-bottom: 10px;
       display: flex; justify-content: space-between; align-items: center;
-      cursor: pointer; transition: background .12s;
+      cursor: pointer; transition: background .12s; overflow: hidden;
     }
     .transaction-card:active { background: var(--surface-alt); }
     .transaction-card.needs-action { border: 2px solid #1F9D55; }
-    .tx-card-content { flex: 1; min-width: 0; margin-right: 12px; }
+    .tx-card-content { flex: 1; min-width: 0; margin-right: 12px; display: flex; flex-direction: column; gap: 8px; }
     .tx-item-name {
-      font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 8px;
+      font-size: 15px; font-weight: 500; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .tx-participants {
       font-size: 13px; color: var(--text-muted);
@@ -755,7 +756,7 @@
       font-weight: 500; font-size: 12px; white-space: nowrap;
     }
     .tx-arrow { color: var(--text-dim); font-size: 13px; }
-    .tx-card-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .tx-card-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; margin-left: 12px; }
     .pill-co2 {
       background: #E8F5E9; color: #00A651;
       padding: 3px 10px; border-radius: 10px;
