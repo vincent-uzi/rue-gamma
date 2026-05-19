@@ -755,6 +755,12 @@
       font-weight: 500; font-size: 12px; white-space: nowrap;
     }
     .tx-arrow { color: var(--text-dim); font-size: 13px; }
+    .tx-card-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .pill-co2 {
+      background: #E8F5E9; color: #00A651;
+      padding: 3px 10px; border-radius: 10px;
+      font-weight: 500; font-size: 12px; white-space: nowrap;
+    }
     .transaction-push {
       position: relative;
       background: linear-gradient(135deg, #1F9D55 0%, #17845C 100%);
@@ -2252,8 +2258,8 @@
     </div>
 
     <!-- Tab panes -->
-    <div id="profile-tab-objets" style="display:block;padding:16px 16px 0;">
-      <div class="items-list" id="profileItemsList" role="list"></div>
+    <div id="profile-tab-objets" style="display:block;padding:0 16px 0;">
+      <div id="profileItemsList" role="list"></div>
     </div>
 
     <div id="profile-tab-prete" style="display:none;padding:0 16px 0;">
@@ -3457,6 +3463,49 @@ function _renderLoanRow(list, loan, role) {
   list.appendChild(el);
 }
 
+function _renderProfileItemCard(list, item) {
+  const co2 = item.co2_saved_kg != null
+    ? Number(item.co2_saved_kg).toFixed(1).replace('.', ',')
+    : '8,2';
+
+  const el = document.createElement('div');
+  el.className = 'transaction-card';
+  el.dataset.itemId = item.id;
+
+  const content = document.createElement('div');
+  content.className = 'tx-card-content';
+
+  const nameEl = document.createElement('div');
+  nameEl.className = 'tx-item-name';
+  nameEl.textContent = item.name || '—';
+  content.appendChild(nameEl);
+
+  const parts = document.createElement('div');
+  parts.className = 'tx-participants';
+  const vousPill = document.createElement('span');
+  vousPill.className = 'pill-vous';
+  vousPill.textContent = 'Vous';
+  parts.appendChild(vousPill);
+  content.appendChild(parts);
+
+  const right = document.createElement('div');
+  right.className = 'tx-card-right';
+
+  const co2Pill = document.createElement('span');
+  co2Pill.className = 'pill-co2';
+  co2Pill.textContent = '🍃 −' + co2 + ' kg';
+  right.appendChild(co2Pill);
+
+  const chevron = document.createElement('div');
+  chevron.innerHTML = '<svg width="7" height="12" viewBox="0 0 8 14" fill="none" aria-hidden="true" style="flex-shrink:0;color:var(--text-dim);"><path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  right.appendChild(chevron);
+
+  el.appendChild(content);
+  el.appendChild(right);
+  el.addEventListener('click', () => loadItemDetail(item.id));
+  list.appendChild(el);
+}
+
 async function loadProfileTabs() {
   const memberId = localStorage.getItem('member_id');
   console.log('[loadProfileTabs] User:', memberId);
@@ -3493,18 +3542,7 @@ async function loadProfileTabs() {
     if (!items.length) {
       itemsList.appendChild(_emptyRow("Aucun objet partagé pour l'instant"));
     } else {
-      items.forEach(item => {
-        const c = item.co2_saved_kg;
-        renderItemRow(itemsList, {
-          id:       item.id,
-          owner_id: memberId,
-          name:     item.name,
-          state:    item.status,
-          co2:      c != null ? Number(c).toFixed(1).replace('.', ',') : '8,2',
-          who:      _me || '',
-          no:       '',
-        });
-      });
+      items.forEach(item => _renderProfileItemCard(itemsList, item));
     }
   }
 
