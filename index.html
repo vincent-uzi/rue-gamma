@@ -3412,54 +3412,48 @@ function _emptyRow(msg) {
 }
 
 function _renderLoanRow(list, loan, role) {
-  const iN     = loan.item?.name || '—';
-  const c      = loan.item?.co2_saved_kg;
-  const co2    = c != null ? Number(c).toFixed(1).replace('.', ',') : '8,2';
-  const person = role === 'lent' ? (loan.borrower?.first_name || '—') : (loan.owner?.first_name || '—');
-  const roleLabel = role === 'lent' ? 'emprunteur' : 'propriétaire';
-
-  let btnLabel, btnStyle;
-  if (role === 'borrowed') {
-    // Borrower always sees "Rendre" (green) — pending is the only exception
-    if (loan.status === 'pending') {
-      btnLabel = 'En attente';
-      btnStyle = 'background:var(--surface-alt);color:var(--text-muted);';
-    } else {
-      btnLabel = 'Rendre';
-      btnStyle = 'background:var(--accent);color:var(--accent-ink);';
-    }
-  } else {
-    // Owner (lent)
-    if (loan.status === 'active') {
-      btnLabel = 'Récupérer';
-      btnStyle = 'background:var(--accent);color:var(--accent-ink);';
-    } else if (loan.status === 'accepted') {
-      btnLabel = 'Récupérer';
-      btnStyle = 'background:var(--accent);color:var(--accent-ink);';
-    } else {
-      btnLabel = 'En attente';
-      btnStyle = 'background:var(--surface-alt);color:var(--text-muted);';
-    }
-  }
+  const iN         = loan.item?.name || '—';
+  const isLent     = role === 'lent';
+  const otherName  = isLent ? (loan.borrower?.first_name || '—') : (loan.owner?.first_name || '—');
 
   const el = document.createElement('div');
-  el.className = 'item-row';
-  el.setAttribute('role', 'listitem');
-  el.style.cursor = 'pointer';
-  el.innerHTML =
-    '<div class="item-left">' +
-      '<div class="t-headline item-name" style="margin-bottom:4px;">' + iN + '</div>' +
-      '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">' +
-        pill(person, '') +
-        '<span class="t-footnote" style="color:var(--text-muted);">' + roleLabel + '</span>' +
-        '<span class="co2-badge">' + _leafSvg + '−' + co2 + ' kg</span>' +
-      '</div>' +
-    '</div>' +
-    '<button class="obj-cta-btn" style="' + btnStyle + 'font-size:14px;padding:8px 14px;">' + btnLabel + '</button>';
+  el.className = 'transaction-card';
 
-  const openThread = (e) => { e.stopPropagation(); _setActiveTab('exchanges'); showThread(loan.id); };
+  const content = document.createElement('div');
+  content.className = 'tx-card-content';
+
+  const nameEl = document.createElement('div');
+  nameEl.className = 'tx-item-name';
+  nameEl.textContent = iN;
+  content.appendChild(nameEl);
+
+  const parts = document.createElement('div');
+  parts.className = 'tx-participants';
+
+  // Owner always first
+  const ownerEl = document.createElement('span');
+  ownerEl.className = isLent ? 'pill-vous' : 'pill-other';
+  ownerEl.textContent = isLent ? 'Vous' : otherName;
+
+  const arrowEl = document.createElement('span');
+  arrowEl.className = 'tx-arrow';
+  arrowEl.textContent = '→';
+
+  const borrowerEl = document.createElement('span');
+  borrowerEl.className = isLent ? 'pill-other' : 'pill-vous';
+  borrowerEl.textContent = isLent ? otherName : 'Vous';
+
+  parts.appendChild(ownerEl);
+  parts.appendChild(arrowEl);
+  parts.appendChild(borrowerEl);
+  content.appendChild(parts);
+
+  const chevron = document.createElement('div');
+  chevron.innerHTML = '<svg width="7" height="12" viewBox="0 0 8 14" fill="none" aria-hidden="true" style="flex-shrink:0;color:var(--text-dim);"><path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  el.appendChild(content);
+  el.appendChild(chevron);
   el.addEventListener('click', () => { _setActiveTab('exchanges'); showThread(loan.id); });
-  el.querySelector('.obj-cta-btn').addEventListener('click', openThread);
   list.appendChild(el);
 }
 
