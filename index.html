@@ -749,7 +749,11 @@
       padding: 3px 10px; border-radius: 10px;
       font-weight: 500; font-size: 12px; white-space: nowrap;
     }
-    .tx-other-user { color: var(--text); }
+    .pill-other {
+      background: #F0F0F0; color: var(--text);
+      padding: 3px 10px; border-radius: 10px;
+      font-weight: 500; font-size: 12px; white-space: nowrap;
+    }
     .tx-arrow { color: var(--text-dim); font-size: 13px; }
     .transaction-push {
       position: relative;
@@ -4623,7 +4627,7 @@ function _txSectionCard(tx) {
     ownerEl.className = 'pill-vous';
     ownerEl.textContent = 'Vous';
   } else {
-    ownerEl.className = 'tx-other-user';
+    ownerEl.className = 'pill-other';
     ownerEl.textContent = tx.from;
   }
   const arrowEl = document.createElement('span');
@@ -4634,7 +4638,7 @@ function _txSectionCard(tx) {
     borrowerEl.className = 'pill-vous';
     borrowerEl.textContent = 'Vous';
   } else {
-    borrowerEl.className = 'tx-other-user';
+    borrowerEl.className = 'pill-other';
     borrowerEl.textContent = tx.to;
   }
   parts.appendChild(ownerEl);
