@@ -3729,29 +3729,29 @@ async function _doSearch(q) {
 
   if (!n) {
     window._currentSearchQuery = q;
-    countEl.textContent = '0 résultat';
+    countEl.innerHTML = '<strong style="color:#00A651;">0 résultat</strong>';
     const wrap = document.createElement('div');
-    wrap.style.cssText = 'padding:40px 20px;text-align:center;';
+    wrap.style.cssText = 'padding:40px 20px 300px 20px;text-align:center;';
     const strongEl = document.createElement('strong');
     strongEl.style.color = 'var(--text)';
     strongEl.textContent = q;
 
-    const inner = document.createElement('div');
-    inner.innerHTML = '<div style="font-size:48px;margin-bottom:20px;">🔍</div>';
+    const bottleSvg = document.createElement('div');
+    bottleSvg.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="80" height="58" viewBox="0 0 280 200" fill="none" style="display:block;margin:0 auto 24px auto;opacity:0.9;"><g transform="translate(140 110) rotate(-55)" stroke="#00A651" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M -14 -120 L -14 -106 C -14 -100, -22 -94, -28 -86 C -34 -76, -36 -64, -36 -50 L -36 30 C -36 42, -28 50, -14 50 L 14 50 C 28 50, 36 42, 36 30 L 36 -50 C 36 -64, 34 -76, 28 -86 C 22 -94, 14 -100, 14 -106 L 14 -120 Z" /><rect x="-18" y="-138" width="36" height="20" rx="2.5" fill="#00A651" stroke="none"/></g><path d="M 4 118 C 32 108, 60 128, 88 118 C 116 108, 144 128, 172 118 C 200 108, 228 128, 256 118 C 268 114, 276 118, 278 118" stroke="#00A651" stroke-width="5.5" stroke-linecap="round" fill="none"/></svg>';
 
     const h2 = document.createElement('h2');
-    h2.style.cssText = 'font-size:20px;font-weight:600;margin-bottom:12px;color:var(--text);';
-    h2.textContent = 'Aucun résultat';
+    h2.style.cssText = 'font-size:20px;font-weight:600;margin-bottom:12px;color:#00A651;';
+    h2.textContent = 'Lancez une bouteille à la mer !';
 
     const p1 = document.createElement('p');
     p1.style.cssText = 'font-size:15px;color:var(--text-muted);margin-bottom:8px;line-height:1.5;';
-    p1.appendChild(document.createTextNode('Personne n\'a encore partagé '));
+    p1.appendChild(document.createTextNode('Il n\'y a pas d\''));
     p1.appendChild(strongEl);
     p1.appendChild(document.createTextNode(' dans FLO'));
 
     const p2 = document.createElement('p');
     p2.style.cssText = 'font-size:14px;color:var(--text-muted);margin-bottom:32px;line-height:1.5;';
-    p2.textContent = 'Peut-être qu\'un voisin en a un·e sans l\'avoir encore déclaré·e ?';
+    p2.textContent = 'Un Floteur en a sans doute un qu\'il n\'a pas encore déclaré';
 
     const ctaBtn = document.createElement('button');
     ctaBtn.style.cssText = 'background:#1F9D55;color:white;padding:16px 24px;border:none;border-radius:12px;font-size:16px;font-weight:500;width:100%;max-width:300px;cursor:pointer;display:block;margin:0 auto;';
@@ -3765,7 +3765,7 @@ async function _doSearch(q) {
     p3.style.cssText = 'font-size:13px;color:var(--text-muted);margin-top:16px;';
     p3.textContent = 'Tous vos voisins seront notifiés';
 
-    wrap.appendChild(inner);
+    wrap.appendChild(bottleSvg);
     wrap.appendChild(h2);
     wrap.appendChild(p1);
     wrap.appendChild(p2);
