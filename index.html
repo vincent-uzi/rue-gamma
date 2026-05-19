@@ -1656,6 +1656,20 @@
     #toast.toast-error   { background: #EF4444; }
 
     /* ── Decline confirm popin ───────────────────────────────── */
+    #search-request-backdrop {
+      display:none; position:fixed; inset:0;
+      background:rgba(0,0,0,0.4); z-index:490; opacity:0; transition:opacity 300ms;
+    }
+    #search-request-popin {
+      display:none; position:fixed; bottom:0; left:50%;
+      width:min(430px,100%); background:var(--surface);
+      border-radius:20px 20px 0 0; padding:0 0 max(20px,env(safe-area-inset-bottom,0px));
+      z-index:500; transform:translateX(-50%) translateY(100%);
+      transition:transform 300ms cubic-bezier(0.32,0.72,0,1);
+      box-shadow:0 -4px 40px rgba(0,0,0,0.15);
+    }
+    #search-request-popin.open { transform:translateX(-50%) translateY(0); }
+
     #decline-backdrop {
       display:none; position:fixed; inset:0;
       background:rgba(0,0,0,0.4); z-index:490; opacity:0; transition:opacity 300ms;
@@ -1986,7 +2000,7 @@
         </svg>
         <span class="tab-badge" id="tab-badge-exchanges">2</span>
       </div>
-      <span class="tab-label">Transactions</span>
+      <span class="tab-label">Demandes</span>
     </div>
 
     <div class="tab-item" data-tab="profile" role="tab" aria-selected="false" tabindex="0">
@@ -2203,7 +2217,7 @@
 <div class="overlay-panel" id="panel-exchanges">
 
   <div class="obj-nav">
-    <h1 class="t-title2 obj-nav-title">Transactions</h1>
+    <h1 class="t-title2 obj-nav-title">Demandes</h1>
   </div>
 
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px 20px 60px;overscroll-behavior-y:contain;">
@@ -2527,6 +2541,25 @@
 </div>
 
 <canvas id="confetti-canvas" style="display:none;"></canvas>
+
+<div id="search-request-backdrop" onclick="hideRequestToCommunityModal()"></div>
+<div id="search-request-popin">
+  <div class="qr-choice-handle"></div>
+  <div class="qr-choice-content">
+    <div class="qr-choice-title">Demander à la communauté</div>
+    <div class="qr-choice-sub" style="margin-bottom:16px;">
+      Vous allez notifier tous les membres de votre communauté que vous recherchez
+      "<strong id="search-request-item-name"></strong>".
+    </div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:20px;">
+      Ils pourront déclarer leur objet s'ils en ont un.
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="qr-manual-cancel" onclick="hideRequestToCommunityModal()">Annuler</button>
+      <button class="qr-manual-confirm" id="search-request-send-btn" onclick="sendSearchRequest()">Envoyer</button>
+    </div>
+  </div>
+</div>
 
 <div id="decline-backdrop" onclick="hideDeclineConfirm()"></div>
 <div id="decline-popin">
@@ -2915,7 +2948,7 @@ async function submitForm() {
     photo_url = urlData.publicUrl;
   }
 
-  const { error } = await db
+  const { data: newItem, error } = await db
     .from('items')
     .insert([{
       community_id: COMMUNITY_ID,
@@ -2926,13 +2959,34 @@ async function submitForm() {
       co2_saved_kg: detectedCo2,
       status:       'available',
       photo_url,
-    }]);
+    }])
+    .select('id')
+    .single();
 
   if (ctaBtn) { ctaBtn.disabled = false; ctaBtn.textContent = 'Mettre à disposition'; }
 
   if (error) {
     console.error('Erreur ajout objet:', error);
     return;
+  }
+
+  // Lier à un avis de recherche si applicable
+  if (window._searchRequestId && newItem?.id) {
+    const srId = window._searchRequestId;
+    const userId = localStorage.getItem('member_id');
+    delete window._searchRequestId;
+    try {
+      await db.from('search_request_responses').insert({
+        search_request_id: srId,
+        responder_id:      userId,
+        item_id:           newItem.id,
+      });
+      // Vérifier si c'est la première réponse → notifier requester
+      const { count } = await db.from('search_request_responses')
+        .select('*', { count: 'exact', head: true })
+        .eq('search_request_id', srId);
+      if (count === 1) _notifySearchRequester(srId);
+    } catch (e) { console.warn('[submitForm] search_request_responses:', e); }
   }
 
   const co2 = detectedCo2.toFixed(1).replace('.', ',');
@@ -2958,6 +3012,12 @@ function _resetAddForm() {
   document.getElementById('photoInput').value = '';
   detectedCo2 = 8.2;
   detectedCategory = '';
+  // Pré-remplir si provient d'un avis de recherche
+  if (window._prefilledItemName) {
+    document.getElementById('nameInput').value = window._prefilledItemName;
+    delete window._prefilledItemName;
+    setTimeout(() => document.getElementById('descInput').focus(), 300);
+  }
 }
 
 // ── Écran succès ──────────────────────────────────────────────
@@ -3667,14 +3727,33 @@ async function _doSearch(q) {
   const n = matches.length;
 
   if (!n) {
+    window._currentSearchQuery = q;
     countEl.textContent = '0 résultat';
-    list.innerHTML = `
-      <div style="padding:32px 20px;text-align:center;">
-        <p style="font-size:15px;font-weight:500;color:var(--text);margin-bottom:6px;">Aucun objet trouvé</p>
-        <p style="font-size:13px;color:var(--text-muted);">Essaie un autre mot-clé</p>
-      </div>`;
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'padding:40px 20px;text-align:center;';
+    wrap.innerHTML = `
+      <div style="font-size:48px;margin-bottom:20px;">🔍</div>
+      <h2 style="font-size:20px;font-weight:600;margin-bottom:12px;color:var(--text);">Aucun résultat</h2>
+      <p style="font-size:15px;color:var(--text-muted);margin-bottom:8px;line-height:1.5;">
+        Personne n'a encore partagé<br>
+        "<strong style="color:var(--text);"></strong>" dans FLO
+      </p>
+      <p style="font-size:14px;color:var(--text-muted);margin-bottom:32px;line-height:1.5;">
+        Peut-être qu'un voisin en a un·e<br>sans l'avoir encore déclaré·e ?
+      </p>
+      <button id="search-community-cta"
+              style="background:#1F9D55;color:white;padding:16px 24px;border:none;border-radius:12px;font-size:16px;font-weight:500;width:100%;max-width:300px;cursor:pointer;">
+        Demander à la communauté
+      </button>
+      <p style="font-size:13px;color:var(--text-muted);margin-top:16px;">
+        Tous vos voisins seront notifiés
+      </p>`;
+    wrap.querySelector('strong').textContent = q;
+    wrap.querySelector('#search-community-cta').addEventListener('click', showRequestToCommunityModal);
+    list.appendChild(wrap);
     return;
   }
+  window._currentSearchQuery = null;
 
   countEl.textContent = n + ' résultat' + (n !== 1 ? 's' : '');
 
@@ -3879,7 +3958,7 @@ async function loadTransactions() {
       '</div>';
   }
 
-  const [activeRes, archivedRes] = await Promise.all([
+  const [activeRes, archivedRes, searchReqRes] = await Promise.all([
     db.from('loans').select(_LOAN_SELECT)
       .or('owner_id.eq.' + userId + ',borrower_id.eq.' + userId)
       .in('status', ['pending','accepted','active'])
@@ -3889,10 +3968,16 @@ async function loadTransactions() {
       .in('status', ['returned','declined'])
       .order('requested_at', { ascending: false })
       .range(0, 4),
+    db.from('search_requests')
+      .select('*, requester:members!requester_id(first_name)')
+      .eq('community_id', COMMUNITY_ID)
+      .eq('status', 'open')
+      .order('created_at', { ascending: false }),
   ]);
 
   if (activeRes.error)   console.error('[loadTransactions] active:',   activeRes.error);
   if (archivedRes.error) console.error('[loadTransactions] archived:', archivedRes.error);
+  if (searchReqRes.error) console.warn('[loadTransactions] search_requests:', searchReqRes.error);
 
   _archivedOffset = 0;
   _archivedTotal  = archivedRes.count || 0;
@@ -3910,8 +3995,9 @@ async function loadTransactions() {
   if (s) {
     if (activeTxs.length)   s.active   = mergeExtras(activeTxs,   s.active);
     if (archivedTxs.length) s.archived = mergeExtras(archivedTxs, s.archived);
+    s.searchRequests = searchReqRes.data || [];
   } else {
-    window._transactionsState = { active: activeTxs, archived: archivedTxs, currentThread: null };
+    window._transactionsState = { active: activeTxs, archived: archivedTxs, currentThread: null, searchRequests: searchReqRes.data || [] };
   }
 
   const count = (window._transactionsState.active || []).filter(
@@ -4097,6 +4183,166 @@ async function acceptRequest(loanId) {
   showToast('✓ Demande acceptée', 'success');
 }
 
+// ── Avis de recherche ─────────────────────────────────────────
+
+function showRequestToCommunityModal() {
+  const q = window._currentSearchQuery;
+  if (!q) return;
+  document.getElementById('search-request-item-name').textContent = q;
+  const backdrop = document.getElementById('search-request-backdrop');
+  const popin    = document.getElementById('search-request-popin');
+  backdrop.style.display = 'block';
+  popin.style.display    = 'block';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    popin.classList.add('open');
+    backdrop.style.opacity = '1';
+  }));
+}
+
+function hideRequestToCommunityModal() {
+  const backdrop = document.getElementById('search-request-backdrop');
+  const popin    = document.getElementById('search-request-popin');
+  popin.classList.remove('open');
+  backdrop.style.opacity = '0';
+  setTimeout(() => {
+    popin.style.display    = 'none';
+    backdrop.style.display = 'none';
+  }, 300);
+}
+
+async function sendSearchRequest() {
+  const itemName  = window._currentSearchQuery;
+  const userId    = localStorage.getItem('member_id');
+  if (!itemName || !userId) return;
+
+  const btn = document.getElementById('search-request-send-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Envoi…'; }
+
+  try {
+    // Limite 1 demande / 24h
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { data: recent } = await db.from('search_requests')
+      .select('id').eq('requester_id', userId).gte('created_at', since);
+    if (recent && recent.length > 0) {
+      hideRequestToCommunityModal();
+      showToast('Vous avez déjà fait une demande aujourd\'hui. Revenez demain !');
+      return;
+    }
+
+    const { error } = await db.from('search_requests').insert({
+      community_id: COMMUNITY_ID,
+      requester_id: userId,
+      item_name:    itemName,
+      status:       'open',
+    });
+    if (error) throw error;
+
+    hideRequestToCommunityModal();
+    showToast('Demande envoyée à la communauté !', 'success');
+    window._currentSearchQuery = null;
+    // Rafraîchir onglet Demandes si ouvert
+    if (document.getElementById('panel-exchanges').classList.contains('open')) {
+      loadTransactions();
+    }
+  } catch (e) {
+    console.error('[sendSearchRequest]', e);
+    showToast('Erreur lors de l\'envoi', 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Envoyer'; }
+  }
+}
+
+function _buildSearchRequestsSection(searchRequests, userId) {
+  if (!searchRequests || !searchRequests.length) return null;
+  const dismissed = JSON.parse(localStorage.getItem('dismissed_search_requests') || '[]');
+  const visible = searchRequests.filter(sr => !dismissed.includes(sr.id));
+  if (!visible.length) return null;
+
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'margin-bottom:20px;';
+
+  const title = document.createElement('p');
+  title.style.cssText = 'font-size:12px;font-weight:600;color:var(--text-muted);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:10px;';
+  title.textContent = 'Avis de recherche';
+  wrap.appendChild(title);
+
+  visible.forEach(sr => {
+    const card = document.createElement('div');
+    card.style.cssText = 'background:white;border:1px solid #E5E5E0;border-radius:12px;padding:16px;margin-bottom:10px;';
+
+    const isOwn = sr.requester_id === userId;
+    const requesterName = sr.requester?.first_name || 'Un voisin';
+
+    const badge = document.createElement('div');
+    badge.style.cssText = 'display:flex;align-items:center;gap:6px;margin-bottom:8px;';
+    badge.innerHTML = '<span style="font-size:16px;">🔍</span><span style="font-size:12px;color:var(--text-muted);font-weight:500;">' +
+      (isOwn ? 'Votre recherche' : 'Avis de recherche') + '</span>';
+    card.appendChild(badge);
+
+    const msg = document.createElement('div');
+    msg.style.cssText = 'font-size:15px;margin-bottom:' + (isOwn ? '0' : '14px') + ';';
+    if (isOwn) {
+      msg.innerHTML = 'Vous cherchez : <strong></strong>';
+      msg.querySelector('strong').textContent = sr.item_name;
+      const hint = document.createElement('div');
+      hint.style.cssText = 'font-size:13px;color:var(--text-muted);margin-top:4px;';
+      hint.textContent = 'En attente de réponses…';
+      card.appendChild(msg);
+      card.appendChild(hint);
+    } else {
+      const nameEl = document.createElement('strong');
+      nameEl.textContent = requesterName;
+      const itemEl = document.createElement('strong');
+      itemEl.textContent = sr.item_name;
+      msg.appendChild(nameEl);
+      msg.appendChild(document.createTextNode(' a besoin d\'un·e '));
+      msg.appendChild(itemEl);
+      card.appendChild(msg);
+
+      const actions = document.createElement('div');
+      actions.style.cssText = 'display:flex;gap:12px;align-items:center;';
+      const dismiss = document.createElement('button');
+      dismiss.style.cssText = 'background:none;border:none;color:#1F9D55;text-decoration:underline;font-size:14px;cursor:pointer;padding:0;font-family:inherit;';
+      dismiss.textContent = 'Non désolé';
+      dismiss.addEventListener('click', () => _dismissSearchRequest(sr.id));
+      const declare = document.createElement('button');
+      declare.style.cssText = 'flex:1;background:#1F9D55;color:white;border:none;border-radius:12px;padding:12px;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;';
+      declare.textContent = 'Déclarez la vôtre';
+      declare.addEventListener('click', () => _declareItemFromSearch(sr.id, sr.item_name));
+      actions.appendChild(dismiss);
+      actions.appendChild(declare);
+      card.appendChild(actions);
+    }
+    wrap.appendChild(card);
+  });
+  return wrap;
+}
+
+function _dismissSearchRequest(id) {
+  const dismissed = JSON.parse(localStorage.getItem('dismissed_search_requests') || '[]');
+  if (!dismissed.includes(id)) dismissed.push(id);
+  localStorage.setItem('dismissed_search_requests', JSON.stringify(dismissed));
+  renderExchanges();
+  showToast('Avis masqué');
+}
+
+function _declareItemFromSearch(searchRequestId, itemName) {
+  window._searchRequestId    = searchRequestId;
+  window._prefilledItemName  = itemName;
+  _setActiveTab('add');
+}
+
+async function _notifySearchRequester(searchRequestId) {
+  const { count } = await db.from('search_request_responses')
+    .select('*', { count: 'exact', head: true })
+    .eq('search_request_id', searchRequestId);
+  if (!count) return;
+  await db.from('search_requests')
+    .update({ status: 'notified', notified_at: new Date().toISOString() })
+    .eq('id', searchRequestId);
+  console.log(`[search_request] ${count} réponse(s) → requester notifié`);
+}
+
 function showDeclineConfirm(loanId) {
   _pendingDeclineId = loanId;
   const tx = _findTx(loanId);
@@ -4215,8 +4461,14 @@ function renderExchanges() {
   const list = document.getElementById('requests-list');
   list.innerHTML = '';
   const s = window._transactionsState;
-  const activeList   = s ? s.active   : TRANSACTIONS_ACTIVE;
-  const archivedList = s ? s.archived : TRANSACTIONS_ARCHIVED;
+  const activeList    = s ? s.active         : TRANSACTIONS_ACTIVE;
+  const archivedList  = s ? s.archived       : TRANSACTIONS_ARCHIVED;
+  const searchReqList = s ? (s.searchRequests || []) : [];
+  const userId        = localStorage.getItem('member_id');
+
+  // Avis de recherche
+  const srSection = _buildSearchRequestsSection(searchReqList, userId);
+  if (srSection) list.appendChild(srSection);
 
   // Active
   if (!activeList.length) {
