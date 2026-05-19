@@ -2689,23 +2689,37 @@ function pill(name, no) {
 }
 
 function renderItemRow(list, item) {
-  const ok = item.state === 'available';
+  const userId  = localStorage.getItem('member_id');
+  const isOwner = item.owner_id === userId;
+
   const el = document.createElement('div');
-  el.className = 'item-row' + (ok ? '' : ' item-unavailable');
-  el.setAttribute('role', 'listitem');
+  el.className = 'transaction-card';
   el.dataset.itemId = item.id;
-  el.innerHTML = `
-    <div class="item-left">
-      <div class="t-headline item-name" style="margin-bottom:4px;">${item.name}</div>
-      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-        ${item.who ? `<span>${pill(item.who, item.no)}</span>` : ''}
-        <span class="co2-badge">${_leafSvg}−${item.co2} kg</span>
-      </div>
-    </div>
-    <svg width="7" height="12" viewBox="0 0 8 14" fill="none" aria-hidden="true" style="flex-shrink:0;color:var(--text-dim);">
-      <path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  `;
+
+  const header = document.createElement('div');
+  header.className = 'tx-card-header';
+  const nameEl = document.createElement('div');
+  nameEl.className = 'tx-item-name';
+  nameEl.textContent = item.name || '—';
+  const chevron = document.createElement('div');
+  chevron.style.flexShrink = '0';
+  chevron.innerHTML = '<svg width="7" height="12" viewBox="0 0 8 14" fill="none" aria-hidden="true" style="color:var(--text-dim);"><path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  header.appendChild(nameEl);
+  header.appendChild(chevron);
+
+  const footer = document.createElement('div');
+  footer.className = 'tx-card-footer';
+  const ownerPill = document.createElement('span');
+  ownerPill.className = isOwner ? 'pill-vous' : 'pill-other';
+  ownerPill.textContent = isOwner ? 'Vous' : (item.who || '—');
+  const co2Pill = document.createElement('span');
+  co2Pill.className = 'pill-co2';
+  co2Pill.textContent = '🍃 −' + (item.co2 || '8,2') + ' kg';
+  footer.appendChild(ownerPill);
+  footer.appendChild(co2Pill);
+
+  el.appendChild(header);
+  el.appendChild(footer);
   el.addEventListener('click', () => loadItemDetail(item.id));
   list.appendChild(el);
 }
@@ -5836,7 +5850,7 @@ async function undoDelete() {
   };
   // Restore in profile list
   const profileList = document.getElementById('profileItemsList');
-  if (profileList) renderItemRow(profileList, rowData);
+  if (profileList) _renderProfileItemCard(profileList, restore);
   // Restore in home list (prepend — most recently restored)
   const homeList = document.getElementById('itemsList');
   if (homeList) {
