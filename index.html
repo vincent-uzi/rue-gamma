@@ -4258,18 +4258,7 @@ async function sendSearchRequest() {
   if (btn) { btn.disabled = true; btn.textContent = 'Envoi…'; }
 
   try {
-    // Limite 1 demande / 24h
-    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    const { data: recent, error: recentErr } = await db.from('search_requests')
-      .select('id').eq('requester_id', userId).gte('created_at', since);
-    console.log('[sendSearchRequest] recent:', recent, 'recentErr:', recentErr);
-
-    if (recent && recent.length > 0) {
-      hideRequestToCommunityModal();
-      showToast('Vous avez déjà fait une demande aujourd\'hui. Revenez demain !');
-      return;
-    }
-
+    // TODO : Réactiver limite anti-spam 1 demande/24h avant prod
     console.log('[sendSearchRequest] INSERT → search_requests', { community_id: COMMUNITY_ID, requester_id: userId, item_name: itemName });
     const { data: inserted, error: insertErr } = await db.from('search_requests').insert({
       community_id: COMMUNITY_ID,
