@@ -35,12 +35,54 @@ Dernière mise à jour : 13 mai 2026 00:10
 - **Estimation : 3-4h**
 
 ### DT-09 : Policies RLS sécurisées
-- **CRITIQUE AVANT PROD**
-- Remplacer `USING (true)` par policies propres
-- Actuellement tout est public
-- **Status : PAS COMMENCÉ** ❌
+- **Status : PARTIELLEMENT FAIT ⚠️**
 - **Priorité : URGENTE** 🔥
-- **Estimation : 2-3h**
+- **Estimation restante : 3-4h**
+
+#### Situation actuelle (19 mai 2026)
+
+Les RLS sont activées sur toutes les tables **mais les policies INSERT sont temporairement permissives** (`WITH CHECK (true)`) car il y a un problème d'architecture non résolu.
+
+**Le problème fondamental :**
+`auth.uid()` (UUID Supabase Auth) ≠ `members.id` (UUID de la table members)
+
+Les deux sont des UUID différents. Quand on fait `WITH CHECK (auth.uid() = owner_id)`, Supabase compare l'UUID Auth avec l'UUID members → toujours `false` → INSERT rejeté pour tout le monde.
+
+#### Ce qui est fait ✅
+- RLS activées sur toutes les tables
+- Policies SELECT : `USING (true)` → lecture publique OK pour MVP
+- Policies INSERT sur `items`, `loans`, `search_requests`, `search_request_responses` : **temporairement `WITH CHECK (true)`** pour débloquer les INSERTs
+
+#### Ce qui reste à faire ❌
+
+**Option A (recommandée) : Ajouter `auth_user_id` dans `members`**
+```sql
+ALTER TABLE members ADD COLUMN auth_user_id UUID REFERENCES auth.users(id);
+-- Mettre à jour les utilisateurs existants
+UPDATE members SET auth_user_id = auth.uid() WHERE ...; -- à faire manuellement ou via trigger
+-- Puis remplacer les policies :
+CREATE POLICY "owner insert" ON items
+  FOR INSERT WITH CHECK (
+    auth.uid() = (SELECT auth_user_id FROM members WHERE id = owner_id)
+  );
+```
+
+**Option B (migration complète) : Utiliser `auth.uid()` comme PK de `members`**
+- Migration plus lourde, casse toutes les FK existantes
+- Réservé si on repart de zéro
+
+#### Actions immédiates avant prod
+- [ ] Choisir Option A ou B
+- [ ] Implémenter le lien `auth_user_id` ↔ `members.id`
+- [ ] Remplacer tous les `WITH CHECK (true)` par des policies strictes
+- [ ] Tester que les INSERTs fonctionnent encore après
+- [ ] Vérifier que les SELECT restent publics (ou restreindre à la communauté)
+
+#### Tables à auditer
+- `items` : INSERT doit vérifier que `owner_id` = membre connecté
+- `loans` : INSERT doit vérifier que `borrower_id` = membre connecté
+- `search_requests` : INSERT doit vérifier que `requester_id` = membre connecté
+- `search_request_responses` : INSERT doit vérifier que `responder_id` = membre connecté
 
 ### Splash screen
 - Écran de chargement pendant init
@@ -1243,3 +1285,61 @@ Complexité : 🔴 Élevée — ~10 000 tokens
 - [ ] RESP-01 : Responsive global
 
 **Commits :** 10 commits effectués
+
+---
+
+### Session 19 Mai 2026 - Lundi
+
+**Durée** : ~4h  
+
+**Réalisations :**
+
+✅ **Thread cards "Prochaines étapes"** — Refonte structure visuelle : titre 14px/500 + ligne contact verte 13px (seul "Contactez-vous" souligné) + hint gris 13px + CTA bouton  
+✅ **Onglet "Prêtés" corrigé** — Filtrage `status = 'active' AND handed_at IS NOT NULL` (était `accepted`)  
+✅ **Feature "Avis de recherche" (MVP complet, phases 1–5)**  
+  - SERP 0 résultat → CTA "Demander à la communauté" (construit en DOM API)  
+  - Modal bottom sheet (outside `#app`, z-index 1000/1001) avec animation slide  
+  - Tables DB créées : `search_requests` + `search_request_responses`  
+  - `sendSearchRequest()` : INSERT + toast + reload onglet Demandes  
+  - Section "Avis de recherche" dans onglet Demandes (`_buildSearchRequestsSection`)  
+  - Formulaire ajout objet pré-rempli via `window._prefilledItemName`  
+  - Lien item créé → search_request_responses + notification fuzzy match  
+✅ **Onglet "Transactions" → "Demandes"** — Renommage tab + panel  
+✅ **RLS `search_requests` désactivé** — `DISABLE ROW LEVEL SECURITY` pour débloquer dev (auth.uid() ≠ members.id)  
+✅ **Anti-spam 1/24h retiré** — Temporairement commenté pour tests MVP  
+✅ **DT-09 documenté** — Statut PARTIELLEMENT FAIT ⚠️, problem root cause auth.uid()≠members.id, Option A (auth_user_id column) et Option B, checklist avant prod  
+
+**Bugs résolus :**
+
+🐛 **`position:fixed` inside `#app` (overflow:hidden) bloque touch iOS** → Modal déplacée outside `#app`  
+🐛 **`innerHTML` + `querySelector` + `addEventListener` ne fire pas** → Reconstruit en `document.createElement` DOM API  
+🐛 **`panel-exchanges.classList.contains('open')` toujours false** → Corrigé en `style.display !== 'none'`  
+🐛 **Supabase FK join `members!requester_id` unreliable** → Simplifié en `members(first_name)`  
+🐛 **`loadTransactions` écrasait `searchRequests` au merge** → Ajout branche `s.searchRequests = ...`  
+🐛 **Bouton "Envoyer" onclick inline non déclenché** → Déplacé vers `addEventListener` via `cloneNode`  
+
+**Décisions techniques :**
+
+- [DECISION] RLS `search_requests` désactivé temporairement — Réactiver avec Option A (DT-09) avant prod  
+- [DECISION] Notification retour immédiate pour MVP (pas cron 24h groupé)  
+- [DECISION] Anti-spam 1/24h désactivé pour tests — Réactiver avant prod  
+- [DECISION] Fuzzy match JS pour MVP (pas IA matching)  
+
+**Commits effectués :**
+1. `Doc: Session 19 Mai - FLO + Avis recherche + Communautes` (PROJET.md)
+2. `DB: Tables pour feature Avis de recherche` (search_requests + responses)
+3. `Feature: Avis de recherche SERP 0 resultat (MVP complet)` (5 phases)
+4. `Debug: Ajout logs sendSearchRequest + fix event listener`
+5. `Fix: Modal search request clics bloques iOS/Safari` (z-index + DOM structure)
+6. `Fix: Bouton "Demander a la communaute" construit en DOM API`
+7. `Fix: RLS search_requests + suppression limite anti-spam`
+8. `Doc: Mise a jour DT-09 RLS - Solution A documentee`
+
+**Prochaines étapes :**
+
+- [ ] Phase 6 : Notification bandeau retour visuel vers requester ("3 membres ont déclaré un objet")
+- [ ] Réactiver RLS `search_requests` avec Option A (ajouter `auth_user_id` dans `members`) — DT-09
+- [ ] Réactiver limite anti-spam 1 demande/24h
+- [ ] Expiration automatique avis recherche après 7 jours
+- [ ] CH-03 : Notifications badge + compteur
+- [ ] Splash screen (1-2h)

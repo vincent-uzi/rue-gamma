@@ -96,18 +96,18 @@ const RGIcon = {
       <path d="M9 5v4.5M9 12.5v.5" stroke={p.color || 'currentColor'} strokeWidth={p.w || 1.6} strokeLinecap="round" />
     </svg>,
 
+  edit: (p = {}) =>
+  <svg width={p.size || 18} height={p.size || 18} viewBox="0 0 18 18" fill="none">
+      <path d="M2.5 15.5h3l8.2-8.2a2.12 2.12 0 0 0-3-3L2.5 12.5v3z" stroke={p.color || 'currentColor'} strokeWidth={p.w || 1.5} strokeLinejoin="round" />
+      <path d="M11 4l3 3" stroke={p.color || 'currentColor'} strokeWidth={p.w || 1.5} strokeLinecap="round" />
+    </svg>,
+
   share: (p = {}) =>
   <svg width={p.size || 18} height={p.size || 18} viewBox="0 0 18 18" fill="none">
       <circle cx="14" cy="4" r="2.2" stroke={p.color || 'currentColor'} strokeWidth={p.w || 1.5} />
       <circle cx="4" cy="9" r="2.2" stroke={p.color || 'currentColor'} strokeWidth={p.w || 1.5} />
       <circle cx="14" cy="14" r="2.2" stroke={p.color || 'currentColor'} strokeWidth={p.w || 1.5} />
       <path d="M6 8l6-3M6 10l6 3" stroke={p.color || 'currentColor'} strokeWidth={p.w || 1.5} strokeLinecap="round" />
-    </svg>,
-
-  swap: (p = {}) =>
-  <svg width={p.size || 18} height={p.size || 18} viewBox="0 0 18 18" fill="none">
-      <path d="M2 6h12M11 3l3 3-3 3" stroke={p.color || 'currentColor'} strokeWidth={p.w || 1.6} strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M16 12H4M7 9l-3 3 3 3" stroke={p.color || 'currentColor'} strokeWidth={p.w || 1.6} strokeLinecap="round" strokeLinejoin="round" />
     </svg>
 
 };
