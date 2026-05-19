@@ -1658,13 +1658,13 @@
     /* ── Decline confirm popin ───────────────────────────────── */
     #search-request-backdrop {
       display:none; position:fixed; inset:0;
-      background:rgba(0,0,0,0.4); z-index:490; opacity:0; transition:opacity 300ms;
+      background:rgba(0,0,0,0.4); z-index:1000; opacity:0; transition:opacity 300ms;
     }
     #search-request-popin {
       display:none; position:fixed; bottom:0; left:50%;
       width:min(430px,100%); background:var(--surface);
       border-radius:20px 20px 0 0; padding:0 0 max(20px,env(safe-area-inset-bottom,0px));
-      z-index:500; transform:translateX(-50%) translateY(100%);
+      z-index:1001; transform:translateX(-50%) translateY(100%);
       transition:transform 300ms cubic-bezier(0.32,0.72,0,1);
       box-shadow:0 -4px 40px rgba(0,0,0,0.15);
     }
@@ -2542,25 +2542,6 @@
 
 <canvas id="confetti-canvas" style="display:none;"></canvas>
 
-<div id="search-request-backdrop" onclick="hideRequestToCommunityModal()"></div>
-<div id="search-request-popin">
-  <div class="qr-choice-handle"></div>
-  <div class="qr-choice-content">
-    <div class="qr-choice-title">Demander à la communauté</div>
-    <div class="qr-choice-sub" style="margin-bottom:16px;">
-      Vous allez notifier tous les membres de votre communauté que vous recherchez
-      "<strong id="search-request-item-name"></strong>".
-    </div>
-    <div style="font-size:13px;color:var(--text-muted);margin-bottom:20px;">
-      Ils pourront déclarer leur objet s'ils en ont un.
-    </div>
-    <div style="display:flex;gap:10px;">
-      <button class="qr-manual-cancel" onclick="hideRequestToCommunityModal()">Annuler</button>
-      <button class="qr-manual-confirm" id="search-request-send-btn" onclick="sendSearchRequest()">Envoyer</button>
-    </div>
-  </div>
-</div>
-
 <div id="decline-backdrop" onclick="hideDeclineConfirm()"></div>
 <div id="decline-popin">
   <div class="qr-choice-handle"></div>
@@ -2576,6 +2557,26 @@
 
 
 </div><!-- /#app -->
+
+<!-- ── Search request modal (fixed, outside #app) ────────────── -->
+<div id="search-request-backdrop" onclick="hideRequestToCommunityModal()"></div>
+<div id="search-request-popin">
+  <div class="qr-choice-handle"></div>
+  <div class="qr-choice-content">
+    <div class="qr-choice-title">Demander à la communauté</div>
+    <div class="qr-choice-sub" style="margin-bottom:16px;">
+      Vous allez notifier tous les membres de votre communauté que vous recherchez
+      "<strong id="search-request-item-name"></strong>".
+    </div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:20px;">
+      Ils pourront déclarer leur objet s'ils en ont un.
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="qr-manual-cancel" onclick="hideRequestToCommunityModal()">Annuler</button>
+      <button class="qr-manual-confirm" id="search-request-send-btn">Envoyer</button>
+    </div>
+  </div>
+</div>
 
 <!-- ── Dropdown menus (fixed, outside #app) ──────────────────── -->
 <div id="dropdown-backdrop" onclick="hideDropdown()"></div>
@@ -3731,26 +3732,47 @@ async function _doSearch(q) {
     countEl.textContent = '0 résultat';
     const wrap = document.createElement('div');
     wrap.style.cssText = 'padding:40px 20px;text-align:center;';
-    wrap.innerHTML = `
-      <div style="font-size:48px;margin-bottom:20px;">🔍</div>
-      <h2 style="font-size:20px;font-weight:600;margin-bottom:12px;color:var(--text);">Aucun résultat</h2>
-      <p style="font-size:15px;color:var(--text-muted);margin-bottom:8px;line-height:1.5;">
-        Personne n'a encore partagé<br>
-        "<strong style="color:var(--text);"></strong>" dans FLO
-      </p>
-      <p style="font-size:14px;color:var(--text-muted);margin-bottom:32px;line-height:1.5;">
-        Peut-être qu'un voisin en a un·e<br>sans l'avoir encore déclaré·e ?
-      </p>
-      <button id="search-community-cta"
-              style="background:#1F9D55;color:white;padding:16px 24px;border:none;border-radius:12px;font-size:16px;font-weight:500;width:100%;max-width:300px;cursor:pointer;">
-        Demander à la communauté
-      </button>
-      <p style="font-size:13px;color:var(--text-muted);margin-top:16px;">
-        Tous vos voisins seront notifiés
-      </p>`;
-    wrap.querySelector('strong').textContent = q;
-    wrap.querySelector('#search-community-cta').addEventListener('click', showRequestToCommunityModal);
+    const strongEl = document.createElement('strong');
+    strongEl.style.color = 'var(--text)';
+    strongEl.textContent = q;
+
+    const inner = document.createElement('div');
+    inner.innerHTML = '<div style="font-size:48px;margin-bottom:20px;">🔍</div>';
+
+    const h2 = document.createElement('h2');
+    h2.style.cssText = 'font-size:20px;font-weight:600;margin-bottom:12px;color:var(--text);';
+    h2.textContent = 'Aucun résultat';
+
+    const p1 = document.createElement('p');
+    p1.style.cssText = 'font-size:15px;color:var(--text-muted);margin-bottom:8px;line-height:1.5;';
+    p1.appendChild(document.createTextNode('Personne n\'a encore partagé '));
+    p1.appendChild(strongEl);
+    p1.appendChild(document.createTextNode(' dans FLO'));
+
+    const p2 = document.createElement('p');
+    p2.style.cssText = 'font-size:14px;color:var(--text-muted);margin-bottom:32px;line-height:1.5;';
+    p2.textContent = 'Peut-être qu\'un voisin en a un·e sans l\'avoir encore déclaré·e ?';
+
+    const ctaBtn = document.createElement('button');
+    ctaBtn.style.cssText = 'background:#1F9D55;color:white;padding:16px 24px;border:none;border-radius:12px;font-size:16px;font-weight:500;width:100%;max-width:300px;cursor:pointer;display:block;margin:0 auto;';
+    ctaBtn.textContent = 'Demander à la communauté';
+    ctaBtn.addEventListener('click', function() {
+      console.log('[ctaBtn] clic — appel showRequestToCommunityModal');
+      showRequestToCommunityModal();
+    });
+
+    const p3 = document.createElement('p');
+    p3.style.cssText = 'font-size:13px;color:var(--text-muted);margin-top:16px;';
+    p3.textContent = 'Tous vos voisins seront notifiés';
+
+    wrap.appendChild(inner);
+    wrap.appendChild(h2);
+    wrap.appendChild(p1);
+    wrap.appendChild(p2);
+    wrap.appendChild(ctaBtn);
+    wrap.appendChild(p3);
     list.appendChild(wrap);
+    console.log('[_doSearch] 0 résultat — ctaBtn inséré dans DOM, listener attaché');
     return;
   }
   window._currentSearchQuery = null;
@@ -3969,7 +3991,7 @@ async function loadTransactions() {
       .order('requested_at', { ascending: false })
       .range(0, 4),
     db.from('search_requests')
-      .select('*, requester:members!requester_id(first_name)')
+      .select('id, item_name, status, created_at, requester_id, requester:members(first_name)')
       .eq('community_id', COMMUNITY_ID)
       .eq('status', 'open')
       .order('created_at', { ascending: false }),
@@ -3977,7 +3999,7 @@ async function loadTransactions() {
 
   if (activeRes.error)   console.error('[loadTransactions] active:',   activeRes.error);
   if (archivedRes.error) console.error('[loadTransactions] archived:', archivedRes.error);
-  if (searchReqRes.error) console.warn('[loadTransactions] search_requests:', searchReqRes.error);
+  console.log('[loadTransactions] search_requests:', searchReqRes.data, 'error:', searchReqRes.error);
 
   _archivedOffset = 0;
   _archivedTotal  = archivedRes.count || 0;
@@ -4186,9 +4208,20 @@ async function acceptRequest(loanId) {
 // ── Avis de recherche ─────────────────────────────────────────
 
 function showRequestToCommunityModal() {
+  console.log('[showRequestToCommunityModal] appelée — query:', window._currentSearchQuery);
   const q = window._currentSearchQuery;
-  if (!q) return;
+  if (!q) { console.warn('[showRequestToCommunityModal] _currentSearchQuery vide'); return; }
   document.getElementById('search-request-item-name').textContent = q;
+
+  // Rebrancher le listener proprement (clone pour éviter les doublons)
+  const oldBtn = document.getElementById('search-request-send-btn');
+  const newBtn = oldBtn.cloneNode(true);
+  oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+  newBtn.addEventListener('click', () => {
+    console.log('[sendBtn] click détecté, appel sendSearchRequest()');
+    sendSearchRequest();
+  });
+
   const backdrop = document.getElementById('search-request-backdrop');
   const popin    = document.getElementById('search-request-popin');
   backdrop.style.display = 'block';
@@ -4211,9 +4244,15 @@ function hideRequestToCommunityModal() {
 }
 
 async function sendSearchRequest() {
-  const itemName  = window._currentSearchQuery;
-  const userId    = localStorage.getItem('member_id');
-  if (!itemName || !userId) return;
+  const itemName = window._currentSearchQuery;
+  const userId   = localStorage.getItem('member_id');
+  console.log('[sendSearchRequest] itemName:', itemName, '| userId:', userId);
+
+  if (!itemName || !userId) {
+    console.warn('[sendSearchRequest] early return — itemName ou userId manquant');
+    showToast('Erreur : session expirée, reconnectez-vous', 'error');
+    return;
+  }
 
   const btn = document.getElementById('search-request-send-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Envoi…'; }
@@ -4221,32 +4260,36 @@ async function sendSearchRequest() {
   try {
     // Limite 1 demande / 24h
     const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    const { data: recent } = await db.from('search_requests')
+    const { data: recent, error: recentErr } = await db.from('search_requests')
       .select('id').eq('requester_id', userId).gte('created_at', since);
+    console.log('[sendSearchRequest] recent:', recent, 'recentErr:', recentErr);
+
     if (recent && recent.length > 0) {
       hideRequestToCommunityModal();
       showToast('Vous avez déjà fait une demande aujourd\'hui. Revenez demain !');
       return;
     }
 
-    const { error } = await db.from('search_requests').insert({
+    console.log('[sendSearchRequest] INSERT → search_requests', { community_id: COMMUNITY_ID, requester_id: userId, item_name: itemName });
+    const { data: inserted, error: insertErr } = await db.from('search_requests').insert({
       community_id: COMMUNITY_ID,
       requester_id: userId,
       item_name:    itemName,
       status:       'open',
-    });
-    if (error) throw error;
+    }).select('id').single();
+    console.log('[sendSearchRequest] result:', inserted, 'error:', insertErr);
+    if (insertErr) throw insertErr;
 
     hideRequestToCommunityModal();
-    showToast('Demande envoyée à la communauté !', 'success');
     window._currentSearchQuery = null;
+    // Toast après fermeture de la modal (laisser 50ms pour éviter superposition visuelle)
+    setTimeout(() => showToast('Demande envoyée à la communauté !', 'success'), 50);
     // Rafraîchir onglet Demandes si ouvert
-    if (document.getElementById('panel-exchanges').classList.contains('open')) {
-      loadTransactions();
-    }
+    const exch = document.getElementById('panel-exchanges');
+    if (exch && exch.style.display !== 'none') loadTransactions();
   } catch (e) {
-    console.error('[sendSearchRequest]', e);
-    showToast('Erreur lors de l\'envoi', 'error');
+    console.error('[sendSearchRequest] ERREUR:', e);
+    showToast('Erreur lors de l\'envoi : ' + (e.message || e.code || 'inconnue'), 'error');
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = 'Envoyer'; }
   }
@@ -4467,7 +4510,9 @@ function renderExchanges() {
   const userId        = localStorage.getItem('member_id');
 
   // Avis de recherche
+  console.log('[renderExchanges] searchRequests:', searchReqList?.length, '| userId:', userId);
   const srSection = _buildSearchRequestsSection(searchReqList, userId);
+  console.log('[renderExchanges] srSection built:', !!srSection);
   if (srSection) list.appendChild(srSection);
 
   // Active
