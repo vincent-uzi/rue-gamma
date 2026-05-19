@@ -483,6 +483,273 @@ Dernière mise à jour : Session redesign Profil
 
 ---
 
+## TODO : Feature "Avis de recherche" (0 résultat SERP)
+
+### Concept
+Quand une recherche retourne 0 résultat, permettre à l'utilisateur de solliciter la communauté pour savoir si quelqu'un possède l'objet (mais ne l'a pas encore déclaré dans FLO).
+
+**Objectif** : Stimuler l'ajout d'objets + renforcer le lien communautaire + résoudre la frustration du 0 résultat.
+
+---
+
+### Parcours utilisateur complet
+
+**Étape 1 : Recherche 0 résultat**
+
+Jean-Pierre cherche "ponceuse d'angle" → 0 résultat → Écran "Aucun résultat trouvé"
+
+**UI écran 0 résultat :**
+- Titre : "🔍 Aucun résultat"
+- Message : "Personne n'a encore partagé 'ponceuse d'angle' dans FLO"
+- Suggestion : "Peut-être qu'un voisin en a une sans l'avoir encore déclarée ?"
+- CTA principal : "Demander à la communauté"
+- Info : "Tous vos voisins seront notifiés"
+
+---
+
+**Étape 2 : Envoi demande à la communauté**
+
+Jean-Pierre clique "Demander à la communauté"
+→ INSERT search_requests (status = 'open')
+→ TOUS les membres de la community reçoivent notification
+
+---
+
+**Étape 3 : Notification aux membres**
+
+Tous les membres voient dans leur onglet **"Demandes"** (ex-Transactions) :
+
+**Template "Avis de recherche" :**
+- Badge : "🔍 Avis de recherche"
+- Message : "Jean-Pierre a besoin d'une ponceuse d'angle"
+- CTA secondaire : "Non désolé" (lien souligné, dismiss local)
+- CTA principal : "Déclarez la vôtre" (bouton vert)
+
+---
+
+**Étape 4 : Réponse d'un membre**
+
+Marie clique "Déclarez la vôtre"
+→ Formulaire ajout objet (name pré-rempli : "ponceuse d'angle")
+→ Marie valide
+→ INSERT items
+→ INSERT search_request_responses (lien search_request + item)
+
+---
+
+**Étape 5 : Notification retour vers Jean-Pierre**
+
+**Déclencheur** : Après 24h (groupage)
+
+**Logique** :
+1. Cron/trigger vérifie les search_requests.status = 'open' de plus de 24h
+2. Compte le nombre de responses associées
+3. Si > 0 → Notifie Jean-Pierre + UPDATE status = 'notified'
+
+**Notification Jean-Pierre :**
+- Badge : "✅ Bonne nouvelle !"
+- Message : "3 FLOteurs ont ajouté une ponceuse d'angle"
+- CTA : "Voir les objets →" (lien vers SERP "ponceuse d'angle")
+
+---
+
+**Étape 6 : Jean-Pierre découvre les objets**
+
+Jean-Pierre clique "Voir les objets"
+→ Ouverture SERP avec query "ponceuse d'angle"
+→ 3 résultats affichés (ponceuses de Marie, Paul, Sophie)
+→ Jean-Pierre peut emprunter
+→ UPDATE search_request status = 'closed'
+
+---
+
+### Structure DB
+
+**Nouvelle table `search_requests` :**
+
+```sql
+CREATE TABLE search_requests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  community_id UUID REFERENCES communities(id) NOT NULL,
+  requester_id UUID REFERENCES members(id) NOT NULL,
+  item_name TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'open', -- 'open', 'notified', 'closed'
+  created_at TIMESTAMP DEFAULT NOW(),
+  notified_at TIMESTAMP,
+  closed_at TIMESTAMP
+);
+
+CREATE INDEX idx_search_requests_community_status 
+  ON search_requests(community_id, status);
+```
+
+**Nouvelle table `search_request_responses` :**
+
+```sql
+CREATE TABLE search_request_responses (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  search_request_id UUID REFERENCES search_requests(id) NOT NULL,
+  responder_id UUID REFERENCES members(id) NOT NULL,
+  item_id UUID REFERENCES items(id) NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_search_request_responses_request 
+  ON search_request_responses(search_request_id);
+```
+
+**Statuts search_requests :**
+- `open` : En attente de réponse (affichée dans onglet Demandes de tous)
+- `notified` : Jean-Pierre a été notifié (objets trouvés)
+- `closed` : Jean-Pierre a consulté les résultats ou clôturé manuellement
+
+---
+
+### Notifications
+
+**1. Notification à la communauté (broadcast)**
+- Déclencheur : INSERT search_requests
+- Cible : TOUS les members de la community (sauf requester)
+- Type : Badge + card dans onglet "Demandes"
+
+**2. Notification retour au requester**
+- Déclencheur : Cron 24h après creation
+- Condition : COUNT(responses) > 0
+- Cible : requester uniquement
+- Type : Push notification + bandeau app
+
+---
+
+### Matching item_name
+
+**Problème** : "ponceuse d'angle" vs "Ponceuse D'angle" vs "ponceuse angle"
+
+**Solution fuzzy match :**
+
+```javascript
+function matchSearchRequest(itemName, searchRequestName) {
+  const normalize = (str) => str
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "") // Enlever accents
+    .replace(/[^a-z0-9\s]/g, "") // Enlever ponctuation
+    .trim();
+  
+  const item = normalize(itemName);
+  const search = normalize(searchRequestName);
+  
+  // Match exact ou contient
+  return item.includes(search) || search.includes(item);
+}
+```
+
+**Alternative IA** : Utiliser API Anthropic pour matching sémantique
+- "ponceuse d'angle" match "meuleuse d'angle" ? (oui, similaire)
+- "ponceuse d'angle" match "perceuse" ? (non, différent)
+
+---
+
+### Renommage onglet
+
+**Transactions → Demandes**
+
+**Nouveau contenu onglet "Demandes" :**
+1. **Avis de recherche** (nouveau, en haut, badge si nouveau)
+2. **Demandes d'emprunt reçues** (pending où je suis owner)
+3. **Mes demandes d'emprunt** (pending où je suis borrower)
+4. **En cours** (accepted/active)
+5. **Archivées** (toggle)
+
+---
+
+### Limitations / Anti-spam
+
+**Limite fréquence :**
+- 1 avis de recherche par jour et par utilisateur
+- Vérifier avant INSERT : `COUNT(search_requests WHERE requester_id = X AND created_at > NOW() - INTERVAL '24 hours') < 1`
+
+**Expiration automatique :**
+- Avis de recherche fermés automatiquement après 7 jours si status = 'open'
+- Cron quotidien : `UPDATE search_requests SET status = 'closed' WHERE created_at < NOW() - INTERVAL '7 days' AND status = 'open'`
+
+**Notification fatigue :**
+- Option : Grouper les avis de recherche en digest hebdo ?
+- Option : Paramètre utilisateur "Recevoir avis de recherche : Oui/Non"
+
+---
+
+### Implémentation technique
+
+**Fichiers à modifier :**
+
+`index.html` :
+- Écran 0 résultat avec CTA "Demander à la communauté"
+- Template "Avis de recherche" dans onglet Demandes
+- Notification retour bandeau app
+- Renommer "Transactions" → "Demandes"
+
+**Supabase :**
+- `CREATE TABLE search_requests`
+- `CREATE TABLE search_request_responses`
+- RLS policies (search_requests visible par community_id)
+- Trigger OU Cron pour notification retour (à définir)
+
+**Logique matching :**
+- Fonction JS fuzzy match
+- OU appel API Anthropic pour matching sémantique (si besoin)
+
+---
+
+### Estimation
+
+- Écran 0 résultat : 1h
+- Tables DB + policies RLS : 1h
+- Notification broadcast communauté : 2h
+- Template "Avis de recherche" onglet Demandes : 1h
+- Formulaire ajout objet pré-rempli : 0,5h
+- Matching items + trigger notification retour : 2h
+- Cron/groupage 24h : 1h
+- Tests + debug : 1,5h
+
+**TOTAL : ~10h**
+
+---
+
+### Priorité
+
+**Moyenne** - Après :
+1. DT-09 : RLS sécurisées (URGENT)
+2. CH-03 : Notifications badge
+3. Scanner QR optimisé
+
+**Impact UX : Élevé** 🔥
+- Résout frustration 0 résultat
+- Stimule ajout objets
+- Renforce engagement communautaire
+
+---
+
+### Questions ouvertes
+
+**1. Notification retour : Immédiate ou groupée 24h ?**
+- Immédiate : Feedback rapide pour requester
+- Groupée : Moins spammy si plusieurs réponses
+
+→ **Proposition : Groupée 24h**
+
+**2. Matching : Fuzzy ou IA ?**
+- Fuzzy : Simple, rapide, gratuit
+- IA : Plus précis, coûts API
+
+→ **Proposition : Fuzzy pour MVP, IA si besoin**
+
+**3. Expiration avis de recherche ?**
+- 7 jours ? 14 jours ? Jamais ?
+
+→ **Proposition : 7 jours auto-close**
+
+---
+
 ## TODO IMMÉDIAT
 
 - [ ] Retrouver conversation DS initial (Claude.ai)
@@ -504,6 +771,343 @@ Application web mobile-first de prêt d'objets entre voisins,
 ancrée dans une rue ou un quartier. Le levier de motivation 
 est environnemental : chaque objet emprunté plutôt qu'acheté 
 est traduit en kg de CO₂ évités.
+
+---
+
+## CONCEPT COMMUNAUTÉS
+
+### Définition
+
+Une **communauté** = regroupement d'individus autour d'une **entité géographique OU sociale**
+
+**Types de communautés :**
+- **Géographique** : Rue, immeuble, quartier, village
+  - Exemples : "Rue Saint-Venant", "Immeuble Les Lilas", "Quartier Wazemmes"
+  
+- **Social** : Entreprise, association, groupe d'amis
+  - Exemples : "Entreprise TechCorp", "Association Repairs Café", "Groupe d'amis La Bande"
+
+---
+
+### Règles de gestion
+
+**1. Modération**
+- Chaque communauté a **1 ou plusieurs modérateurs** (`is_moderator = true`)
+- Le modérateur **valide les nouveaux membres**
+- Workflow validation : demande d'adhésion → validation modérateur → accès
+
+**2. Accès**
+- **Sur invitation uniquement** d'un membre existant
+- Pas d'accès public ou inscription libre
+- Lien d'invitation avec token unique
+
+**3. Multi-appartenance**
+- **Un utilisateur peut appartenir à PLUSIEURS communautés**
+- Exemple : Vincent membre de "Rue Saint-Venant" + "TechCorp Lille" + "Repairs Café"
+- Pas de limite nombre de communautés par utilisateur
+
+**4. Recherche et visibilité**
+- Quand un utilisateur cherche un objet, la recherche s'effectue dans **TOUTES ses communautés**
+- Les résultats sont agrégés avec indication de la communauté source
+- Badge communauté affiché sur chaque objet
+
+---
+
+### Structure DB (actuelle vs anticipée)
+
+**ACTUEL (structure simple - 1 communauté par user) :**
+
+```sql
+-- Table communities (OK)
+CREATE TABLE communities (
+  id UUID PRIMARY KEY,
+  name TEXT NOT NULL,
+  street TEXT,
+  city TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Table members (OK mais incomplet pour multi-communautés)
+CREATE TABLE members (
+  id UUID PRIMARY KEY,
+  community_id UUID REFERENCES communities(id), -- ❌ Limite à 1 communauté
+  first_name TEXT,
+  last_name TEXT,
+  address TEXT,
+  email TEXT,
+  is_moderator BOOLEAN DEFAULT false,
+  joined_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+---
+
+**ANTICIPÉ (structure multi-communautés) :**
+
+```sql
+-- Table communities (inchangée)
+CREATE TABLE communities (
+  id UUID PRIMARY KEY,
+  name TEXT NOT NULL,
+  type TEXT, -- 'geographic' ou 'social'
+  street TEXT, -- Pour type 'geographic'
+  city TEXT,   -- Pour type 'geographic'
+  description TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Table users (nouveau nom pour éviter confusion avec members)
+-- Contient les données d'authentification
+CREATE TABLE users (
+  id UUID PRIMARY KEY,
+  email TEXT UNIQUE NOT NULL,
+  first_name TEXT,
+  last_name TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Table community_members (table de liaison)
+-- Relation many-to-many entre users et communities
+CREATE TABLE community_members (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) NOT NULL,
+  community_id UUID REFERENCES communities(id) NOT NULL,
+  role TEXT DEFAULT 'member', -- 'member', 'moderator', 'admin'
+  status TEXT DEFAULT 'pending', -- 'pending', 'active', 'suspended'
+  joined_at TIMESTAMP DEFAULT NOW(),
+  validated_by UUID REFERENCES users(id), -- Modérateur qui a validé
+  validated_at TIMESTAMP,
+  UNIQUE(user_id, community_id) -- Un user ne peut être qu'une fois dans une communauté
+);
+
+CREATE INDEX idx_community_members_user ON community_members(user_id);
+CREATE INDEX idx_community_members_community ON community_members(community_id);
+
+-- Table invitations (nouveau)
+-- Gestion des invitations à rejoindre une communauté
+CREATE TABLE invitations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  community_id UUID REFERENCES communities(id) NOT NULL,
+  inviter_id UUID REFERENCES users(id) NOT NULL,
+  invitee_email TEXT NOT NULL,
+  token TEXT UNIQUE NOT NULL, -- Token unique dans lien d'invitation
+  status TEXT DEFAULT 'pending', -- 'pending', 'accepted', 'expired'
+  expires_at TIMESTAMP NOT NULL, -- Expiration 7 jours
+  created_at TIMESTAMP DEFAULT NOW(),
+  accepted_at TIMESTAMP
+);
+
+CREATE INDEX idx_invitations_token ON invitations(token);
+CREATE INDEX idx_invitations_email ON invitations(invitee_email);
+```
+
+---
+
+### Migration nécessaire
+
+**Étape 1 : Créer nouvelles tables**
+- `users` (copier données depuis `members`)
+- `community_members` (copier relations depuis `members.community_id`)
+- `invitations` (nouvelle)
+
+**Étape 2 : Migrer données existantes**
+```sql
+-- Copier users
+INSERT INTO users (id, email, first_name, last_name, created_at)
+SELECT id, email, first_name, last_name, joined_at
+FROM members;
+
+-- Copier relations communauté
+INSERT INTO community_members (user_id, community_id, role, status, joined_at)
+SELECT id, community_id, 
+  CASE WHEN is_moderator THEN 'moderator' ELSE 'member' END,
+  'active',
+  joined_at
+FROM members;
+```
+
+**Étape 3 : Adapter items, loans, search_requests**
+- `items.owner_id` → toujours référence `users.id` ✅
+- `loans.borrower_id, owner_id` → toujours référence `users.id` ✅
+- `search_requests.requester_id` → référence `users.id` ✅
+
+**Étape 4 : Supprimer ancienne table**
+```sql
+DROP TABLE members; -- Une fois migration validée
+```
+
+---
+
+### Impact sur les fonctionnalités
+
+**1. Recherche multi-communautés**
+
+**Query actuelle (single community) :**
+```javascript
+const { data: items } = await db
+  .from('items')
+  .select('*')
+  .eq('community_id', userCommunityId)
+  .ilike('name', `%${query}%`);
+```
+
+**Query future (multi-communities) :**
+```javascript
+// Récupérer toutes les communautés de l'utilisateur
+const { data: memberships } = await db
+  .from('community_members')
+  .select('community_id')
+  .eq('user_id', userId)
+  .eq('status', 'active');
+
+const communityIds = memberships.map(m => m.community_id);
+
+// Recherche dans TOUTES ses communautés
+const { data: items } = await db
+  .from('items')
+  .select('*, community:communities(name, type)')
+  .in('community_id', communityIds)
+  .ilike('name', `%${query}%`);
+```
+
+**Affichage résultats avec badge communauté :**
+- "Perceuse - Rue Saint-Venant"
+- "Ponceuse - TechCorp Lille"
+
+---
+
+**2. Avis de recherche multi-communautés**
+
+**Problème** : Quand Jean-Pierre fait un avis de recherche, dans quelle(s) communauté(s) envoyer ?
+
+**Solution proposée : Choix de communauté(s)**
+
+**UI écran 0 résultat :**
+```
+┌─────────────────────────────────────────┐
+│ 🔍 Aucun résultat                       │
+│                                         │
+│ Aucun résultat dans vos 3 communautés  │
+│                                         │
+│ [Demander à la communauté]             │
+└─────────────────────────────────────────┘
+```
+
+**Modal choix communauté(s) :**
+```
+┌─────────────────────────────────────────┐
+│ Dans quelle(s) communauté(s) demander ? │
+│                                         │
+│ ☑ Rue Saint-Venant (34 membres)        │
+│ □ TechCorp Lille (120 membres)         │
+│ □ Repairs Café Lille (45 membres)      │
+│                                         │
+│ [Annuler]  [Envoyer la demande]        │
+└─────────────────────────────────────────┘
+```
+
+**Implémentation :**
+- Si 1 communauté cochée → 1 INSERT `search_requests`
+- Si 3 communautés cochées → 3 INSERT `search_requests`
+- Chaque avis de recherche = 1 communauté spécifique
+
+---
+
+**3. Profil multi-communautés**
+
+**UI Profil :**
+- Header : "Membre de 3 communautés"
+- Switch communauté ? OU tout agrégé ?
+- Badge sur objets/transactions : "Rue Saint-Venant"
+
+**Onglets :**
+- "Mes objets" → Tous objets toutes communautés OU filtrable par communauté ?
+- "Prêtés/Empruntés" → Agrégé toutes communautés avec badge
+
+---
+
+**4. Workflow invitation**
+
+**Parcours invitation :**
+
+1. Vincent (membre de "Rue Saint-Venant") invite Marie
+2. → INSERT invitations (invitee_email = 'marie@example.com', token = UUID, expires_at = NOW() + 7 days)
+3. Marie reçoit email avec lien : `https://flo.app/invite/abc123xyz`
+4. Marie clique lien → Vérification token valide + non expiré
+5. Marie crée son compte (si nouveau) OU se connecte (si existant)
+6. INSERT community_members (user_id = Marie, community_id = Rue Saint-Venant, status = 'pending')
+7. Modérateur reçoit notification : "Marie souhaite rejoindre Rue Saint-Venant"
+8. Modérateur valide → UPDATE community_members SET status = 'active', validated_by = moderator_id
+9. Marie reçoit notification : "Vous êtes membre de Rue Saint-Venant !"
+
+---
+
+### Workflow validation modérateur
+
+**UI modérateur — Onglet "Demandes d'adhésion" (nouveau) :**
+```
+┌─────────────────────────────────────────┐
+│ 👤 Nouvelle demande                     │
+│                                         │
+│ Marie Dupont (marie@example.com)       │
+│ Invitée par Vincent Mayol              │
+│ Il y a 2 heures                        │
+│                                         │
+│ [Refuser]  [Accepter]                  │
+└─────────────────────────────────────────┘
+```
+
+---
+
+### Estimation migration
+
+- Structure DB : 2h (création tables + migration données)
+- Recherche multi-communautés : 3h (query + UI badges)
+- Avis de recherche multi-communautés : 2h (modal choix)
+- Workflow invitation : 4h (génération token + email + validation)
+- Workflow modération : 3h (UI validation + notifications)
+- Tests : 2h
+
+**TOTAL : ~16h**
+
+---
+
+### Priorité
+
+**Haute** - Fondamental pour le concept FLO
+
+**Pré-requis pour :**
+- Feature "Avis de recherche" (nécessite clarification communauté)
+- Scalabilité (un user = plusieurs communautés)
+- Croissance virale (invitation + validation)
+
+**À faire AVANT :**
+- Grosse refonte, risque de régression
+- Mieux faire maintenant que plus tard avec données prod
+
+---
+
+### Questions ouvertes
+
+**1. Naming : `users` ou `members` ?**
+- `users` = Comptes utilisateurs (auth)
+- `members` = Appartenance à une communauté (relation)
+
+→ **Proposition : `users` (global) + `community_members` (relation)**
+
+**2. Affichage profil : Switch communauté OU tout agrégé ?**
+- Switch : Plus clair, mais clicks supplémentaires
+- Agrégé : Plus simple, mais peut être confus
+
+→ **Proposition : Agrégé avec badges + filtre optionnel**
+
+**3. Avis de recherche : Pré-cocher toutes communautés OU aucune ?**
+- Toutes : Plus de reach, mais plus de spam
+- Aucune : Utilisateur choisit, mais friction
+
+→ **Proposition : Communauté active par défaut (dernière utilisée)**
+
+---
 
 ## Stack technique
 - HTML/CSS/JS vanilla — single page application (index.html)
