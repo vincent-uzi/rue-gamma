@@ -1,6 +1,208 @@
 # ÉTAT DES FONCTIONNALITÉS
 
-Dernière mise à jour : 13 mai 2026 00:10
+Dernière mise à jour : 19 mai 2026 22:30
+
+---
+
+# 🎯 RED ROUTES & PLAN TEST RUE
+
+## Objectif du test
+
+**MVP/Prototype à proposer aux voisins de la rue**  
+**Cible :** 5-10 personnes (test utilisateur réel en conditions naturelles)  
+**Timeline :** Lancement prévu dans 2 semaines
+
+## Red Routes prioritaires
+
+### ✅ RED ROUTE 1 : Création de compte + invitation
+**Status :** ⚠️ PARTIELLEMENT PRÊT
+
+**Ce qui fonctionne :**
+- Onboarding fonctionnel (création compte)
+- Auth Supabase opérationnelle
+
+**Ce qui MANQUE :**
+- ❌ Système d'invitation par membre (pas implémenté)
+- ❌ Workflow de validation modérateur (pas implémenté)
+- ❌ Gestion multi-communautés (structure DB anticipée, pas codée)
+
+**Solution temporaire pour test :**
+- Comptes créés manuellement en SQL par Vincent
+- Bypass invitation pour Phase 1
+- Système invitation = Phase 2 après feedback
+
+### ✅ RED ROUTE 2 : Ajout objet incitatif dès onboarding
+**Status :** ⚠️ PARTIELLEMENT PRÊT
+
+**Ce qui fonctionne :**
+- Formulaire ajout objet complet
+- Upload photo opérationnel
+- Catégorisation IA
+
+**Ce qui MANQUE :**
+- ❌ Onboarding ne pousse PAS vers ajout objet (pas de tunnel guidé)
+- ❌ Pas de blocage si user skip
+
+**Action requise :**
+- Modifier onboarding : redirection auto vers 'Ajouter un objet' après inscription
+- Écran intermédiaire : 'Partagez votre premier objet ! 🎉'
+- **Estimation :** 1-2h
+
+### ✅ RED ROUTE 3 : Recherche + flow prêt complet
+**Status :** ✅ 100% FONCTIONNEL
+
+**Ce qui fonctionne :**
+- Moteur de recherche opérationnel
+- Page 0 résultat avec 'Avis de recherche'
+- Parcours emprunt complet (Demander → Accepter → Remettre → Retourner)
+- QR codes scan + validation manuelle
+- Onglet Transactions restructuré en 4 phases
+
+**Rien à faire, prêt pour le test ! 🎉**
+
+### ✅ RED ROUTE 4 : Incitation CO₂
+**Status :** ✅ FONCTIONNEL
+
+**Ce qui fonctionne :**
+- Calcul CO₂ par objet (catégorisation IA)
+- Ring CO₂ dans Profil (niveau 3 / X kg évité)
+- Badge CO₂ sur toutes les cards objets
+
+**Améliorations futures (Phase 2) :**
+- Écran 'Impact CO₂' dédié avec graphique
+- Comparaison communauté
+- Notifications 'Tu as évité X kg ce mois-ci'
+
+**Suffisant tel quel pour le test.**
+
+### ❌ RED ROUTE 5 : BO création + suivi communautés
+**Status :** ❌ PAS IMPLÉMENTÉ
+
+**Ce qui manque :**
+- ❌ Back-office admin (interface web)
+- ❌ CRUD communautés
+- ❌ CRUD membres
+- ❌ Dashboard suivi activité
+
+**Solution temporaire pour test :**
+- Gestion en SQL directement dans Supabase
+- Tables déjà créées : communities, members, items, loans
+- **BO custom = Phase 2 après validation concept**
+- **Estimation si implémentation :** 10-15h
+
+---
+
+## 📋 PLAN D'ACTION TEST RUE
+
+### ⚡ OPTION RETENUE : 'Smart MVP' (10-14h)
+
+**Stratégie :** Implémenter le strict minimum pour red routes + sécurité de base
+
+### 🔥 Chantiers OBLIGATOIRES avant lancement (priorité ordre)
+
+#### 1. DT-09 : RLS sécurisées (3-4h) 🚨 BLOQUANT SÉCURITÉ
+**Pourquoi obligatoire :**
+- Actuellement policies INSERT permissives (WITH CHECK true) = tout le monde peut tout créer
+- Même pour 10 voisins, il faut sécuriser
+- Un voisin curieux ne doit pas accéder aux données des autres
+
+**Actions :**
+- Implémenter Option A : ajouter auth_user_id dans members
+- Remplacer tous les WITH CHECK (true) par policies strictes
+- Tester INSERTs post-migration
+
+#### 2. VIEWPORT-01 : Configuration mobile + Safe-area (1-2h) 🚨 BLOQUANT UX
+**Pourquoi obligatoire :**
+- Sans ça, UI cassée sur certains iPhone (notamment SE 320px)
+- Première impression critique : 'proto qui marche pas' vs 'app pro'
+- Coût/bénéfice énorme (1-2h pour gain UX majeur)
+
+**Actions :**
+- Meta viewport configuré (width=device-width, user-scalable=no, viewport-fit=cover)
+- Safe-area iPhone (env(safe-area-inset-top/bottom))
+- PWA manifest (display: standalone, orientation: portrait)
+- Tests rapides sur 3 tailles (iPhone SE / 13 / 14 Pro Max)
+
+#### 3. ONBOARD-01 : Tunnel guidé vers ajout objet (1-2h) 🎯 RED ROUTE 2
+**Pourquoi obligatoire :**
+- Sans ça, users finissent onboarding sans ajouter d'objet
+- Communauté vide = pas de valeur
+- Red route critique pour engagement initial
+
+**Actions :**
+- Redirection auto vers 'Ajouter un objet' après inscription
+- Écran intermédiaire : 'Partagez votre premier objet pour rejoindre la communauté !'
+- Message encourageant avant formulaire
+
+#### 4. CH-03 : Notifications badge (3-4h) 🔔 ENGAGEMENT
+**Pourquoi obligatoire :**
+- Sans ça, users ne voient pas les demandes de prêt
+- Engagement critique pour test
+- Feedback visuel nécessaire
+
+**Actions :**
+- Badge rouge sur onglet Transactions
+- Compteur notifications non lues
+- INSERT notifications lors des actions
+- Marquer comme 'lu'
+
+#### 5. Tests multi-devices (1-2h) ✅ VALIDATION
+**Actions :**
+- Parcours complet sur iPhone SE / 13 / 14 Pro Max
+- Vérifier responsive sur 320px-428px
+- Tests QR codes
+- Tests ajout photo
+
+---
+
+### 📅 Timeline recommandée
+
+**Semaine 1 (10-14h dev) :**
+- Lundi-Mardi : RLS sécurisées (3-4h)
+- Mercredi : Viewport + Safe-area (1-2h)
+- Jeudi : Onboarding → Ajout objet (1-2h)
+- Vendredi-Weekend : Notifications badge (3-4h)
+- Dimanche : Tests devices (1-2h)
+
+**Semaine 2 :**
+- Création 5-10 comptes voisins manuellement (SQL)
+- Envoi login/password
+- **🚀 LANCEMENT TEST RUE**
+
+**Après 2-3 semaines de feedback :**
+- Si ça marche → Coder système invitation + BO
+- Si ça marche pas → Pivoter avant d'investir 20h+
+
+---
+
+### ⏸️ Chantiers DIFFÉRÉS (Phase 2 post-feedback)
+
+**Nice-to-have mais pas bloquants :**
+- RESP-01 : Responsive audit complet (4-6h) → Viewport suffit pour Phase 1
+- CH-05 : Upload photo amélioré compression + crop (2-3h)
+- Splash screen (1-2h)
+- Section 'Bouteilles à la mer' sur Home (2-3h)
+- Notification retour 'Avis de recherche' visuelle (1-2h)
+- Réactiver limite anti-spam 1/24h
+- Expiration auto avis recherche 7j
+- Système invitation membre complet (4-6h)
+- Back-office admin (10-15h)
+
+---
+
+### 🎯 Couverture Red Routes après chantiers obligatoires
+
+| Red Route | Avant | Après |
+|-----------|-------|-------|
+| 1. Création compte | ⚠️ Manuel | ⚠️ Manuel (OK pour test) |
+| 2. Ajout objet onboarding | ❌ | ✅ Tunnel guidé |
+| 3. Recherche + prêt | ✅ | ✅ |
+| 4. CO₂ | ✅ | ✅ |
+| 5. BO admin | ❌ | ❌ (SQL direct) |
+
+**Verdict : Suffisant pour tester le concept avec 10 voisins.**
+
+---
 
 ## ✅ TERMINÉ
 
@@ -21,6 +223,33 @@ Dernière mise à jour : 13 mai 2026 00:10
 ### Toggle archivées
 - Afficher/masquer archivées dans Transactions
 - **Status : FONCTIONNEL** ✅
+
+### Page 0 résultat (moteurs de recherche) - Refonte complète
+- Icône bouteille à la mer (SVG vert charte #00A651)
+- Textes FLO : "Lancez une bouteille à la mer !"
+- Fix keyboard overlap (padding-bottom 300px)
+- Scroll to top avant ouverture modal
+- Bouton désactivé après envoi
+- Logique dupliquée sur page Objets
+- **Status : COMPLET ET FONCTIONNEL** ✅
+
+### Onglet 'Transactions' (ex-Demandes) - Restructuration complète
+- 4 sections par phase de prêt :
+  - Demandes de prêts à valider (badge rouge)
+  - En attente du propriétaire
+  - Organiser la remise
+  - Planifier le retour
+- Toggle archivées accessible
+- Suppression logique "Bouteilles à la mer" (déplacée ailleurs)
+- **Status : COMPLET ET FONCTIONNEL** ✅
+
+### Template card unifié 2 lignes - Design System
+- Structure : Titre objet (ellipsis) + Chevron / Pills user + CO₂
+- Pill "Vous" : vert #00A651
+- Pill autre user : gris #F0F0F0
+- Pill CO₂ : fond #E8F5E9, texte #00A651
+- Déployé sur : Home, Profil (Objets/Prêtés/Empruntés), Transactions, SERP, Page Objets
+- **Status : COMPLET ET FONCTIONNEL** ✅
 
 ---
 
@@ -1285,6 +1514,63 @@ Complexité : 🔴 Élevée — ~10 000 tokens
 - [ ] RESP-01 : Responsive global
 
 **Commits :** 10 commits effectués
+
+---
+
+### Session 19 Mai 2026 - Soirée
+
+**Durée** : ~3h  
+**Focus** : Uniformisation UI + restructuration onglet Transactions
+
+**Réalisations :**
+
+✅ **Page 0 résultat (moteurs de recherche) - Refonte complète**
+   - Icône bouteille à la mer (SVG vert charte) remplace l'emoji loupe
+   - Textes FLO : "Lancez une bouteille à la mer !" (titre vert)
+   - "Il n'y a pas d'**Aspirateur** dans FLO" (mot recherché en bold)
+   - "Un Floteur en a sans doute un qu'il n'a pas encore déclaré"
+   - Fix keyboard overlap (padding-bottom 300px)
+   - Scroll to top avant ouverture modal
+   - Bouton désactivé après envoi ("✓ Demande envoyée")
+   - Logique dupliquée sur page Objets (même comportement)
+
+✅ **Onglet 'Demandes' → 'Transactions' - Restructuration complète**
+   - Renommage de l'onglet
+   - 4 sections claires par phase de prêt
+   - Suppression logique "Bouteilles à la mer"
+   - Toggle accessible
+
+✅ **Template card unifié 2 lignes - Design System**
+   - Structure : Ligne 1 (Titre + Chevron) / Ligne 2 (Pills user + CO₂)
+   - Pills : Vous (vert), autre user (gris), CO₂ (vert clair)
+   - Déployé partout : Home, Profil, Transactions, SERP, Page Objets
+
+✅ **Bugs UI résolus**
+   - Double encadré, alignement pills, ellipsis titres
+
+**Décisions d'architecture :**
+- Transactions = Suivi pur des prêts
+- Bouteilles à la mer → ailleurs (découverte collective)
+- Template unique = cohérence totale
+
+**Commits effectués :**
+1. UX: Page 0 résultat - Icône bouteille + textes FLO + fix keyboard overlap
+2. UX: Scroll to top avant ouverture modal
+3. UX: Uniformiser moteurs recherche
+4. Refonte: Onglet Transactions - 4 sections
+5. Fix: Double encadré + alignement pills
+6. UX: Template 2 lignes unifié
+
+**Prochaines étapes :**
+- Section "Bouteilles à la mer" sur Home
+- Phase 6 : Notification retour "Avis de recherche"
+- Réactiver RLS (DT-09)
+- CH-03 : Notifications badge
+- Splash screen
+
+**Méthodologie :**
+- Brief → Discussion → Co-écriture → Claude Code → Commit manuel
+- Pas d'instructions commit/push dans les briefs
 
 ---
 
