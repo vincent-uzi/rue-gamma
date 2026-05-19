@@ -2236,7 +2236,7 @@
     </div>
 
     <!-- Tab cards -->
-    <div style="display:flex;gap:8px;padding:16px;border-bottom:1px solid var(--line);">
+    <div style="display:flex;gap:8px;padding:16px 16px 12px;">
       <button onclick="switchProfileTab('objets')" id="tab-objets" class="profile-tab active">
         <span class="tab-count" id="tab-objets-count">—</span>
         <span class="tab-label">Objets</span>
@@ -2256,12 +2256,12 @@
       <div class="items-list" id="profileItemsList" role="list"></div>
     </div>
 
-    <div id="profile-tab-prete" style="display:none;padding:16px 16px 0;">
-      <div class="items-list" id="profileLentList" role="list"></div>
+    <div id="profile-tab-prete" style="display:none;padding:0 16px 0;">
+      <div id="profileLentList" role="list"></div>
     </div>
 
-    <div id="profile-tab-emprunte" style="display:none;padding:16px 16px 0;">
-      <div class="items-list" id="profileBorrowedList" role="list"></div>
+    <div id="profile-tab-emprunte" style="display:none;padding:0 16px 0;">
+      <div id="profileBorrowedList" role="list"></div>
     </div>
 
   </div><!-- /.profile-scroll -->
