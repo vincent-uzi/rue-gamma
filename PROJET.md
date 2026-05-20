@@ -100,18 +100,7 @@ Dernière mise à jour : 19 mai 2026 22:30
 
 ### 🔥 Chantiers OBLIGATOIRES avant lancement (priorité ordre)
 
-#### 1. DT-09 : RLS sécurisées (3-4h) 🚨 BLOQUANT SÉCURITÉ
-**Pourquoi obligatoire :**
-- Actuellement policies INSERT permissives (WITH CHECK true) = tout le monde peut tout créer
-- Même pour 10 voisins, il faut sécuriser
-- Un voisin curieux ne doit pas accéder aux données des autres
-
-**Actions :**
-- Implémenter Option A : ajouter auth_user_id dans members
-- Remplacer tous les WITH CHECK (true) par policies strictes
-- Tester INSERTs post-migration
-
-#### 2. VIEWPORT-01 : Configuration mobile + Safe-area (1-2h) 🚨 BLOQUANT UX
+#### 1. VIEWPORT-01 : Configuration mobile + Safe-area (1-2h) 🚨 BLOQUANT UX
 **Pourquoi obligatoire :**
 - Sans ça, UI cassée sur certains iPhone (notamment SE 320px)
 - Première impression critique : 'proto qui marche pas' vs 'app pro'
@@ -123,7 +112,7 @@ Dernière mise à jour : 19 mai 2026 22:30
 - PWA manifest (display: standalone, orientation: portrait)
 - Tests rapides sur 3 tailles (iPhone SE / 13 / 14 Pro Max)
 
-#### 3. ONBOARD-01 : Tunnel guidé vers ajout objet (1-2h) 🎯 RED ROUTE 2
+#### 2. ONBOARD-01 : Tunnel guidé vers ajout objet (1-2h) 🎯 RED ROUTE 2
 **Pourquoi obligatoire :**
 - Sans ça, users finissent onboarding sans ajouter d'objet
 - Communauté vide = pas de valeur
@@ -134,7 +123,7 @@ Dernière mise à jour : 19 mai 2026 22:30
 - Écran intermédiaire : 'Partagez votre premier objet pour rejoindre la communauté !'
 - Message encourageant avant formulaire
 
-#### 4. CH-03 : Notifications badge (3-4h) 🔔 ENGAGEMENT
+#### 3. CH-03 : Notifications badge (3-4h) 🔔 ENGAGEMENT
 **Pourquoi obligatoire :**
 - Sans ça, users ne voient pas les demandes de prêt
 - Engagement critique pour test
@@ -146,7 +135,7 @@ Dernière mise à jour : 19 mai 2026 22:30
 - INSERT notifications lors des actions
 - Marquer comme 'lu'
 
-#### 5. Tests multi-devices (1-2h) ✅ VALIDATION
+#### 4. Tests multi-devices (1-2h) ✅ VALIDATION
 **Actions :**
 - Parcours complet sur iPhone SE / 13 / 14 Pro Max
 - Vérifier responsive sur 320px-428px
@@ -157,12 +146,11 @@ Dernière mise à jour : 19 mai 2026 22:30
 
 ### 📅 Timeline recommandée
 
-**Semaine 1 (10-14h dev) :**
-- Lundi-Mardi : RLS sécurisées (3-4h)
-- Mercredi : Viewport + Safe-area (1-2h)
-- Jeudi : Onboarding → Ajout objet (1-2h)
-- Vendredi-Weekend : Notifications badge (3-4h)
-- Dimanche : Tests devices (1-2h)
+**Semaine 1 (6-10h dev) :**
+- Lundi : Viewport + Safe-area (1-2h)
+- Mardi : Onboarding → Ajout objet (1-2h)
+- Mercredi-Jeudi : Notifications badge (3-4h)
+- Vendredi : Tests devices (1-2h)
 
 **Semaine 2 :**
 - Création 5-10 comptes voisins manuellement (SQL)
@@ -251,6 +239,18 @@ Dernière mise à jour : 19 mai 2026 22:30
 - Déployé sur : Home, Profil (Objets/Prêtés/Empruntés), Transactions, SERP, Page Objets
 - **Status : COMPLET ET FONCTIONNEL** ✅
 
+### DT-09 : Policies RLS sécurisées
+- Architecture simplifiée : members.id = auth.users.id
+- Colonne auth_user_id supprimée (inutile)
+- 4 policies INSERT strictes :
+  - items : auth.uid() = owner_id
+  - loans : auth.uid() = borrower_id
+  - search_requests : auth.uid() = requester_id
+  - search_request_responses : auth.uid() = responder_id
+- Policies SELECT restent publiques (lecture ouverte OK pour MVP)
+- **Status : COMPLET ET FONCTIONNEL** ✅
+- **Testé : Parcours complet Demande → Validation → Remise → Restitution**
+
 ---
 
 ## ❌ À FAIRE
@@ -262,56 +262,6 @@ Dernière mise à jour : 19 mai 2026 22:30
 - Marquer comme "lu"
 - **Status : PAS COMMENCÉ** ❌
 - **Estimation : 3-4h**
-
-### DT-09 : Policies RLS sécurisées
-- **Status : PARTIELLEMENT FAIT ⚠️**
-- **Priorité : URGENTE** 🔥
-- **Estimation restante : 3-4h**
-
-#### Situation actuelle (19 mai 2026)
-
-Les RLS sont activées sur toutes les tables **mais les policies INSERT sont temporairement permissives** (`WITH CHECK (true)`) car il y a un problème d'architecture non résolu.
-
-**Le problème fondamental :**
-`auth.uid()` (UUID Supabase Auth) ≠ `members.id` (UUID de la table members)
-
-Les deux sont des UUID différents. Quand on fait `WITH CHECK (auth.uid() = owner_id)`, Supabase compare l'UUID Auth avec l'UUID members → toujours `false` → INSERT rejeté pour tout le monde.
-
-#### Ce qui est fait ✅
-- RLS activées sur toutes les tables
-- Policies SELECT : `USING (true)` → lecture publique OK pour MVP
-- Policies INSERT sur `items`, `loans`, `search_requests`, `search_request_responses` : **temporairement `WITH CHECK (true)`** pour débloquer les INSERTs
-
-#### Ce qui reste à faire ❌
-
-**Option A (recommandée) : Ajouter `auth_user_id` dans `members`**
-```sql
-ALTER TABLE members ADD COLUMN auth_user_id UUID REFERENCES auth.users(id);
--- Mettre à jour les utilisateurs existants
-UPDATE members SET auth_user_id = auth.uid() WHERE ...; -- à faire manuellement ou via trigger
--- Puis remplacer les policies :
-CREATE POLICY "owner insert" ON items
-  FOR INSERT WITH CHECK (
-    auth.uid() = (SELECT auth_user_id FROM members WHERE id = owner_id)
-  );
-```
-
-**Option B (migration complète) : Utiliser `auth.uid()` comme PK de `members`**
-- Migration plus lourde, casse toutes les FK existantes
-- Réservé si on repart de zéro
-
-#### Actions immédiates avant prod
-- [ ] Choisir Option A ou B
-- [ ] Implémenter le lien `auth_user_id` ↔ `members.id`
-- [ ] Remplacer tous les `WITH CHECK (true)` par des policies strictes
-- [ ] Tester que les INSERTs fonctionnent encore après
-- [ ] Vérifier que les SELECT restent publics (ou restreindre à la communauté)
-
-#### Tables à auditer
-- `items` : INSERT doit vérifier que `owner_id` = membre connecté
-- `loans` : INSERT doit vérifier que `borrower_id` = membre connecté
-- `search_requests` : INSERT doit vérifier que `requester_id` = membre connecté
-- `search_request_responses` : INSERT doit vérifier que `responder_id` = membre connecté
 
 ### Splash screen
 - Écran de chargement pendant init
@@ -1562,9 +1512,9 @@ Complexité : 🔴 Élevée — ~10 000 tokens
 6. UX: Template 2 lignes unifié
 
 **Prochaines étapes :**
+- [x] ~~DT-09 : RLS sécurisées~~ ✅ TERMINÉ (19 mai 22h30)
 - Section "Bouteilles à la mer" sur Home
 - Phase 6 : Notification retour "Avis de recherche"
-- Réactiver RLS (DT-09)
 - CH-03 : Notifications badge
 - Splash screen
 
