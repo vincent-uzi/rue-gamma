@@ -1575,7 +1575,6 @@
     }
     .bottle-carousel::-webkit-scrollbar { display: none; }
     .bottle-card {
-      min-width: 90%;
       scroll-snap-align: start;
       padding: 24px;
       background: #ffeaa7;
@@ -3024,6 +3023,9 @@ function _renderCarousel(userId) {
   if (!carousel) return;
   carousel.innerHTML = '';
 
+  const single = _homeBottles.length === 1;
+  carousel.style.overflowX = single ? 'visible' : 'auto';
+
   _homeBottles.forEach(sr => {
     const isOwn = sr.requester_id === userId;
     const requesterName = (sr.requester && sr.requester.first_name) || 'Un voisin';
@@ -3031,6 +3033,8 @@ function _renderCarousel(userId) {
     const card = document.createElement('div');
     card.className = 'bottle-card';
     card.dataset.id = sr.id;
+    card.style.minWidth = single ? '100%' : '95%';
+    card.style.width = single ? '100%' : '95%';
 
     const body = document.createElement('p');
     body.style.cssText = 'font-size:18px;font-weight:bold;color:#333;margin:0 0 16px 0;line-height:1.4;';
