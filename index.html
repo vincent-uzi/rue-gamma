@@ -3025,6 +3025,8 @@ function _renderCarousel(userId) {
 
   const single = _homeBottles.length === 1;
   carousel.style.overflowX = single ? 'visible' : 'auto';
+  carousel.style.margin = single ? '0' : '0 -20px';
+  carousel.style.padding = single ? '0' : '0 20px';
 
   _homeBottles.forEach(sr => {
     const isOwn = sr.requester_id === userId;
