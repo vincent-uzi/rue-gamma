@@ -1578,7 +1578,7 @@
       min-width: 90%;
       scroll-snap-align: start;
       padding: 24px;
-      background: #F4D8C5;
+      background: #f9ca24;
       border: 1px solid #F0F0F0;
       border-radius: 12px;
       flex-shrink: 0;
@@ -3044,15 +3044,13 @@ function _renderCarousel(userId) {
     card.appendChild(title);
 
     const body = document.createElement('p');
-    body.style.cssText = 'font-size:14px;color:#888;margin:0 0 24px 0;';
+    body.style.cssText = 'font-size:14px;color:#888;margin:0 0 8px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
     const who = document.createElement('span');
-    who.textContent = isOwn ? 'Vous recherchez' : requesterName + ' recherche';
-    const br = document.createElement('br');
+    who.textContent = (isOwn ? 'Vous recherchez' : requesterName + ' recherche') + ' ';
     const item = document.createElement('strong');
-    item.style.color = '#333';
+    item.style.color = '#1F9D55';
     item.textContent = sr.item_name || '—';
     body.appendChild(who);
-    body.appendChild(br);
     body.appendChild(item);
     card.appendChild(body);
 
