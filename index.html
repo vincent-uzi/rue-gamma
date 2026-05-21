@@ -1463,6 +1463,156 @@
     .step-btn-primary   { background: var(--accent); color: var(--accent-ink); }
     .step-btn-secondary { background: var(--surface-alt); color: var(--text); }
 
+    /* ── Home v2 ───────────────────────────────────────────────── */
+    .home-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 20px 0 16px;
+      gap: 12px;
+    }
+    .home-street {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 0 0 4px;
+      line-height: 1.2;
+    }
+    .home-meta { font-size: 14px; color: var(--text-muted); margin: 0; }
+
+    .home-search-block {
+      background: #E8F5E9;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      cursor: pointer;
+      transition: opacity .12s;
+    }
+    .home-search-block:active { opacity: .85; }
+    .home-search-label { font-size: 16px; color: var(--text); margin: 0 0 12px; }
+    .home-search-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: white;
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+    .home-search-placeholder { font-size: 16px; color: var(--text-muted); }
+
+    .home-metrics { margin-bottom: 24px; }
+    .home-metrics-title { font-size: 20px; font-weight: 700; color: var(--text); margin: 0 0 16px; }
+    .home-metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .metric-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      position: relative;
+    }
+    .metric-card--link { cursor: pointer; transition: background .12s; }
+    .metric-card--link:active { background: var(--surface-alt); }
+    .metric-label, .metric-sublabel { font-size: 12px; color: var(--text-muted); margin: 0; }
+    .metric-label { margin-bottom: 8px; }
+    .metric-sublabel { margin-top: 8px; }
+    .metric-value {
+      font-size: 40px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 0;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -1px;
+    }
+    .metric-unit { font-size: 20px; font-weight: 700; letter-spacing: 0; }
+    .metric-chevron {
+      position: absolute;
+      bottom: 10px;
+      right: 12px;
+      font-size: 18px;
+      color: var(--text-muted);
+      line-height: 1;
+    }
+
+    .home-cta-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      gap: 16px;
+    }
+    .home-cta-title { font-size: 18px; font-weight: 700; color: var(--text); margin: 0 0 8px; }
+    .home-cta-sub { font-size: 14px; color: var(--text-muted); margin: 0; }
+    .home-cta-accent { color: #00A651; font-weight: 700; }
+    .btn-add-round {
+      width: 64px;
+      height: 64px;
+      min-width: 64px;
+      border-radius: 50%;
+      background: #1F9D55;
+      color: white;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 10px rgba(31,157,85,0.35);
+      transition: opacity .12s;
+    }
+    .btn-add-round:active { opacity: .8; }
+
+    .home-bottle-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    .bottle-header { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+    .bottle-title { font-size: 16px; font-weight: 700; color: var(--text); margin: 0; flex: 1; }
+    .bottle-requester { font-size: 14px; color: var(--text-muted); margin: 0 0 6px; }
+    .bottle-item-name { font-size: 22px; font-weight: 700; color: var(--text); margin: 0 0 20px; line-height: 1.2; }
+    .bottle-actions { display: flex; gap: 12px; }
+    .btn-bottle-no {
+      flex: 1; padding: 12px; border-radius: 8px;
+      border: 1px solid var(--line); background: var(--surface-alt);
+      color: var(--text); font-size: 15px; font-weight: 500;
+      font-family: var(--font); cursor: pointer; transition: opacity .12s;
+    }
+    .btn-bottle-no:active { opacity: .7; }
+    .btn-bottle-yes {
+      flex: 1; padding: 12px; border-radius: 8px;
+      border: none; background: #1F9D55; color: white;
+      font-size: 15px; font-weight: 500;
+      font-family: var(--font); cursor: pointer; transition: opacity .12s;
+    }
+    .btn-bottle-yes:active { opacity: .85; }
+    .bottle-dots { display: flex; justify-content: center; gap: 6px; margin-top: 16px; }
+    .bottle-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--line); transition: background .2s; }
+    .bottle-dot.active { background: #00A651; }
+
+    .home-contact-go { text-align: center; padding: 8px 0 16px; }
+    .contact-title { font-size: 16px; font-weight: 700; color: var(--text); margin: 0 0 8px; }
+    .contact-sub { font-size: 14px; color: var(--text-muted); margin: 0 0 12px; }
+    .contact-pill {
+      display: inline-block;
+      background: var(--surface-alt);
+      border: 1px solid var(--line);
+      color: var(--text);
+      padding: 8px 16px;
+      border-radius: 16px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: opacity .12s;
+    }
+    .contact-pill:active { opacity: .7; }
+
     /* ── Objects screen ────────────────────────────────────────── */
     .t-title2 { font-size: 22px; font-weight: 700; line-height: 28px; letter-spacing: -0.2px; }
     .obj-nav {
@@ -1990,15 +2140,13 @@
 <div class="screen" id="panel-home">
   <div class="scroll">
 
-    <!-- ── Header communauté ──────────────────────────────── -->
-    <header class="community-header">
+    <!-- ── 1. Header ──────────────────────────────────────── -->
+    <header class="home-header">
       <div>
-        <p class="t-caption header-caption">Ma rue</p>
-        <h1 class="t-large-title header-street" id="community-name">Rue des Vignoles</h1>
-        <p class="t-subhead header-meta" id="community-meta">34 voisins · 142 objets</p>
+        <h1 class="home-street" id="community-name">Rue Charles-Saint-Venant</h1>
+        <p class="home-meta"><span id="community-meta-voisins">3</span> voisins · <span id="community-meta-objets">142</span> objets</p>
       </div>
       <button class="share-btn" aria-label="Partager" onclick="shareKolkoze()">
-        <!-- Share : 3 circles + 2 lines -->
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
           <circle cx="14" cy="4"  r="2.2" stroke="currentColor" stroke-width="1.5"/>
           <circle cx="4"  cy="9"  r="2.2" stroke="currentColor" stroke-width="1.5"/>
@@ -2009,35 +2157,70 @@
       </button>
     </header>
 
-    <!-- ── Champ recherche (passif) ───────────────────────── -->
-    <div class="search-bar" role="button" tabindex="0" aria-label="Rechercher un objet" onclick="showSearch()">
-      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-        <circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.6"/>
-        <line x1="14" y1="14" x2="18.5" y2="18.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-      </svg>
-      <span class="t-body placeholder">Rechercher un objet</span>
+    <!-- ── 2. Recherche ───────────────────────────────────── -->
+    <div class="home-search-block" role="button" tabindex="0" aria-label="Rechercher un objet" onclick="showSearch()">
+      <p class="home-search-label">Trouver cet objet</p>
+      <div class="home-search-input-wrap">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true" style="color:var(--text-muted);flex-shrink:0;">
+          <circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.6"/>
+          <line x1="14" y1="14" x2="18.5" y2="18.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+        <span class="home-search-placeholder">Perceuse, échelle, vélo…</span>
+      </div>
     </div>
 
-    <!-- ── Bandeau CO₂ rue ────────────────────────────────── -->
-    <div class="co2-strip" aria-label="CO₂ économisé ce mois-ci">
-      <div>
-        <p class="t-caption co2-label">La rue ce mois-ci</p>
-        <div class="co2-value-row">
-          <span class="co2-number">312</span>
-          <span class="t-callout co2-unit">kg CO₂ évités</span>
+    <!-- ── 3. Metrics ─────────────────────────────────────── -->
+    <section class="home-metrics">
+      <h2 class="home-metrics-title">Bravo la commu !</h2>
+      <div class="home-metrics-grid">
+        <div class="metric-card">
+          <p class="metric-label">Ce mois-ci</p>
+          <p class="metric-value"><span id="home-co2-month">—</span> <span class="metric-unit">kg</span></p>
+          <p class="metric-sublabel">CO₂ évités</p>
+        </div>
+        <div class="metric-card metric-card--link" id="btn-objets-dispo" onclick="showObjects()" role="button" tabindex="0" aria-label="Voir tous les objets disponibles">
+          <p class="metric-label">Objets</p>
+          <p class="metric-value"><span id="home-objects-count">—</span></p>
+          <p class="metric-sublabel">disponibles</p>
+          <span class="metric-chevron" aria-hidden="true">›</span>
         </div>
       </div>
-      <!-- Mini bar chart — même données que le prototype -->
-      <div class="bar-chart" aria-hidden="true" id="barChart"></div>
+    </section>
+
+    <!-- ── 4. CTA Dynamique ───────────────────────────────── -->
+    <!-- Version A : pas de bouteille -->
+    <div class="home-cta-card" id="card-add-object">
+      <div style="flex:1;min-width:0;">
+        <h3 class="home-cta-title">Délivrez un nouvel objet !</h3>
+        <p class="home-cta-sub">Vous partagez <span id="home-user-count" class="home-cta-accent">…</span>, continuez !</p>
+      </div>
+      <button class="btn-add-round" onclick="_navigateTo(‘add’)" aria-label="Ajouter un objet">
+        <svg width="28" height="28" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+          <path d="M9 3v12M3 9h12" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+        </svg>
+      </button>
     </div>
 
-    <!-- ── Section "Récemment ajoutés" ────────────────────── -->
-    <div class="section-header">
-      <h2 class="t-title3">Récemment ajoutés</h2>
+    <!-- Version B : bouteille(s) active(s) -->
+    <div class="home-bottle-card" id="card-bottle-request" style="display:none;">
+      <div class="bottle-header">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="flex-shrink:0;">
+          <path d="M10 2h4v3l1 1v2a5 5 0 010 10v2l-1 1H10l-1-1v-2a5 5 0 010-10V6l1-1V2z" stroke="#1F9D55" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M9 18h6" stroke="#1F9D55" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+        <h3 class="bottle-title">Avis de recherche</h3>
+        <span id="bottle-count-label" style="font-size:12px;color:var(--text-muted);white-space:nowrap;"></span>
+      </div>
+      <div id="bottle-content"></div>
+      <div class="bottle-dots" id="bottle-dots"></div>
     </div>
 
-    <!-- ── Liste d’items ──────────────────────────────────── -->
-    <div id="itemsList" role="list"></div>
+    <!-- ── 5. Contact G.O ─────────────────────────────────── -->
+    <div class="home-contact-go">
+      <h3 class="contact-title">Une question ?</h3>
+      <p class="contact-sub">Contactez le G.O de votre communauté</p>
+      <div id="pill-go" class="contact-pill" role="button" tabindex="0" onclick="contactGO()">Vincent</div>
+    </div>
 
   </div><!-- /.scroll -->
 
@@ -2687,14 +2870,9 @@ const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 // ── Items data (fallback statique) ────────────────────────────
 const ITEMS = [];
 
-// ── Bar chart ─────────────────────────────────────────────────
-// Heights from the design prototype
-[18, 32, 22, 41, 28, 36, 30].forEach((h, i, arr) => {
-  const bar = document.createElement('div');
-  bar.className = 'bar' + (i === arr.length - 1 ? ' current' : '');
-  bar.style.height = h + 'px';
-  document.getElementById('barChart').appendChild(bar);
-});
+// ── Bar chart (legacy — barChart element removed) ─────────────
+// const _bc = document.getElementById('barChart');
+// if (_bc) [18,32,22,41,28,36,30].forEach(...);
 
 // ── Items render ──────────────────────────────────────────────
 function pill(name, no) {
@@ -2740,47 +2918,224 @@ function renderItemRow(list, item) {
   list.appendChild(el);
 }
 
-async function loadHomeItems() {
-  const list = document.getElementById('itemsList');
-  const { data, error } = await db
-    .from('items')
-    .select('*, owner:members!owner_id(first_name)')
-    .eq('community_id', COMMUNITY_ID)
-    .eq('status', 'available')
-    .order('created_at', { ascending: false })
-    .limit(6);
+// ── Home data loading ─────────────────────────────────────────
 
-  list.innerHTML = '';
+let _homeBottles = [];
+let _homeBottleIdx = 0;
 
-  if (error) {
-    list.innerHTML = '<p style="padding:24px 16px;text-align:center;color:var(--text-muted);font-size:15px;">Impossible de charger les objets</p>';
+async function loadHomeData() {
+  const userId = localStorage.getItem('member_id');
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
+
+  const [objCountRes, userObjRes, searchReqRes, modRes] = await Promise.all([
+    // Objets disponibles
+    db.from('items')
+      .select('id', { count: 'exact', head: true })
+      .eq('community_id', COMMUNITY_ID)
+      .eq('status', 'available'),
+    // Objets de l'utilisateur
+    userId
+      ? db.from('items').select('id', { count: 'exact', head: true }).eq('owner_id', userId)
+      : Promise.resolve({ count: 0 }),
+    // Avis de recherche actifs
+    db.from('search_requests')
+      .select('id, item_name, requester_id, status, created_at')
+      .eq('community_id', COMMUNITY_ID)
+      .eq('status', 'open')
+      .order('created_at', { ascending: true }),
+    // Modérateur
+    db.from('members')
+      .select('first_name, phone')
+      .eq('community_id', COMMUNITY_ID)
+      .eq('is_moderator', true)
+      .limit(1)
+      .maybeSingle(),
+  ]);
+
+  // Objets count → header meta + metric
+  if (objCountRes.count != null) {
+    const metaObjEl = document.getElementById('community-meta-objets');
+    if (metaObjEl) metaObjEl.textContent = objCountRes.count;
+    const homeObjEl = document.getElementById('home-objects-count');
+    if (homeObjEl) homeObjEl.textContent = objCountRes.count;
+  }
+
+  // CO₂ ce mois (loans returned_at >= start of month)
+  _loadHomeCO2(startOfMonth);
+
+  // Objets user → CTA texte
+  const n = userObjRes.count ?? 0;
+  const userCountEl = document.getElementById('home-user-count');
+  if (userCountEl) userCountEl.textContent = n + ' objet' + (n !== 1 ? 's' : '');
+
+  // Modérateur → pill G.O
+  if (modRes.data) {
+    const pillGO = document.getElementById('pill-go');
+    if (pillGO) {
+      pillGO.textContent = modRes.data.first_name || 'G.O';
+      if (modRes.data.phone) pillGO.dataset.phone = modRes.data.phone;
+    }
+  }
+
+  // Bouteilles à la mer
+  const dismissed = JSON.parse(localStorage.getItem('dismissed_bottles') || '[]');
+  const bottles = (searchReqRes.data || []).filter(r => !dismissed.includes(r.id));
+  _initBottles(bottles, userId);
+}
+
+async function _loadHomeCO2(startOfMonth) {
+  const { data } = await db
+    .from('loans')
+    .select('item:items!item_id(co2_saved_kg, community_id)')
+    .not('returned_at', 'is', null)
+    .gte('returned_at', startOfMonth.toISOString());
+  if (!data) return;
+  const total = data
+    .filter(l => l.item?.community_id === COMMUNITY_ID)
+    .reduce((s, l) => s + (parseFloat(l.item?.co2_saved_kg) || 0), 0);
+  const el = document.getElementById('home-co2-month');
+  if (el) el.textContent = total > 0 ? total.toFixed(1).replace('.', ',') : '0';
+}
+
+// ── Bouteilles à la mer (Home) ────────────────────────────────
+
+function _initBottles(bottles, userId) {
+  _homeBottles = bottles;
+  _homeBottleIdx = 0;
+
+  const cardAdd = document.getElementById('card-add-object');
+  const cardBottle = document.getElementById('card-bottle-request');
+
+  if (!bottles.length) {
+    if (cardAdd) cardAdd.style.display = 'flex';
+    if (cardBottle) cardBottle.style.display = 'none';
     return;
   }
 
-  if (!data?.length) {
-    list.innerHTML = `
-      <div style="padding:32px 20px;text-align:center;">
-        <p style="font-size:15px;font-weight:500;color:var(--text);margin-bottom:6px;">Aucun objet disponible pour le moment</p>
-        <p style="font-size:13px;color:var(--text-muted);">Soyez le premier à proposer un objet !</p>
-      </div>`;
-    return;
+  if (cardAdd) cardAdd.style.display = 'none';
+  if (cardBottle) cardBottle.style.display = 'block';
+
+  _renderBottle(0, userId);
+  _renderBottleDots();
+}
+
+function _renderBottle(idx, userId) {
+  const sr = _homeBottles[idx];
+  if (!sr) return;
+  userId = userId || localStorage.getItem('member_id');
+
+  const content = document.getElementById('bottle-content');
+  const countLabel = document.getElementById('bottle-count-label');
+  if (countLabel && _homeBottles.length > 1) {
+    countLabel.textContent = (idx + 1) + '/' + _homeBottles.length;
   }
 
-  data.forEach(row => {
-    const c = row.co2_saved_kg;
-    renderItemRow(list, {
-      id:       row.id,
-      owner_id: row.owner_id,
-      name:     row.name,
-      cat:      row.category  || '',
-      state:    row.status,
-      co2:      c != null ? Number(c).toFixed(1).replace('.', ',') : '8,2',
-      desc:     row.description || '',
-      who:      row.owner?.first_name || '',
-      no:       '',
-    });
+  const isOwn = sr.requester_id === userId;
+
+  content.innerHTML = '';
+
+  const requesterEl = document.createElement('p');
+  requesterEl.className = 'bottle-requester';
+  requesterEl.textContent = isOwn ? 'Votre recherche' : 'Un voisin recherche';
+  content.appendChild(requesterEl);
+
+  const nameEl = document.createElement('p');
+  nameEl.className = 'bottle-item-name';
+  nameEl.textContent = sr.item_name || '—';
+  content.appendChild(nameEl);
+
+  if (!isOwn) {
+    const actions = document.createElement('div');
+    actions.className = 'bottle-actions';
+
+    const btnNo = document.createElement('button');
+    btnNo.className = 'btn-bottle-no';
+    btnNo.textContent = 'Non, désolé';
+    btnNo.addEventListener('click', () => _dismissBottle(sr.id));
+
+    const btnYes = document.createElement('button');
+    btnYes.className = 'btn-bottle-yes';
+    btnYes.textContent = "J'ai !";
+    btnYes.addEventListener('click', () => _answerBottle(sr.id, sr.item_name));
+
+    actions.appendChild(btnNo);
+    actions.appendChild(btnYes);
+    content.appendChild(actions);
+  } else {
+    const hint = document.createElement('p');
+    hint.style.cssText = 'font-size:13px;color:var(--text-muted);margin:0;';
+    hint.textContent = 'En attente de réponses…';
+    content.appendChild(hint);
+  }
+
+  _homeBottleIdx = idx;
+  _updateBottleDots(idx);
+  _attachBottleSwipe(userId);
+}
+
+function _renderBottleDots() {
+  const dotsEl = document.getElementById('bottle-dots');
+  if (!dotsEl) return;
+  dotsEl.innerHTML = '';
+  if (_homeBottles.length <= 1) return;
+  _homeBottles.forEach((_, i) => {
+    const dot = document.createElement('span');
+    dot.className = 'bottle-dot' + (i === 0 ? ' active' : '');
+    dotsEl.appendChild(dot);
   });
 }
+
+function _updateBottleDots(idx) {
+  document.querySelectorAll('#bottle-dots .bottle-dot').forEach((d, i) => {
+    d.classList.toggle('active', i === idx);
+  });
+}
+
+function _dismissBottle(id) {
+  const dismissed = JSON.parse(localStorage.getItem('dismissed_bottles') || '[]');
+  if (!dismissed.includes(id)) dismissed.push(id);
+  localStorage.setItem('dismissed_bottles', JSON.stringify(dismissed));
+
+  _homeBottles = _homeBottles.filter(b => b.id !== id);
+  if (!_homeBottles.length) {
+    document.getElementById('card-bottle-request').style.display = 'none';
+    document.getElementById('card-add-object').style.display = 'flex';
+    return;
+  }
+  const next = _homeBottleIdx >= _homeBottles.length ? 0 : _homeBottleIdx;
+  _renderBottleDots();
+  _renderBottle(next);
+}
+
+function _answerBottle(id, itemName) {
+  window._prefilledItemName = itemName;
+  _navigateTo('add');
+}
+
+function _attachBottleSwipe(userId) {
+  const content = document.getElementById('bottle-content');
+  if (!content || _homeBottles.length <= 1) return;
+
+  let startX = 0, startY = 0;
+
+  content.ontouchstart = e => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+  };
+
+  content.ontouchend = e => {
+    const dx = e.changedTouches[0].clientX - startX;
+    const dy = Math.abs(e.changedTouches[0].clientY - startY);
+    if (Math.abs(dx) < 40 || dy > 60) return;
+    const next = dx < 0
+      ? (_homeBottleIdx + 1) % _homeBottles.length
+      : (_homeBottleIdx - 1 + _homeBottles.length) % _homeBottles.length;
+    _renderBottle(next, userId);
+  };
+}
+
 
 async function loadCommunity() {
   const [commRes, countRes] = await Promise.all([
@@ -2808,10 +3163,8 @@ async function loadCommunity() {
 
   const count = countRes.count;
   if (count != null) {
-    const metaEl = document.getElementById('community-meta');
-    const current = metaEl.textContent;
-    const objects = current.match(/(\d+)\s+objets/)?.[1] || '142';
-    metaEl.textContent = count + ' voisin' + (count !== 1 ? 's' : '') + ' · ' + objects + ' objets';
+    const voisinsEl = document.getElementById('community-meta-voisins');
+    if (voisinsEl) voisinsEl.textContent = count;
   }
 }
 
@@ -2900,7 +3253,7 @@ async function signOut() {
   initTransactionsState();
   loadMember();
   loadCommunity();
-  loadHomeItems();
+  loadHomeData();
   // /v route: index.html?v=1&action=return&id=xxx
   if (new URLSearchParams(window.location.search).has('v')) handleValidation();
 })();
@@ -3090,7 +3443,7 @@ async function submitForm() {
   document.getElementById('successCo2').textContent = `${co2} kg de CO₂`;
   hidePanel('panel-add');
   setTimeout(() => showPanel('panel-success'), 40);
-  loadHomeItems();
+  loadHomeData();
 }
 
 // ── Réinitialisation formulaire ───────────────────────────────
@@ -5315,6 +5668,17 @@ function handleValidation() {
 }
 
 // ── Share ─────────────────────────────────────────────────────
+function contactGO() {
+  const pill = document.getElementById('pill-go');
+  const phone = pill?.dataset?.phone;
+  if (phone) {
+    window.location.href = 'tel:' + phone;
+  } else {
+    // Fallback : mailto si pas de numéro
+    window.location.href = 'mailto:';
+  }
+}
+
 async function shareKolkoze() {
   const data = {
     title: 'Kolkoze',
