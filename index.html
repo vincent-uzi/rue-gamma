@@ -3036,17 +3036,17 @@ function _renderCarousel(userId) {
     card.style.minWidth = single ? '100%' : '95%';
     card.style.width = single ? '100%' : '95%';
 
-    const body = document.createElement('p');
-    body.style.cssText = 'font-size:18px;font-weight:bold;color:#333;margin:0 0 16px 0;line-height:1.4;';
-    const det = 'un·e';
-    body.appendChild(document.createTextNode(requesterName + ' recherche'));
-    body.appendChild(document.createElement('br'));
-    body.appendChild(document.createTextNode(det + ' '));
+    const line1 = document.createElement('p');
+    line1.style.cssText = 'font-size:16px;font-weight:normal;color:#333;margin:0 0 8px 0;';
+    line1.textContent = requesterName + ' recherche';
+    card.appendChild(line1);
+
+    const line2 = document.createElement('p');
+    line2.style.cssText = 'font-size:18px;font-weight:bold;color:#333;margin:0 0 16px 0;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;';
     const itemSpan = document.createElement('span');
-    itemSpan.style.color = '#333';
-    itemSpan.textContent = sr.item_name || '—';
-    body.appendChild(itemSpan);
-    card.appendChild(body);
+    itemSpan.textContent = 'un·e ' + (sr.item_name || '—');
+    line2.appendChild(itemSpan);
+    card.appendChild(line2);
 
     if (isOwn) {
       const hint = document.createElement('p');
@@ -3068,22 +3068,22 @@ function _renderCarousel(userId) {
         const carouselEl = document.getElementById('bottle-carousel');
         const idx = Array.from(carouselEl.querySelectorAll('.bottle-card')).indexOf(cardEl);
 
-        cardEl.style.transition = 'opacity 1.2s ease, transform 1.2s ease';
+        cardEl.style.transition = 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s ease';
+        cardEl.style.transform = 'translateY(30px)';
         cardEl.style.opacity = '0';
-        cardEl.style.transform = 'scale(0.95)';
 
         setTimeout(() => {
           _dismissBottle(sr.id);
-          // Si on était sur la dernière carte, scroll vers la nouvelle dernière
-          if (_homeBottles.length > 0 && idx >= _homeBottles.length) {
+          // Scroll vers carte appropriée après re-render
+          if (_homeBottles.length > 0) {
             const c = document.getElementById('bottle-carousel');
+            const newIdx = Math.min(idx, _homeBottles.length - 1);
             const newCards = c && c.querySelectorAll('.bottle-card');
-            if (newCards && newCards.length) {
-              const step = newCards[0].offsetWidth + 16;
-              c.scrollTo({ left: (_homeBottles.length - 1) * step, behavior: 'smooth' });
+            if (newCards && newCards[newIdx]) {
+              newCards[newIdx].scrollIntoView({ behavior: 'smooth', inline: 'start' });
             }
           }
-        }, 1200);
+        }, 800);
       });
 
       const btnYes = document.createElement('button');
