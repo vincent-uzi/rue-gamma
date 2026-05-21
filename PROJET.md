@@ -1582,12 +1582,24 @@ Complexité : 🔴 Élevée — ~10 000 tokens
 
 ---
 
-## SESSION HOME REFONTE - 21 Mai 2026
+## SESSION HOME REFONTE - 21 Mai 2026 (EN COURS)
 
 ### OBJECTIF
 Affiner le design de la page Home post-wireframe HOME-01 pour plus de clarté et de chaleur, inspiré de la simplicité Poppins.
 
-### RÉALISATIONS
+### ÉTAT AVANCEMENT HOME
+
+#### ✅ TERMINÉ (cette session)
+1. Header (Bonjour + metrics + Inviter)
+2. Bandeau recherche (bord-à-bord)
+3. Bloc "Avez-vous ces objets ?" (carrousel complet)
+
+#### ⏳ À AFFINER
+4. Bloc "Bravo la commu !" (CO₂ + Objets disponibles) → Design/interactions
+5. CTA dynamique : Card "Ajouter un objet" ↔ Card carrousel bouteilles
+6. Contact G.O : Pill modérateur cliquable en bas
+
+### RÉALISATIONS DÉTAILLÉES
 
 #### 1. HEADER HOME - Ajustements progressifs
 
@@ -1683,12 +1695,15 @@ iPhone validations :
 3. Hiérarchie par taille : pas de borders/ombres excessives
 4. Cohérence template 2 lignes
 
-### CHANTIERS IDENTIFIÉS (non traités)
+### CHANTIERS IDENTIFIÉS
 
-**PENDING :**
+**EN ATTENTE sur Home :**
+- Bloc "Bravo la commu !" → Affinage design/interactions
+- CTA dynamique "Ajouter un objet" / carrousel bouteilles
+- Contact G.O en bas de page
+
+**PENDING autres chantiers :**
 - SVG bouteille plus reconnaissable
-- Contact G.O : Section bas Home
-- Card "Délivrez un objet" : Design final
 - ONBOARD-01 : Tunnel ajout objet (BLOQUANT test rue)
 - CH-03 : Notifications badge (BLOQUANT test rue)
 
@@ -1696,4 +1711,5 @@ iPhone validations :
 
 - Durée : ~7h (14h → 21h)
 - Commits : 15+ commits fonctionnels
-- Features complètes : Header, Recherche, Avis de recherche (carrousel complet)
+- Features complètes : Header, Recherche, Avis de recherche (carrousel)
+- **Avancement Home : ~60% (3/6 sections finalisées)**
