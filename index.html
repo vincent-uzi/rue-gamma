@@ -3060,7 +3060,31 @@ function _renderCarousel(userId) {
       const btnNo = document.createElement('button');
       btnNo.className = 'btn-bottle-no';
       btnNo.textContent = 'Non, désolé';
-      btnNo.addEventListener('click', () => _dismissBottle(sr.id));
+      btnNo.addEventListener('click', (e) => {
+        const cardEl = e.target.closest('.bottle-card');
+        if (!cardEl || cardEl.dataset.dismissing) return;
+        cardEl.dataset.dismissing = 'true';
+
+        const carouselEl = document.getElementById('bottle-carousel');
+        const idx = Array.from(carouselEl.querySelectorAll('.bottle-card')).indexOf(cardEl);
+
+        cardEl.style.transition = 'opacity 1.2s ease, transform 1.2s ease';
+        cardEl.style.opacity = '0';
+        cardEl.style.transform = 'scale(0.95)';
+
+        setTimeout(() => {
+          _dismissBottle(sr.id);
+          // Si on était sur la dernière carte, scroll vers la nouvelle dernière
+          if (_homeBottles.length > 0 && idx >= _homeBottles.length) {
+            const c = document.getElementById('bottle-carousel');
+            const newCards = c && c.querySelectorAll('.bottle-card');
+            if (newCards && newCards.length) {
+              const step = newCards[0].offsetWidth + 16;
+              c.scrollTo({ left: (_homeBottles.length - 1) * step, behavior: 'smooth' });
+            }
+          }
+        }, 1200);
+      });
 
       const btnYes = document.createElement('button');
       btnYes.className = 'btn-bottle-yes';
