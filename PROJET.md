@@ -1579,3 +1579,121 @@ Complexité : 🔴 Élevée — ~10 000 tokens
 - [ ] Expiration automatique avis recherche après 7 jours
 - [ ] CH-03 : Notifications badge + compteur
 - [ ] Splash screen (1-2h)
+
+---
+
+## SESSION HOME REFONTE - 21 Mai 2026
+
+### OBJECTIF
+Affiner le design de la page Home post-wireframe HOME-01 pour plus de clarté et de chaleur, inspiré de la simplicité Poppins.
+
+### RÉALISATIONS
+
+#### 1. HEADER HOME - Ajustements progressifs
+
+**Bonjour Prénom :**
+- Ajout dynamique "Bonjour Vincent" (ou prénom membre connecté)
+- HTML ligne ~2146 : `<p id="home-greeting">Bonjour</p>`
+- JS ligne ~3220 : Injection `currentMember.first_name`
+
+**Icône inviter user+ :**
+- SVG user+ 14x14px avec stroke vert #1F9D55
+- Modal "Parcours invitation" (fermable)
+- Contour bouton vert #1F9D55
+
+**Refonte metrics + lien inline :**
+- Ordre inversé : "13 objets · 3 membres" (au lieu de "3 voisins · 13 objets")
+- Remplacement "voisins" → "membres"
+- Lien "Inviter" inline après "3 membres" (plus de bouton circulaire séparé)
+- Alignement baseline parfait : icône 14px = texte 14px
+
+**Commits :**
+- `14c90c1` Feat: Afficher 'Bonjour Prénom' dans header Home
+- Feat: Header Home - icône inviter user+ vert + modal Parcours invitation
+- Fix: Contour bouton inviter en vert #1F9D55
+- Refonte header : Metrics inversées + lien Inviter inline
+- UX: Lien Inviter inline après '3 membres'
+- Fix: Alignement parfait header - icône 14px + baseline
+
+#### 2. BANDEAU RECHERCHE - Bord à bord
+
+**Modifications :**
+- Fond vert #E8F5E9 bord-à-bord (suppression margin latérale)
+- Titre "Trouvez cet objet !" (au lieu de "Trouver cet objet")
+- Style H3 bold 16px #333, margin-bottom 12px
+
+**Commit :**
+- UX: Bandeau recherche - fond bord à bord + titre 'Trouvez cet objet !'
+
+#### 3. BLOC AVIS DE RECHERCHE - Refonte complète
+
+**Structure finale :**
+- Titre "Avez-vous ces objets ?" AVANT le bloc
+- Contenu carte sur 2 lignes :
+  - Ligne 1 : "Uzi recherche" (16px noir normal)
+  - Ligne 2 : "un·e Nom de l'objet" (18px bold, max 2 lignes avec ellipsis)
+
+**Carrousel :**
+- Format horizontal scroll-snap
+- 1 seule carte : 100% largeur
+- Plusieurs cartes : 95% largeur + 5% du suivant visible
+- Points pagination en dessous
+- Alignement avec bloc CO₂
+
+**Style visuel :**
+- Fond jaune pastel #ffeaa7
+- Pas de bordure
+- Boutons : "Non, désolé" (noir souligné), "Je l'ai !" (primary vert #1F9D55)
+
+**Animation dismiss :**
+- Clic "Non, désolé" → slide down + fade out (0.8s cubic-bezier)
+- Scroll smooth automatique vers carte suivante/précédente
+
+**Règle de gestion :**
+- Filtre : `b.requester_id !== userId`
+- Utilisateur ne voit JAMAIS ses propres alertes
+- Si 0 résultats → Bloc entier masqué
+
+**Commits clés :**
+- UX: Titre 'Avez-vous ces objets ?' + contenu 18px bold 2 lignes
+- Test: Fond jaune clair #ffeaa7 sur cartes recherche
+- UX: Largeur dynamique cartes recherche - 100% si seul, 95% si carrousel
+- UX: Animation carrousel améliorée + design info (16px noir + 2 lignes max)
+- Logic: Filtrer Avis de recherche - exclure propres alertes user
+
+### WORKFLOW AMÉLIORÉ
+
+**Nouveau process (Option 1 adoptée) :**
+Tous les briefs Claude Code se terminent par "NE PAS committer ni pusher".
+Commits manuels pour contrôle total et historique Git propre.
+
+### TESTS DEVICE
+
+iPhone validations :
+- ✅ "Bonjour Vincent" visible
+- ✅ Lien Inviter cliquable
+- ✅ Bandeau recherche bord-à-bord
+- ✅ Carrousel swipeable
+- ✅ Animation dismiss fluide
+
+### PRINCIPES DESIGN APPLIQUÉS
+
+1. Simplicité radicale : pas d'encarts partout
+2. 1 bloc couleur fort : fond vert recherche, fond jaune cartes
+3. Hiérarchie par taille : pas de borders/ombres excessives
+4. Cohérence template 2 lignes
+
+### CHANTIERS IDENTIFIÉS (non traités)
+
+**PENDING :**
+- SVG bouteille plus reconnaissable
+- Contact G.O : Section bas Home
+- Card "Délivrez un objet" : Design final
+- ONBOARD-01 : Tunnel ajout objet (BLOQUANT test rue)
+- CH-03 : Notifications badge (BLOQUANT test rue)
+
+### MÉTRIQUES SESSION
+
+- Durée : ~7h (14h → 21h)
+- Commits : 15+ commits fonctionnels
+- Features complètes : Header, Recherche, Avis de recherche (carrousel complet)
