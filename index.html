@@ -1568,8 +1568,6 @@
       display: flex;
       gap: 16px;
       scroll-snap-type: x mandatory;
-      padding: 0 20px;
-      margin: 0 -20px;
       -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
     }
@@ -3025,8 +3023,8 @@ function _renderCarousel(userId) {
 
   const single = _homeBottles.length === 1;
   carousel.style.overflowX = single ? 'visible' : 'auto';
-  carousel.style.margin = single ? '0' : '0 -20px';
-  carousel.style.padding = single ? '0' : '0 20px';
+  carousel.style.margin = '';
+  carousel.style.padding = '';
 
   _homeBottles.forEach(sr => {
     const isOwn = sr.requester_id === userId;
