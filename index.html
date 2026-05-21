@@ -1586,7 +1586,7 @@
     }
     .btn-bottle-no {
       flex: 1; padding: 12px; background: none; border: none;
-      font-size: 14px; color: #888; text-decoration: underline;
+      font-size: 14px; color: #333; text-decoration: underline;
       font-family: var(--font); cursor: pointer;
     }
     .btn-bottle-yes {
@@ -2936,7 +2936,7 @@ async function loadHomeData() {
       : Promise.resolve({ count: 0 }),
     // Avis de recherche actifs
     db.from('search_requests')
-      .select('id, item_name, requester_id, status, created_at')
+      .select('id, item_name, requester_id, status, created_at, requester:members!requester_id(first_name)')
       .eq('community_id', COMMUNITY_ID)
       .eq('status', 'open')
       .order('created_at', { ascending: true }),
