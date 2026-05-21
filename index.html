@@ -2205,13 +2205,7 @@
 
     <!-- Version B : bouteille(s) active(s) -->
     <div id="card-bottle-request" style="display:none;">
-      <h2 style="font-size:20px;font-weight:bold;color:#333;margin:0 0 16px 0;display:flex;align-items:center;gap:8px;">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="flex-shrink:0;">
-          <path d="M10 2h4v3l1 1v2a5 5 0 010 10v2l-1 1H10l-1-1v-2a5 5 0 010-10V6l1-1V2z" stroke="#1F9D55" stroke-width="1.6" stroke-linejoin="round"/>
-          <path d="M9 18h6" stroke="#1F9D55" stroke-width="1.6" stroke-linecap="round"/>
-        </svg>
-        Avis de recherche
-      </h2>
+      <h2 style="font-size:20px;font-weight:bold;color:#333;margin:0 0 16px 0;">Avez-vous ces objets ?</h2>
       <div id="bottle-carousel" class="bottle-carousel"></div>
       <div id="bottle-dots" class="bottle-dots" style="display:none;"></div>
     </div>
@@ -3038,20 +3032,16 @@ function _renderCarousel(userId) {
     card.className = 'bottle-card';
     card.dataset.id = sr.id;
 
-    const title = document.createElement('h3');
-    title.style.cssText = 'font-size:18px;font-weight:bold;color:#333;margin:0 0 12px 0;';
-    title.textContent = isOwn ? 'Votre recherche' : "Pouvez-vous l'aider ?";
-    card.appendChild(title);
-
     const body = document.createElement('p');
-    body.style.cssText = 'font-size:14px;color:#888;margin:0 0 8px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
-    const who = document.createElement('span');
-    who.textContent = (isOwn ? 'Vous recherchez' : requesterName + ' recherche') + ' ';
-    const item = document.createElement('strong');
-    item.style.color = '#1F9D55';
-    item.textContent = sr.item_name || '—';
-    body.appendChild(who);
-    body.appendChild(item);
+    body.style.cssText = 'font-size:18px;font-weight:bold;color:#333;margin:0 0 16px 0;line-height:1.4;';
+    const det = 'un·e';
+    body.appendChild(document.createTextNode(requesterName + ' recherche'));
+    body.appendChild(document.createElement('br'));
+    body.appendChild(document.createTextNode(det + ' '));
+    const itemSpan = document.createElement('span');
+    itemSpan.style.color = '#333';
+    itemSpan.textContent = sr.item_name || '—';
+    body.appendChild(itemSpan);
     card.appendChild(body);
 
     if (isOwn) {
