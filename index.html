@@ -1563,36 +1563,40 @@
     }
     .btn-add-round:active { opacity: .8; }
 
-    .home-bottle-card {
-      background: var(--surface);
-      border: 1px solid var(--line);
+    .bottle-carousel {
+      overflow-x: auto;
+      display: flex;
+      gap: 16px;
+      scroll-snap-type: x mandatory;
+      padding: 0 20px;
+      margin: 0 -20px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .bottle-carousel::-webkit-scrollbar { display: none; }
+    .bottle-card {
+      min-width: 90%;
+      scroll-snap-align: start;
+      padding: 24px;
+      background: white;
+      border: 1px solid #F0F0F0;
       border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 24px;
-      overflow: hidden;
+      flex-shrink: 0;
+      box-sizing: border-box;
     }
-    .bottle-header { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
-    .bottle-title { font-size: 16px; font-weight: 700; color: var(--text); margin: 0; flex: 1; }
-    .bottle-requester { font-size: 14px; color: var(--text-muted); margin: 0 0 6px; }
-    .bottle-item-name { font-size: 22px; font-weight: 700; color: var(--text); margin: 0 0 20px; line-height: 1.2; }
-    .bottle-actions { display: flex; gap: 12px; }
     .btn-bottle-no {
-      flex: 1; padding: 12px; border-radius: 8px;
-      border: 1px solid var(--line); background: var(--surface-alt);
-      color: var(--text); font-size: 15px; font-weight: 500;
-      font-family: var(--font); cursor: pointer; transition: opacity .12s;
+      flex: 1; padding: 12px; background: none; border: none;
+      font-size: 14px; color: #888; text-decoration: underline;
+      font-family: var(--font); cursor: pointer;
     }
-    .btn-bottle-no:active { opacity: .7; }
     .btn-bottle-yes {
       flex: 1; padding: 12px; border-radius: 8px;
       border: none; background: #1F9D55; color: white;
-      font-size: 15px; font-weight: 500;
+      font-size: 14px; font-weight: 600;
       font-family: var(--font); cursor: pointer; transition: opacity .12s;
     }
     .btn-bottle-yes:active { opacity: .85; }
-    .bottle-dots { display: flex; justify-content: center; gap: 6px; margin-top: 16px; }
-    .bottle-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--line); transition: background .2s; }
-    .bottle-dot.active { background: #00A651; }
+    .bottle-dots { display: flex; justify-content: center; gap: 8px; margin-top: 16px; margin-bottom: 24px; }
 
     .home-contact-go { text-align: center; padding: 8px 0 16px; }
     .contact-title { font-size: 16px; font-weight: 700; color: var(--text); margin: 0 0 8px; }
@@ -2208,13 +2212,8 @@
         </svg>
         Avis de recherche
       </h2>
-      <div class="home-bottle-card">
-        <div style="display:flex;justify-content:flex-end;min-height:16px;margin-bottom:8px;">
-          <span id="bottle-count-label" style="font-size:12px;color:var(--text-muted);white-space:nowrap;"></span>
-        </div>
-        <div id="bottle-content"></div>
-        <div class="bottle-dots" id="bottle-dots"></div>
-      </div>
+      <div id="bottle-carousel" class="bottle-carousel"></div>
+      <div id="bottle-dots" class="bottle-dots" style="display:none;"></div>
     </div>
 
     <!-- ── 5. Contact G.O ─────────────────────────────────── -->
@@ -3019,80 +3018,98 @@ function _initBottles(bottles, userId) {
   if (cardAdd) cardAdd.style.display = 'none';
   if (cardBottle) cardBottle.style.display = 'block';
 
-  _renderBottle(0, userId);
-  _renderBottleDots();
+  _renderCarousel(userId);
 }
 
-function _renderBottle(idx, userId) {
-  const sr = _homeBottles[idx];
-  if (!sr) return;
+function _renderCarousel(userId) {
   userId = userId || localStorage.getItem('member_id');
+  const carousel = document.getElementById('bottle-carousel');
+  if (!carousel) return;
+  carousel.innerHTML = '';
 
-  const content = document.getElementById('bottle-content');
-  const countLabel = document.getElementById('bottle-count-label');
-  if (countLabel && _homeBottles.length > 1) {
-    countLabel.textContent = (idx + 1) + '/' + _homeBottles.length;
-  }
+  _homeBottles.forEach(sr => {
+    const isOwn = sr.requester_id === userId;
+    const requesterName = (sr.requester && sr.requester.first_name) || 'Un voisin';
 
-  const isOwn = sr.requester_id === userId;
+    const card = document.createElement('div');
+    card.className = 'bottle-card';
+    card.dataset.id = sr.id;
 
-  content.innerHTML = '';
+    const title = document.createElement('h3');
+    title.style.cssText = 'font-size:18px;font-weight:bold;color:#333;margin:0 0 12px 0;';
+    title.textContent = isOwn ? 'Votre recherche' : "Pouvez-vous l'aider ?";
+    card.appendChild(title);
 
-  const requesterEl = document.createElement('p');
-  requesterEl.className = 'bottle-requester';
-  requesterEl.textContent = isOwn ? 'Votre recherche' : 'Un voisin recherche';
-  content.appendChild(requesterEl);
+    const body = document.createElement('p');
+    body.style.cssText = 'font-size:14px;color:#888;margin:0 0 24px 0;';
+    const who = document.createElement('span');
+    who.textContent = isOwn ? 'Vous recherchez' : requesterName + ' recherche';
+    const br = document.createElement('br');
+    const item = document.createElement('strong');
+    item.style.color = '#333';
+    item.textContent = sr.item_name || '—';
+    body.appendChild(who);
+    body.appendChild(br);
+    body.appendChild(item);
+    card.appendChild(body);
 
-  const nameEl = document.createElement('p');
-  nameEl.className = 'bottle-item-name';
-  nameEl.textContent = sr.item_name || '—';
-  content.appendChild(nameEl);
+    if (isOwn) {
+      const hint = document.createElement('p');
+      hint.style.cssText = 'font-size:13px;color:var(--text-muted);margin:0;';
+      hint.textContent = 'En attente de réponses…';
+      card.appendChild(hint);
+    } else {
+      const actions = document.createElement('div');
+      actions.style.cssText = 'display:flex;gap:12px;';
 
-  if (!isOwn) {
-    const actions = document.createElement('div');
-    actions.className = 'bottle-actions';
+      const btnNo = document.createElement('button');
+      btnNo.className = 'btn-bottle-no';
+      btnNo.textContent = 'Non, désolé';
+      btnNo.addEventListener('click', () => _dismissBottle(sr.id));
 
-    const btnNo = document.createElement('button');
-    btnNo.className = 'btn-bottle-no';
-    btnNo.textContent = 'Non, désolé';
-    btnNo.addEventListener('click', () => _dismissBottle(sr.id));
+      const btnYes = document.createElement('button');
+      btnYes.className = 'btn-bottle-yes';
+      btnYes.textContent = "Je l'ai !";
+      btnYes.addEventListener('click', () => _answerBottle(sr.id, sr.item_name));
 
-    const btnYes = document.createElement('button');
-    btnYes.className = 'btn-bottle-yes';
-    btnYes.textContent = "J'ai !";
-    btnYes.addEventListener('click', () => _answerBottle(sr.id, sr.item_name));
+      actions.appendChild(btnNo);
+      actions.appendChild(btnYes);
+      card.appendChild(actions);
+    }
 
-    actions.appendChild(btnNo);
-    actions.appendChild(btnYes);
-    content.appendChild(actions);
-  } else {
-    const hint = document.createElement('p');
-    hint.style.cssText = 'font-size:13px;color:var(--text-muted);margin:0;';
-    hint.textContent = 'En attente de réponses…';
-    content.appendChild(hint);
-  }
+    carousel.appendChild(card);
+  });
 
-  _homeBottleIdx = idx;
-  _updateBottleDots(idx);
-  _attachBottleSwipe(userId);
+  _renderBottleDots();
+  _attachCarouselScroll();
 }
 
 function _renderBottleDots() {
   const dotsEl = document.getElementById('bottle-dots');
   if (!dotsEl) return;
   dotsEl.innerHTML = '';
-  if (_homeBottles.length <= 1) return;
+  if (_homeBottles.length <= 1) { dotsEl.style.display = 'none'; return; }
+  dotsEl.style.display = 'flex';
   _homeBottles.forEach((_, i) => {
     const dot = document.createElement('span');
-    dot.className = 'bottle-dot' + (i === 0 ? ' active' : '');
+    dot.style.cssText = 'width:8px;height:8px;border-radius:50%;display:inline-block;transition:background .2s;background:' + (i === 0 ? '#1F9D55' : '#E0E0E0') + ';';
     dotsEl.appendChild(dot);
   });
 }
 
-function _updateBottleDots(idx) {
-  document.querySelectorAll('#bottle-dots .bottle-dot').forEach((d, i) => {
-    d.classList.toggle('active', i === idx);
-  });
+function _attachCarouselScroll() {
+  const carousel = document.getElementById('bottle-carousel');
+  if (!carousel || _homeBottles.length <= 1) return;
+  carousel.onscroll = () => {
+    const cards = carousel.querySelectorAll('.bottle-card');
+    if (!cards.length) return;
+    const step = cards[0].offsetWidth + 16;
+    const idx = Math.min(Math.round(carousel.scrollLeft / step), _homeBottles.length - 1);
+    _homeBottleIdx = idx;
+    document.querySelectorAll('#bottle-dots span').forEach((d, i) => {
+      d.style.background = i === idx ? '#1F9D55' : '#E0E0E0';
+    });
+  };
 }
 
 function _dismissBottle(id) {
@@ -3106,36 +3123,12 @@ function _dismissBottle(id) {
     document.getElementById('card-add-object').style.display = 'flex';
     return;
   }
-  const next = _homeBottleIdx >= _homeBottles.length ? 0 : _homeBottleIdx;
-  _renderBottleDots();
-  _renderBottle(next);
+  _renderCarousel(localStorage.getItem('member_id'));
 }
 
 function _answerBottle(id, itemName) {
   window._prefilledItemName = itemName;
   _navigateTo('add');
-}
-
-function _attachBottleSwipe(userId) {
-  const content = document.getElementById('bottle-content');
-  if (!content || _homeBottles.length <= 1) return;
-
-  let startX = 0, startY = 0;
-
-  content.ontouchstart = e => {
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-  };
-
-  content.ontouchend = e => {
-    const dx = e.changedTouches[0].clientX - startX;
-    const dy = Math.abs(e.changedTouches[0].clientY - startY);
-    if (Math.abs(dx) < 40 || dy > 60) return;
-    const next = dx < 0
-      ? (_homeBottleIdx + 1) % _homeBottles.length
-      : (_homeBottleIdx - 1 + _homeBottles.length) % _homeBottles.length;
-    _renderBottle(next, userId);
-  };
 }
 
 
