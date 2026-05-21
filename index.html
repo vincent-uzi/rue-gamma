@@ -2200,17 +2200,21 @@
     </div>
 
     <!-- Version B : bouteille(s) active(s) -->
-    <div class="home-bottle-card" id="card-bottle-request" style="display:none;">
-      <div class="bottle-header">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="flex-shrink:0;">
+    <div id="card-bottle-request" style="display:none;">
+      <h2 style="font-size:20px;font-weight:bold;color:#333;margin:0 0 16px 0;display:flex;align-items:center;gap:8px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="flex-shrink:0;">
           <path d="M10 2h4v3l1 1v2a5 5 0 010 10v2l-1 1H10l-1-1v-2a5 5 0 010-10V6l1-1V2z" stroke="#1F9D55" stroke-width="1.6" stroke-linejoin="round"/>
           <path d="M9 18h6" stroke="#1F9D55" stroke-width="1.6" stroke-linecap="round"/>
         </svg>
-        <h3 class="bottle-title">Avis de recherche</h3>
-        <span id="bottle-count-label" style="font-size:12px;color:var(--text-muted);white-space:nowrap;"></span>
+        Avis de recherche
+      </h2>
+      <div class="home-bottle-card">
+        <div style="display:flex;justify-content:flex-end;min-height:16px;margin-bottom:8px;">
+          <span id="bottle-count-label" style="font-size:12px;color:var(--text-muted);white-space:nowrap;"></span>
+        </div>
+        <div id="bottle-content"></div>
+        <div class="bottle-dots" id="bottle-dots"></div>
       </div>
-      <div id="bottle-content"></div>
-      <div class="bottle-dots" id="bottle-dots"></div>
     </div>
 
     <!-- ── 5. Contact G.O ─────────────────────────────────── -->
