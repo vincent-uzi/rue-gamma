@@ -3003,13 +3003,16 @@ async function _loadHomeCO2(startOfMonth) {
 // ── Bouteilles à la mer (Home) ────────────────────────────────
 
 function _initBottles(bottles, userId) {
-  _homeBottles = bottles;
+  const otherBottles = bottles.filter(b => b.requester_id !== userId);
+  console.log('Bottles (others):', otherBottles.length);
+
+  _homeBottles = otherBottles;
   _homeBottleIdx = 0;
 
   const cardAdd = document.getElementById('card-add-object');
   const cardBottle = document.getElementById('card-bottle-request');
 
-  if (!bottles.length) {
+  if (!otherBottles.length) {
     if (cardAdd) cardAdd.style.display = 'flex';
     if (cardBottle) cardBottle.style.display = 'none';
     return;
