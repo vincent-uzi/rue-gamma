@@ -2143,6 +2143,7 @@
     <!-- ── 1. Header ──────────────────────────────────────── -->
     <header class="home-header">
       <div>
+        <p id="home-greeting" style="font-size:14px;color:#888;margin:0 0 4px 0;">Bonjour</p>
         <h1 class="home-street" id="community-name">Rue Charles-Saint-Venant</h1>
         <p class="home-meta"><span id="community-meta-voisins">3</span> voisins · <span id="community-meta-objets">142</span> objets</p>
       </div>
@@ -3216,6 +3217,8 @@ async function loadMember() {
   if (addrEl) addrEl.textContent = resolved.address || '';
   const captionEl = document.querySelector('.header-caption');
   if (captionEl) captionEl.textContent = 'Bonjour ' + firstName;
+  const greetingEl = document.getElementById('home-greeting');
+  if (greetingEl) greetingEl.textContent = 'Bonjour ' + firstName;
 
   // 4. Stats — 3 requêtes parallèles
   const [itemsRes, loansRes, borrowsRes] = await Promise.all([
