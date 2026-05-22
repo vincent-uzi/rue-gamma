@@ -1875,3 +1875,39 @@ Finaliser la refonte Home : section 'Partagez vos objets', bloc 'Bravo la commu 
 - Commits : 25+ commits fonctionnels
 - Features complètes : Home 100% + cohérence visuelle app
 - **Avancement global : Home TERMINÉE ! 🚀**
+
+---
+
+## SESSION 22 MAI 2026 (après-midi) — NOTIFICATIONS + SOFT DELETE
+
+### ✅ TERMINÉ
+
+**CH-03 NOTIFICATIONS 95%**
+- Badge navbar Transactions + compteur unread
+- Pastille rouge cards + border dynamique (2px vert foncé si non lu, 1px vert clair sinon)
+- 3 types notifs : demande reçue, prêt accepté, prêt refusé (archivé rouge + pill "Refusé")
+- Marquage lu au clic card (pas à l'ouverture de l'onglet)
+- Auto-ouverture section Archivées si notif refus
+
+**SOFT DELETE OBJETS**
+- `deleteItem` : DELETE → UPDATE `status='archived'`
+- Filtre `.neq('status','archived')` dans `loadObjectsItems` et `loadProfileTabs`
+- Modal confirmation custom (slide-up, charte) avec overlay deferred 300ms anti-propagation
+
+**AUTRES**
+- Encart bouteille disparaît du carrousel Home après création objet en réponse (`_dismissBottle`)
+
+### ⏳ EN COURS / BLOQUÉ
+
+**Modal suppression** : Retourne parfois `true` même au clic Annuler — debug logs en place (`src: btn-annuler/btn-supprimer/overlay`), investigation en cours
+
+**Notifs bouteilles** : `window._searchRequestId` bug fixé, debug logs ajoutés dans `_notifySearchRequester` — vérification pipeline en cours
+
+### 🔴 RESTE BLOQUANT
+
+1. ONBOARD-01 : Tunnel ajout objet (1-2h)
+2. Tests devices réels (1-2h)
+3. Fix modal suppression (confirm() natif en fallback si non résolu)
+4. Fix notifs bouteilles (1h si simplifié)
+
+**Avancement global : 93% prêt test rue**
