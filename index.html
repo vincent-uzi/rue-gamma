@@ -2132,9 +2132,33 @@
     .edit-photo-btn-change  { background: #F7F7F5; color: #1A1A1C; }
     .edit-photo-btn-add     { background: #1F9D55; color: #fff; }
     .edit-photo-btn-delete  { background: rgba(255,59,48,0.1); color: #FF3B30; }
+    /* ── Pull-to-refresh indicator ── */
+    #refresh-indicator {
+      position: fixed;
+      top: -56px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 40px;
+      background: white;
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: top 0.25s ease;
+      z-index: 9999;
+      pointer-events: none;
+    }
+    #refresh-indicator.show { top: 16px; }
   </style>
 </head>
 <body>
+<div id="refresh-indicator" aria-hidden="true">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+    <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" fill="#1F9D55"/>
+  </svg>
+</div>
 <div id="app" style="visibility:hidden;">
 <div class="screen" id="panel-home">
   <div class="scroll">
@@ -6458,6 +6482,66 @@ const mLink = Object.assign(document.createElement('link'), {
   href: URL.createObjectURL(mBlob),
 });
 document.head.appendChild(mLink);
+
+// ── Pull-to-refresh ──────────────────────────────────────────────────────
+(function() {
+  const THRESHOLD = 80;
+  let startY = 0;
+  let isPulling = false;
+
+  function _getActiveScrollEl() {
+    const overlays = ['panel-exchanges', 'panel-profile', 'panel-objects', 'panel-search', 'panel-item'];
+    for (const id of overlays) {
+      const el = document.getElementById(id);
+      if (el && el.style.display !== 'none') {
+        return el.querySelector('.profile-scroll') || el.querySelector('[style*="overflow-y"]') || el;
+      }
+    }
+    return document.querySelector('#panel-home .scroll');
+  }
+
+  function _getActiveKey() {
+    const overlays = ['panel-exchanges', 'panel-profile', 'panel-objects'];
+    for (const id of overlays) {
+      const el = document.getElementById(id);
+      if (el && el.style.display !== 'none') return id.replace('panel-', '');
+    }
+    return 'home';
+  }
+
+  document.addEventListener('touchstart', e => {
+    const scrollEl = _getActiveScrollEl();
+    if (scrollEl && (scrollEl.scrollTop || 0) === 0) {
+      startY = e.touches[0].pageY;
+      isPulling = true;
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchmove', e => {
+    if (!isPulling) return;
+    if (e.touches[0].pageY - startY > THRESHOLD) {
+      document.getElementById('refresh-indicator').classList.add('show');
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchend', async e => {
+    if (!isPulling) return;
+    isPulling = false;
+    const pullDistance = e.changedTouches[0].pageY - startY;
+    startY = 0;
+    document.getElementById('refresh-indicator').classList.remove('show');
+    if (pullDistance <= THRESHOLD) return;
+    const key = _getActiveKey();
+    console.log('[ptr] Refreshing:', key);
+    switch (key) {
+      case 'home':      await loadCommunity(); await loadHomeData(); break;
+      case 'exchanges': await loadTransactions(); break;
+      case 'profile':   await loadMember(); await loadProfileTabs(); break;
+      case 'objects':   _objectsLoaded = false; loadObjectsItems(); break;
+    }
+    console.log('[ptr] Done');
+  });
+})();
 
 // ── Modal invite (éléments définis après </script> → DOMContentLoaded) ──
 document.addEventListener('DOMContentLoaded', () => {
