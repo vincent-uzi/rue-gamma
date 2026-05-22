@@ -4699,6 +4699,17 @@ async function updateTransactionStatus(loanId, frenchStatus) {
     if (dbStatus === 'declined') updates.declined_at  = now;
     const { error } = await db.from('loans').update(updates).eq('id', loanId);
     if (error) console.error('[updateTransactionStatus]', error);
+
+    // Notifier l'emprunteur du refus
+    if (dbStatus === 'declined') {
+      const tx = _findTx(loanId);
+      const borrowerId = tx?._loan?.borrower_id;
+      if (borrowerId) {
+        db.from('notifications').insert({ user_id: borrowerId, type: 'loan_refused', loan_id: loanId, read: false })
+          .then(() => console.log('[updateTransactionStatus] Notification refus envoyée à:', borrowerId))
+          .catch(e => console.warn('[updateTransactionStatus] notification error:', e));
+      }
+    }
   }
 
   // Refresh list + badge
@@ -5063,16 +5074,6 @@ async function confirmDecline() {
   if (!loanId) return;
   hideDeclineConfirm();
   await updateTransactionStatus(loanId, 'Décliné');
-
-  // Notifier l'emprunteur
-  const tx = _findTx(loanId);
-  const borrowerId = tx?._loan?.borrower_id;
-  if (borrowerId) {
-    db.from('notifications').insert({ user_id: borrowerId, type: 'loan_refused', loan_id: loanId, read: false })
-      .then(() => console.log('[confirmDecline] Notification inserted for borrower:', borrowerId))
-      .catch(e => console.warn('[confirmDecline] notification error:', e));
-  }
-
   showToast('Demande déclinée', 'error');
   setTimeout(() => hideThread(), 350);
 }
