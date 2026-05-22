@@ -3621,13 +3621,9 @@ async function submitForm() {
         responder_id:      userId,
         item_id:           newItem.id,
       });
-      // Vérifier si c'est la première réponse → notifier requester
-      const { count } = await db.from('search_request_responses')
-        .select('*', { count: 'exact', head: true })
-        .eq('search_request_id', srId);
+      // Notifier le requester à chaque réponse
       console.log('[Submit] window._searchRequestId:', srId);
-      console.log('[Submit] count:', count);
-      if (count === 1) _notifySearchRequester(srId);
+      _notifySearchRequester(srId);
       _dismissBottle(srId);
     } catch (e) { console.warn('[submitForm] search_request_responses:', e); }
   }
