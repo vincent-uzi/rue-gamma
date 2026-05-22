@@ -2171,18 +2171,43 @@
     <!-- ── 3. Metrics ─────────────────────────────────────── -->
     <section class="home-metrics">
       <h2 class="home-metrics-title">Bravo la commu !</h2>
-      <div class="home-metrics-grid">
-        <div class="metric-card">
-          <p class="metric-label">Ce mois-ci</p>
-          <p class="metric-value"><span id="home-co2-month">—</span> <span class="metric-unit">kg</span></p>
-          <p class="metric-sublabel">CO₂ évités</p>
+      <div style="display:flex;gap:12px;">
+
+        <!-- CO₂ évités -->
+        <div style="flex:1;background:white;border:1px solid #F0F0F0;border-radius:12px;padding:16px;text-align:center;">
+          <p style="font-size:12px;color:#888;margin:0 0 8px 0;">Ce mois-ci</p>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:block;margin:0 auto 8px;">
+            <path d="M12 2C10 2 8 3 8 5C8 7 10 8 12 10C14 8 16 7 16 5C16 3 14 2 12 2Z" fill="#1F9D55"/>
+            <path d="M12 10C10 12 8 13 8 15C8 17 10 18 12 20C14 18 16 17 16 15C16 13 14 12 12 10Z" fill="#1F9D55"/>
+          </svg>
+          <p style="font-size:28px;font-weight:bold;color:#333;margin:0;line-height:1;">
+            <span id="home-co2-month">—</span><span style="font-size:14px;font-weight:normal;"> kg</span>
+          </p>
+          <p style="font-size:12px;color:#888;margin:6px 0 0 0;line-height:1.3;">CO₂ évités</p>
         </div>
-        <div class="metric-card metric-card--link" id="btn-objets-dispo" onclick="showObjects()" role="button" tabindex="0" aria-label="Voir tous les objets disponibles">
-          <p class="metric-label">Objets</p>
-          <p class="metric-value"><span id="home-objects-count">—</span></p>
-          <p class="metric-sublabel">disponibles</p>
-          <span class="metric-chevron" aria-hidden="true">›</span>
+
+        <!-- Nouveaux objets -->
+        <div style="flex:1;background:white;border:1px solid #F0F0F0;border-radius:12px;padding:16px;text-align:center;">
+          <p style="font-size:12px;color:#888;margin:0 0 8px 0;">Ce mois-ci</p>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:block;margin:0 auto 8px;">
+            <rect x="4" y="6" width="16" height="14" rx="2" stroke="#333" stroke-width="2" fill="none"/>
+            <path d="M8 6V4M16 6V4M4 10H20" stroke="#333" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <p style="font-size:28px;font-weight:bold;color:#333;margin:0;line-height:1;" id="new-items-month">—</p>
+          <p style="font-size:12px;color:#888;margin:6px 0 0 0;line-height:1.3;">Nouveaux objets</p>
         </div>
+
+        <!-- Échanges -->
+        <div style="flex:1;background:white;border:1px solid #F0F0F0;border-radius:12px;padding:16px;text-align:center;">
+          <p style="font-size:12px;color:#888;margin:0 0 8px 0;">Ce mois-ci</p>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:block;margin:0 auto 8px;">
+            <path d="M7 16L3 12L7 8M17 8L21 12L17 16" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 12H21" stroke="#333" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <p style="font-size:28px;font-weight:bold;color:#333;margin:0;line-height:1;" id="exchanges-month">—</p>
+          <p style="font-size:12px;color:#888;margin:6px 0 0 0;line-height:1.3;">Échanges</p>
+        </div>
+
       </div>
     </section>
 
@@ -2935,7 +2960,7 @@ async function loadHomeData() {
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0);
 
-  const [objCountRes, userObjRes, searchReqRes, modRes] = await Promise.all([
+  const [objCountRes, userObjRes, searchReqRes, modRes, newItemsRes, exchangesRes] = await Promise.all([
     // Objets disponibles
     db.from('items')
       .select('id', { count: 'exact', head: true })
@@ -2958,6 +2983,15 @@ async function loadHomeData() {
       .eq('is_moderator', true)
       .limit(1)
       .maybeSingle(),
+    // Nouveaux objets ce mois
+    db.from('items')
+      .select('id', { count: 'exact', head: true })
+      .eq('community_id', COMMUNITY_ID)
+      .gte('created_at', startOfMonth.toISOString()),
+    // Échanges ce mois (loans avec item dans la communauté)
+    db.from('loans')
+      .select('id, item:items!item_id(community_id)')
+      .gte('handed_at', startOfMonth.toISOString()),
   ]);
 
   // Objets count → header meta + metric
@@ -2970,6 +3004,18 @@ async function loadHomeData() {
 
   // CO₂ ce mois (loans returned_at >= start of month)
   _loadHomeCO2(startOfMonth);
+
+  // Nouveaux objets ce mois
+  if (newItemsRes.count != null) {
+    const el = document.getElementById('new-items-month');
+    if (el) el.textContent = newItemsRes.count;
+  }
+
+  // Échanges ce mois
+  const exchangeCount = (exchangesRes.data || [])
+    .filter(l => l.item?.community_id === COMMUNITY_ID).length;
+  const exchangeEl = document.getElementById('exchanges-month');
+  if (exchangeEl) exchangeEl.textContent = exchangeCount;
 
   // Objets user → CTA texte
   const n = userObjRes.count ?? 0;
