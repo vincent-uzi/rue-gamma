@@ -3267,11 +3267,14 @@ async function _loadBottleNotifEncart(userId) {
   if (!userId) return;
   document.getElementById('bottle-notif-encart')?.remove();
 
-  const { data: notifs } = await db.from('notifications')
-    .select('id').eq('user_id', userId).eq('type', 'bottle_response').eq('read', false);
-  if (!notifs?.length) return;
+  const [notifsRes, srRes] = await Promise.all([
+    db.from('notifications').select('id').eq('user_id', userId).eq('type', 'bottle_response').eq('read', false),
+    db.from('search_requests').select('item_name').eq('requester_id', userId).in('status', ['notified', 'open']).order('created_at', { ascending: false }).limit(1),
+  ]);
+  if (!notifsRes.data?.length) return;
 
-  const count = notifs.length;
+  const count = notifsRes.data.length;
+  const itemName = srRes.data?.[0]?.item_name || '';
   const encart = document.createElement('div');
   encart.id = 'bottle-notif-encart';
   encart.style.cssText = 'background:#ffeaa7;border-radius:8px;padding:16px 20px;margin:0 0 16px 0;position:relative;';
@@ -3295,6 +3298,12 @@ async function _loadBottleNotifEncart(userId) {
     encart.remove();
     updateNotificationBadge();
     _navigateTo('objects');
+    if (itemName) {
+      setTimeout(() => {
+        const inp = document.getElementById('objSearchInput');
+        if (inp) { inp.value = itemName; filterObjects(inp); }
+      }, 150);
+    }
   };
 }
 
