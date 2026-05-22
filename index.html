@@ -3053,6 +3053,9 @@ async function loadHomeData() {
     }
   }
 
+  // Encart notifs bouteilles reçues
+  _loadBottleNotifEncart(userId);
+
   // Bouteilles à la mer
   const dismissed = JSON.parse(localStorage.getItem('dismissed_bottles') || '[]');
   const bottles = (searchReqRes.data || []).filter(r => !dismissed.includes(r.id));
@@ -3157,7 +3160,15 @@ function _renderCarousel(userId) {
       const btnYes = document.createElement('button');
       btnYes.style.cssText = 'display:inline-flex;align-items:center;gap:8px;padding:12px 20px;background:#1F9D55;border:none;border-radius:24px;font-size:16px;font-weight:600;color:white;cursor:pointer;font-family:var(--font);';
       btnYes.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="white" stroke-width="2" fill="none"/><path d="M12 8L12 16M8 12L16 12" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>Ajouter';
-      btnYes.addEventListener('click', () => _answerBottle(sr.id, sr.item_name));
+      btnYes.addEventListener('click', async () => {
+        if (sr.requester_id) {
+          const { error: notifError } = await db.from('notifications').insert({
+            user_id: sr.requester_id, type: 'bottle_response', loan_id: null, read: false
+          });
+          console.log('[bottleResponse] Notification inserted for requester:', sr.requester_id, notifError || 'OK');
+        }
+        _answerBottle(sr.id, sr.item_name);
+      });
 
       const btnNo = document.createElement('a');
       btnNo.style.cssText = 'font-size:16px;color:#333;text-decoration:underline;cursor:pointer;margin-left:16px;';
@@ -3251,6 +3262,41 @@ function _answerBottle(id, itemName) {
   _navigateTo('add');
 }
 
+
+async function _loadBottleNotifEncart(userId) {
+  if (!userId) return;
+  document.getElementById('bottle-notif-encart')?.remove();
+
+  const { data: notifs } = await db.from('notifications')
+    .select('id').eq('user_id', userId).eq('type', 'bottle_response').eq('read', false);
+  if (!notifs?.length) return;
+
+  const count = notifs.length;
+  const encart = document.createElement('div');
+  encart.id = 'bottle-notif-encart';
+  encart.style.cssText = 'background:#ffeaa7;border-radius:8px;padding:16px 20px;margin:0 0 16px 0;position:relative;';
+  encart.innerHTML = `
+    <button id="close-bottle-encart" style="position:absolute;top:10px;right:12px;background:none;border:none;font-size:20px;cursor:pointer;color:#555;">×</button>
+    <p style="font-size:14px;font-weight:600;color:#1F9D55;margin:0 0 4px;">Votre bouteille à la mer a été reçue !</p>
+    <p style="font-size:14px;color:#666;margin:0 0 8px;">${count} membre${count > 1 ? 's ont' : ' a'} déclaré avoir l'objet que vous recherchiez</p>
+    <a id="view-bottle-responses" style="font-size:14px;color:#1F9D55;text-decoration:underline;cursor:pointer;">Voir ces objets →</a>`;
+
+  const shareSection = document.getElementById('card-bottle-request');
+  if (shareSection) shareSection.parentNode.insertBefore(encart, shareSection);
+
+  document.getElementById('close-bottle-encart').onclick = async () => {
+    await db.from('notifications').update({ read: true }).eq('user_id', userId).eq('type', 'bottle_response').eq('read', false);
+    encart.remove();
+    updateNotificationBadge();
+  };
+
+  document.getElementById('view-bottle-responses').onclick = async () => {
+    await db.from('notifications').update({ read: true }).eq('user_id', userId).eq('type', 'bottle_response').eq('read', false);
+    encart.remove();
+    updateNotificationBadge();
+    _navigateTo('objects');
+  };
+}
 
 async function loadCommunity() {
   const [commRes, countRes] = await Promise.all([
