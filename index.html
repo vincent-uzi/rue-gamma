@@ -3538,6 +3538,8 @@ async function submitForm() {
       const { count } = await db.from('search_request_responses')
         .select('*', { count: 'exact', head: true })
         .eq('search_request_id', srId);
+      console.log('[Submit] window._searchRequestId:', srId);
+      console.log('[Submit] count:', count);
       if (count === 1) _notifySearchRequester(srId);
     } catch (e) { console.warn('[submitForm] search_request_responses:', e); }
   }
