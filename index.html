@@ -6395,7 +6395,7 @@ function showItemMenu() {
   const items   = isOwner
     ? [
         { label: 'Modifier',          action: editItemDescription },
-        { label: 'Supprimer l\'objet', danger: true, action: deleteItem },
+        { label: 'Supprimer l\'objet', danger: true, action: async () => await deleteItem() },
       ]
     : [{ label: 'Signaler', action: reportItem }];
   _showDropdown('item-menu', btn, items);
