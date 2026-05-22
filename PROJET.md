@@ -1976,3 +1976,44 @@ Finaliser les notifications bouteilles à la mer pour débloquer test rue.
 3. 🔴 Tests devices complets (2h)
 
 **Estimation test rue : 3-4h travail restant**
+
+---
+
+## 📝 TODO LIST — Petits debugs & améliorations
+
+### 🔴 PRIORITÉ HAUTE (avant test rue)
+
+**Parcours invitation d'un membre**
+- Prévoir workflow complet pour le test
+- Création manuelle SQL documentée + script ?
+- Email avec login/password template
+
+**Home / Bloc 'Prêtez plus pour emprunter plus'**
+- 🐛 Bouton 'Ajouter' non fonctionnel
+- Doit naviguer vers panel-add
+
+**Home / Bloc 'Une question ?'**
+- 🐛 Bouton 'Vincent' doit ouvrir fiche contact
+- Actuellement : aucune action
+
+### 🟡 PRIORITÉ MOYENNE (nice-to-have test)
+
+**Objets / Moteur de recherche**
+- Uniformiser avec Home : supprimer objets appartenant à l'utilisateur
+- Cohérence UX recherche
+
+**Ajouter / Pop-up + UX**
+- Affiner guidance formulaire
+- Messages encourageants
+- Validation inline ?
+
+**Transactions / Fine tuning**
+- Titres/typo à caler
+- Notification temporaire refus : remplacer par toast simple ?
+- Uniformiser présentation
+
+### ⚪ PRIORITÉ BASSE (post-test)
+
+**Profil**
+- Supprimer section 'Push' (messages profil)
+- Devenue obsolète avec CH-03
