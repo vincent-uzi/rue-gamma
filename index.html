@@ -6467,12 +6467,13 @@ function _showDeleteConfirmModal() {
       resolve(val);
     }
 
-    overlay.addEventListener('click', () => _close(false));
     modal.querySelector('#_del-confirm-ok').addEventListener('click', () => _close(true));
     modal.querySelector('#_del-confirm-cancel').addEventListener('click', () => _close(false));
 
     document.body.appendChild(overlay);
     document.body.appendChild(modal);
+    // Defer overlay click to avoid propagation from dropdown tap that triggered this modal
+    setTimeout(() => overlay.addEventListener('click', () => _close(false)), 300);
   });
 }
 
