@@ -3273,7 +3273,7 @@ async function _loadBottleNotifEncart(userId) {
   let responderName = '', responseItemName = '', responseItemId = null;
   if (srIds.length) {
     const { data: resp, error: respErr } = await db.from('search_request_responses')
-      .select('item_id, items!item_id(name), responder:profiles!responder_id(first_name)')
+      .select('item_id, items!item_id(name), responder:members!responder_id(first_name)')
       .in('search_request_id', srIds)
       .order('created_at', { ascending: false }).limit(1).single();
     console.log('[_loadBottleNotifEncart] resp:', resp, 'error:', respErr);
