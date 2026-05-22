@@ -3060,17 +3060,18 @@ function _renderCarousel(userId) {
     card.style.minWidth = single ? '100%' : '95%';
     card.style.width = single ? '100%' : '95%';
 
-    const line1 = document.createElement('p');
-    line1.style.cssText = 'font-size:18px;font-weight:bold;color:#333;margin:0 0 0 0;line-height:1.3;';
-    line1.textContent = requesterName + ' recherche';
-    card.appendChild(line1);
-
-    const line2 = document.createElement('p');
-    line2.style.cssText = 'font-size:18px;font-weight:bold;color:#333;margin:0 0 8px 0;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;';
+    const headline = document.createElement('p');
+    headline.style.cssText = 'font-size:18px;font-weight:bold;color:#333;margin:0 0 8px 0;line-height:1.3;';
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = requesterName + ' recherche un·e';
+    const br = document.createElement('br');
     const itemSpan = document.createElement('span');
-    itemSpan.textContent = 'un·e ' + (sr.item_name || '—');
-    line2.appendChild(itemSpan);
-    card.appendChild(line2);
+    itemSpan.style.cssText = 'display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;';
+    itemSpan.textContent = sr.item_name || '—';
+    headline.appendChild(nameSpan);
+    headline.appendChild(br);
+    headline.appendChild(itemSpan);
+    card.appendChild(headline);
 
     if (isOwn) {
       const hint = document.createElement('p');
