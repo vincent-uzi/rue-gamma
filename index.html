@@ -3541,6 +3541,7 @@ async function submitForm() {
       console.log('[Submit] window._searchRequestId:', srId);
       console.log('[Submit] count:', count);
       if (count === 1) _notifySearchRequester(srId);
+      _dismissBottle(srId);
     } catch (e) { console.warn('[submitForm] search_request_responses:', e); }
   }
 
