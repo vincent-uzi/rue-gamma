@@ -3163,6 +3163,8 @@ function _renderCarousel(userId) {
       btnNo.style.cssText = 'font-size:16px;color:#333;text-decoration:underline;cursor:pointer;margin-left:16px;';
       btnNo.textContent = 'Non, désolé';
       btnNo.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         const cardEl = e.target.closest('.bottle-card');
         if (!cardEl || cardEl.dataset.dismissing) return;
         cardEl.dataset.dismissing = 'true';
