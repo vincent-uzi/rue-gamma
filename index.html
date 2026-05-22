@@ -4784,13 +4784,24 @@ async function _showNotificationDots() {
   const userId = localStorage.getItem('member_id');
   if (!userId) return;
   const { data } = await db.from('notifications')
-    .select('loan_id')
+    .select('loan_id, type')
     .eq('user_id', userId)
     .eq('read', false)
     .not('loan_id', 'is', null);
   if (!data) return;
   const loanIds = data.map(n => n.loan_id);
   console.log('[showNotificationDots] Loan IDs with notif:', loanIds);
+
+  // Ouvrir archivées si notif de refus non lue
+  const hasDeclined = data.some(n => n.type === 'loan_declined');
+  if (hasDeclined && !_archivedVisible) {
+    _archivedVisible = true;
+    const section = document.getElementById('exchanges-archived-section');
+    const btn = document.getElementById('exchanges-archived-toggle');
+    if (section) section.style.display = 'block';
+    if (btn) btn.textContent = '▲ Masquer les archivées';
+  }
+
   loanIds.forEach(loanId => {
     const dot = document.querySelector(`.notif-dot[data-loan-id="${loanId}"]`);
     if (dot) {
