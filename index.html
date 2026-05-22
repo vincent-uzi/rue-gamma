@@ -4001,7 +4001,7 @@ async function loadProfileTabs() {
   if (!memberId) { console.warn('[loadProfileTabs] member_id absent — skip'); return; }
 
   const [itemsRes, lentRes, borrowedRes] = await Promise.all([
-    db.from('items').select('id, name, status, co2_saved_kg').eq('owner_id', memberId),
+    db.from('items').select('id, name, status, co2_saved_kg').eq('owner_id', memberId).neq('status', 'archived'),
     db.from('loans')
       .select('id, status, handed_at, item:items!item_id(name, co2_saved_kg), borrower:members!borrower_id(first_name)')
       .eq('owner_id', memberId).eq('status', 'active').not('handed_at', 'is', null),
@@ -4133,6 +4133,7 @@ async function loadObjectsItems() {
     .from('items')
     .select('*, owner:members!owner_id(first_name, address)')
     .eq('community_id', COMMUNITY_ID)
+    .neq('status', 'archived')
     .order('category', { ascending: true })
     .order('name', { ascending: true });
 
@@ -6444,7 +6445,9 @@ let _undoTimer   = null;
 async function deleteItem() {
   const item = _detailItem || window._detailItem;
   if (!item?.id) return;
-  const { error } = await db.from('items').delete().eq('id', item.id);
+  if (!confirm('Supprimer cet objet ? Il sera archivé et ne sera plus visible.')) return;
+  const { error } = await db.from('items').update({ status: 'archived' }).eq('id', item.id);
+  console.log('[deleteItem] Item archived:', item.id);
   if (error) { showToast('Erreur lors de la suppression', 'error'); return; }
   _deletedItem = { ...item };
   // Remove from all lists immediately
