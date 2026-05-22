@@ -3352,7 +3352,7 @@ function _navigateTo(key) {
 
   if (key === 'objects')        showObjects();
   else if (key === 'add')       showPanel('panel-add');
-  else if (key === 'exchanges') { showPanel('panel-exchanges'); loadTransactions(); _markNotificationsAsRead(); }
+  else if (key === 'exchanges') { showPanel('panel-exchanges'); loadTransactions(); }
   else if (key === 'profile')   { showPanel('panel-profile'); loadMember().then(() => loadProfileTabs()); }
   // 'home': all panels closed, home visible
 
