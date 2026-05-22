@@ -3160,15 +3160,7 @@ function _renderCarousel(userId) {
       const btnYes = document.createElement('button');
       btnYes.style.cssText = 'display:inline-flex;align-items:center;gap:8px;padding:12px 20px;background:#1F9D55;border:none;border-radius:24px;font-size:16px;font-weight:600;color:white;cursor:pointer;font-family:var(--font);';
       btnYes.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="white" stroke-width="2" fill="none"/><path d="M12 8L12 16M8 12L16 12" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>Ajouter';
-      btnYes.addEventListener('click', async () => {
-        if (sr.requester_id) {
-          const { error: notifError } = await db.from('notifications').insert({
-            user_id: sr.requester_id, type: 'bottle_response', loan_id: null, read: false
-          });
-          console.log('[bottleResponse] Notification inserted for requester:', sr.requester_id, notifError || 'OK');
-        }
-        _answerBottle(sr.id, sr.item_name);
-      });
+      btnYes.addEventListener('click', () => _answerBottle(sr.id, sr.item_name));
 
       const btnNo = document.createElement('a');
       btnNo.style.cssText = 'font-size:16px;color:#333;text-decoration:underline;cursor:pointer;margin-left:16px;';
@@ -3267,42 +3259,69 @@ async function _loadBottleNotifEncart(userId) {
   if (!userId) return;
   document.getElementById('bottle-notif-encart')?.remove();
 
-  const [notifsRes, srRes] = await Promise.all([
-    db.from('notifications').select('id').eq('user_id', userId).eq('type', 'bottle_response').eq('read', false),
-    db.from('search_requests').select('item_name').eq('requester_id', userId).in('status', ['notified', 'open']).order('created_at', { ascending: false }).limit(1),
-  ]);
-  if (!notifsRes.data?.length) return;
+  // 1. Notifs non lues
+  const { data: notifs } = await db.from('notifications')
+    .select('id').eq('user_id', userId).eq('type', 'bottle_response').eq('read', false);
+  if (!notifs?.length) return;
 
-  const count = notifsRes.data.length;
-  const itemName = srRes.data?.[0]?.item_name || '';
+  // 2. Dernière réponse à une bouteille de cet user
+  const { data: srRows } = await db.from('search_requests')
+    .select('id').eq('requester_id', userId).in('status', ['notified', 'open'])
+    .order('created_at', { ascending: false }).limit(5);
+  const srIds = (srRows || []).map(r => r.id);
+
+  let responderName = '', responseItemName = '', responseItemId = null;
+  if (srIds.length) {
+    const { data: resp } = await db.from('search_request_responses')
+      .select('item_id, item:items!item_id(name), responder:members!responder_id(first_name)')
+      .in('search_request_id', srIds)
+      .order('created_at', { ascending: false }).limit(1).single();
+    if (resp) {
+      responseItemId   = resp.item_id;
+      responseItemName = resp.item?.name || '';
+      responderName    = resp.responder?.first_name || '';
+    }
+  }
+
+  const notifIds = notifs.map(n => n.id);
   const encart = document.createElement('div');
   encart.id = 'bottle-notif-encart';
   encart.style.cssText = 'background:#ffeaa7;border-radius:8px;padding:16px 20px;margin:0 0 16px 0;position:relative;';
+
+  const bodyText = responderName && responseItemName
+    ? `${responderName} a déclaré avoir ${responseItemName}`
+    : `${notifs.length} membre${notifs.length > 1 ? 's ont' : ' a'} déclaré avoir l'objet que vous recherchiez`;
+  const ctaText  = responseItemId ? 'Voir ce produit →' : 'Voir ces objets →';
+
   encart.innerHTML = `
     <button id="close-bottle-encart" style="position:absolute;top:10px;right:12px;background:none;border:none;font-size:20px;cursor:pointer;color:#555;">×</button>
     <p style="font-size:14px;font-weight:600;color:#1F9D55;margin:0 0 4px;">Votre bouteille à la mer a été reçue !</p>
-    <p style="font-size:14px;color:#666;margin:0 0 8px;">${count} membre${count > 1 ? 's ont' : ' a'} déclaré avoir l'objet que vous recherchiez</p>
-    <a id="view-bottle-responses" style="font-size:14px;color:#1F9D55;text-decoration:underline;cursor:pointer;">Voir ces objets →</a>`;
+    <p style="font-size:14px;color:#666;margin:0 0 8px;">${bodyText}</p>
+    <a id="view-bottle-cta" style="font-size:14px;color:#1F9D55;text-decoration:underline;cursor:pointer;">${ctaText}</a>`;
 
   const metricsSection = document.querySelector('#panel-home .home-metrics');
   if (metricsSection) metricsSection.parentNode.insertBefore(encart, metricsSection);
 
-  document.getElementById('close-bottle-encart').onclick = async () => {
-    await db.from('notifications').update({ read: true }).eq('user_id', userId).eq('type', 'bottle_response').eq('read', false);
+  async function _markRead() {
+    await db.from('notifications').update({ read: true }).in('id', notifIds);
     encart.remove();
     updateNotificationBadge();
-  };
+  }
 
-  document.getElementById('view-bottle-responses').onclick = async () => {
-    await db.from('notifications').update({ read: true }).eq('user_id', userId).eq('type', 'bottle_response').eq('read', false);
-    encart.remove();
-    updateNotificationBadge();
-    _navigateTo('objects');
-    if (itemName) {
-      setTimeout(() => {
-        const inp = document.getElementById('objSearchInput');
-        if (inp) { inp.value = itemName; filterObjects(inp); }
-      }, 150);
+  document.getElementById('close-bottle-encart').onclick = _markRead;
+
+  document.getElementById('view-bottle-cta').onclick = async () => {
+    await _markRead();
+    if (responseItemId) {
+      await loadItemDetail(responseItemId);
+    } else {
+      _navigateTo('objects');
+      if (responseItemName) {
+        setTimeout(() => {
+          const inp = document.getElementById('objSearchInput');
+          if (inp) { inp.value = responseItemName; filterObjects(inp); }
+        }, 150);
+      }
     }
   };
 }
