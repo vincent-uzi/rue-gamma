@@ -6478,25 +6478,50 @@ function _showDeleteConfirmModal() {
   });
 }
 
-async function deleteItem() {
+function deleteItem() {
   const item = _detailItem || window._detailItem;
   if (!item?.id) return;
-  console.log('[deleteItem] AVANT appel modal, time:', Date.now());
-  const confirmed = await _showDeleteConfirmModal();
-  console.log('[deleteItem] APRES modal, confirmed:', confirmed, 'time:', Date.now());
-  if (!confirmed) { console.log('[deleteItem] Cancelled by user'); return; }
-  const { error } = await db.from('items').update({ status: 'archived' }).eq('id', item.id);
-  console.log('[deleteItem] Item archived:', item.id);
-  if (error) { showToast('Erreur lors de la suppression', 'error'); return; }
-  _deletedItem = { ...item };
-  // Remove from all lists immediately
-  document.querySelector('#profileItemsList [data-item-id="' + item.id + '"]')?.remove();
-  document.querySelector('#itemsList [data-item-id="' + item.id + '"]')?.remove();
-  _allObjects = _allObjects.filter(r => r.id !== item.id);
-  if (_objectsLoaded) renderObjects(_allObjects);
+
+  // Optimistic UI — masquer immédiatement
+  const itemCard = document.querySelector(`[data-item-id="${item.id}"]`);
+  if (itemCard) itemCard.style.display = 'none';
+  const idx = _allObjects.findIndex(o => o.id === item.id);
+  if (idx !== -1) _allObjects.splice(idx, 1);
   hideItemDetail();
   _setActiveTab('profile');
-  _showToastUndo((item.name || 'Objet') + ' supprimé');
+
+  // Toast undo
+  document.getElementById('delete-toast')?.remove();
+  const toast = document.createElement('div');
+  toast.id = 'delete-toast';
+  toast.style.cssText = 'position:fixed;bottom:calc(80px + env(safe-area-inset-bottom));left:20px;right:20px;background:#333;color:white;padding:16px 20px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;z-index:9999;animation:_slideUp .25s ease;';
+  toast.innerHTML = `<span style="font-size:15px;">${item.name || 'Objet'} supprimé</span><button id="btn-undo-delete" style="background:#1F9D55;color:white;border:none;padding:8px 16px;border-radius:20px;font-size:14px;font-weight:600;cursor:pointer;">Annuler</button>`;
+  document.body.appendChild(toast);
+
+  // Timeout DB
+  const deleteTimeout = setTimeout(async () => {
+    toast.remove();
+    const { error } = await db.from('items').update({ status: 'archived' }).eq('id', item.id);
+    if (error) {
+      console.error('[deleteItem] Error archiving:', error);
+      if (itemCard) itemCard.style.display = '';
+      if (idx !== -1) _allObjects.splice(idx, 0, item);
+      if (_objectsLoaded) renderObjects(_allObjects);
+      showToast('Erreur lors de la suppression', 'error');
+    } else {
+      console.log('[deleteItem] Item archived:', item.id);
+    }
+  }, 10000);
+
+  // Undo
+  document.getElementById('btn-undo-delete').onclick = () => {
+    clearTimeout(deleteTimeout);
+    toast.remove();
+    if (itemCard) itemCard.style.display = '';
+    if (idx !== -1) _allObjects.splice(idx, 0, item);
+    if (_objectsLoaded) renderObjects(_allObjects);
+    console.log('[deleteItem] Undo — item restored');
+  };
 }
 
 function _showToastUndo(msg) {
