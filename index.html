@@ -746,13 +746,14 @@
       text-align: center; padding: 16px 0;
     }
     .transaction-card {
-      background: var(--surface); border: 2px solid #EAF5EA;
+      background: var(--surface); border: 1px solid #EAF5EA;
       border-radius: 12px; padding: 14px 16px; margin-bottom: 10px;
       display: flex; flex-direction: column; gap: 8px;
       cursor: pointer; transition: background .12s; position: relative;
     }
     .transaction-card:active { background: var(--surface-alt); }
     .transaction-card.needs-action { border: 2px solid #1F9D55; }
+    .transaction-card-notif { border: 2px solid #1F9D55 !important; }
     .tx-card-header {
       display: flex; justify-content: space-between; align-items: center; gap: 12px;
     }
@@ -4749,7 +4750,11 @@ async function _showNotificationDots() {
   console.log('[showNotificationDots] Loan IDs with notif:', loanIds);
   loanIds.forEach(loanId => {
     const dot = document.querySelector(`.notif-dot[data-loan-id="${loanId}"]`);
-    if (dot) dot.style.display = 'block';
+    if (dot) {
+      dot.style.display = 'block';
+      const card = dot.closest('.transaction-card');
+      if (card) card.classList.add('transaction-card-notif');
+    }
   });
 }
 
@@ -4762,7 +4767,11 @@ async function _markLoanNotifRead(loanId) {
     .eq('loan_id', loanId)
     .eq('read', false);
   const dot = document.querySelector(`.notif-dot[data-loan-id="${loanId}"]`);
-  if (dot) dot.style.display = 'none';
+  if (dot) {
+    dot.style.display = 'none';
+    const card = dot.closest('.transaction-card');
+    if (card) card.classList.remove('transaction-card-notif');
+  }
   updateNotificationBadge();
 }
 
