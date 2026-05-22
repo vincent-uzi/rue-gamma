@@ -1873,6 +1873,10 @@
       from { opacity: 0; transform: translateY(12px); }
       to   { opacity: 1; transform: translateY(0); }
     }
+    @keyframes _slideUp {
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0); }
+    }
     @keyframes fadeIn {
       from { opacity: 0; }
       to   { opacity: 1; }
@@ -6442,10 +6446,41 @@ function reportItem() {
 let _deletedItem = null;
 let _undoTimer   = null;
 
+function _showDeleteConfirmModal() {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:9998;';
+
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:white;border-radius:24px 24px 0 0;padding:24px 20px;padding-bottom:calc(24px + env(safe-area-inset-bottom));z-index:9999;animation:_slideUp .25s ease;';
+
+    modal.innerHTML = `
+      <p style="font-size:16px;color:#333;text-align:center;margin:0 0 24px;line-height:1.4;">Êtes-vous certain de vouloir supprimer cet objet ?</p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button id="_del-confirm-ok" style="width:100%;padding:14px;background:#EF4444;color:white;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;">Supprimer</button>
+        <button id="_del-confirm-cancel" style="width:100%;padding:14px;background:#F5F5F5;color:#333;border:none;border-radius:12px;font-size:16px;font-weight:500;cursor:pointer;">Annuler</button>
+      </div>`;
+
+    function _close(val) {
+      overlay.remove();
+      modal.remove();
+      resolve(val);
+    }
+
+    overlay.addEventListener('click', () => _close(false));
+    modal.querySelector('#_del-confirm-ok').addEventListener('click', () => _close(true));
+    modal.querySelector('#_del-confirm-cancel').addEventListener('click', () => _close(false));
+
+    document.body.appendChild(overlay);
+    document.body.appendChild(modal);
+  });
+}
+
 async function deleteItem() {
   const item = _detailItem || window._detailItem;
   if (!item?.id) return;
-  if (!confirm('Supprimer cet objet ? Il sera archivé et ne sera plus visible.')) return;
+  const confirmed = await _showDeleteConfirmModal();
+  if (!confirmed) { console.log('[deleteItem] Cancelled by user'); return; }
   const { error } = await db.from('items').update({ status: 'archived' }).eq('id', item.id);
   console.log('[deleteItem] Item archived:', item.id);
   if (error) { showToast('Erreur lors de la suppression', 'error'); return; }
