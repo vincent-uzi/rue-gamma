@@ -3163,6 +3163,7 @@ function _renderCarousel(userId) {
       btnNo.style.cssText = 'font-size:16px;color:#333;text-decoration:underline;cursor:pointer;margin-left:16px;';
       btnNo.textContent = 'Non, désolé';
       btnNo.addEventListener('click', (e) => {
+        console.log('[DEBUG] Non désolé clicked');
         e.preventDefault();
         e.stopPropagation();
         const cardEl = e.target.closest('.bottle-card');
@@ -3175,6 +3176,7 @@ function _renderCarousel(userId) {
         // cardEl.style.transition = 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s ease';
         // cardEl.style.transform = 'translateY(30px)';
         // cardEl.style.opacity = '0';
+        console.log('[DEBUG] About to hide card');
         cardEl.style.display = 'none';
 
         setTimeout(() => {
@@ -3231,12 +3233,16 @@ function _attachCarouselScroll() {
 }
 
 function _dismissBottle(id) {
+  console.log('[DEBUG] _dismissBottle called, id:', id);
   const dismissed = JSON.parse(localStorage.getItem('dismissed_bottles') || '[]');
   if (!dismissed.includes(id)) dismissed.push(id);
   localStorage.setItem('dismissed_bottles', JSON.stringify(dismissed));
+  console.log('[DEBUG] localStorage updated');
 
   _homeBottles = _homeBottles.filter(b => b.id !== id);
-  _renderCarousel(localStorage.getItem('member_id'));
+  console.log('[DEBUG] _homeBottles filtered, length:', _homeBottles.length);
+  console.log('[DEBUG] Skipping _renderCarousel');
+  // _renderCarousel(localStorage.getItem('member_id'));
 }
 
 function _answerBottle(id, itemName) {
