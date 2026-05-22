@@ -746,7 +746,7 @@
       text-align: center; padding: 16px 0;
     }
     .transaction-card {
-      background: var(--surface); border: 1px solid var(--line);
+      background: var(--surface); border: 1px solid #EAF5EA;
       border-radius: 12px; padding: 14px 16px; margin-bottom: 10px;
       display: flex; flex-direction: column; gap: 8px;
       cursor: pointer; transition: background .12s;
@@ -4860,7 +4860,7 @@ function _buildSearchRequestsSection(searchRequests, userId) {
 
   visible.forEach(sr => {
     const card = document.createElement('div');
-    card.style.cssText = 'background:white;border:1px solid #E5E5E0;border-radius:12px;padding:16px;margin-bottom:10px;';
+    card.style.cssText = 'background:white;border:1px solid #EAF5EA;border-radius:12px;padding:16px;margin-bottom:10px;';
 
     const isOwn = sr.requester_id === userId;
     const requesterName = sr.requester?.first_name || 'Un voisin';
