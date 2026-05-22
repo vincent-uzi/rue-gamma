@@ -3172,9 +3172,10 @@ function _renderCarousel(userId) {
         const carouselEl = document.getElementById('bottle-carousel');
         const idx = Array.from(carouselEl.querySelectorAll('.bottle-card')).indexOf(cardEl);
 
-        cardEl.style.transition = 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s ease';
-        cardEl.style.transform = 'translateY(30px)';
-        cardEl.style.opacity = '0';
+        // cardEl.style.transition = 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s ease';
+        // cardEl.style.transform = 'translateY(30px)';
+        // cardEl.style.opacity = '0';
+        cardEl.style.display = 'none';
 
         setTimeout(() => {
           _dismissBottle(sr.id);
