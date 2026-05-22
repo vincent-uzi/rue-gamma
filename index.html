@@ -5120,21 +5120,24 @@ function _declareItemFromSearch(searchRequestId, itemName) {
 }
 
 async function _notifySearchRequester(searchRequestId) {
+  console.log('[_notifySearchRequester] Called with searchRequestId:', searchRequestId);
   const { count } = await db.from('search_request_responses')
     .select('*', { count: 'exact', head: true })
     .eq('search_request_id', searchRequestId);
   if (!count) return;
-  const { data: sr } = await db.from('search_requests')
+  const { data: sr, error: srError } = await db.from('search_requests')
     .select('requester_id')
     .eq('id', searchRequestId)
     .single();
+  console.log('[_notifySearchRequester] Requester ID:', sr?.requester_id, 'error:', srError);
   await db.from('search_requests')
     .update({ status: 'notified', notified_at: new Date().toISOString() })
     .eq('id', searchRequestId);
   if (sr?.requester_id) {
-    await db.from('notifications').insert({
+    const insertResult = await db.from('notifications').insert({
       user_id: sr.requester_id, type: 'bottle_response', loan_id: null, read: false
     });
+    console.log('[_notifySearchRequester] Insert result:', insertResult);
     console.log(`[search_request] ${count} réponse(s) → notification bottle_response envoyée à:`, sr.requester_id);
   }
 }
