@@ -1911,3 +1911,27 @@ Finaliser la refonte Home : section 'Partagez vos objets', bloc 'Bravo la commu 
 4. Fix notifs bouteilles (1h si simplifié)
 
 **Avancement global : 93% prêt test rue**
+
+---
+
+## BUGS CONNUS
+
+### BUG : Code source affiché en bas page
+
+**Symptôme :** Après certaines actions (clic "Non désolé" carrousel, autres), code source JS s'affiche en bas de la page Home.
+
+**Debug effectué (3h) :**
+- ✅ Structure HTML propre (`</script>` ligne 6749, `</body></html>` en fin)
+- ✅ Event listeners corrects (`preventDefault` + `stopPropagation` ajoutés)
+- ✅ Animation désactivée (pas la cause)
+- ✅ Re-render désactivé (pas la cause)
+- ✅ Aucune erreur JS console
+
+**Hypothèses :**
+- Cache Safari tenace
+- Parsing HTML cassé par balise `</script>` dans string
+- Listener DOMContentLoaded ligne 6749
+
+**Workaround temporaire :** Mode privé Safari
+
+**Status :** Backlog investigation future
