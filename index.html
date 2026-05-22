@@ -749,7 +749,7 @@
       background: var(--surface); border: 1px solid #EAF5EA;
       border-radius: 12px; padding: 14px 16px; margin-bottom: 10px;
       display: flex; flex-direction: column; gap: 8px;
-      cursor: pointer; transition: background .12s;
+      cursor: pointer; transition: background .12s; position: relative;
     }
     .transaction-card:active { background: var(--surface-alt); }
     .transaction-card.needs-action { border: 2px solid #1F9D55; }
@@ -4736,6 +4736,36 @@ async function _markNotificationsAsRead() {
   updateTransactionsBadge(0);
 }
 
+async function _showNotificationDots() {
+  const userId = localStorage.getItem('member_id');
+  if (!userId) return;
+  const { data } = await db.from('notifications')
+    .select('loan_id')
+    .eq('user_id', userId)
+    .eq('read', false)
+    .not('loan_id', 'is', null);
+  if (!data) return;
+  const loanIds = data.map(n => n.loan_id);
+  console.log('[showNotificationDots] Loan IDs with notif:', loanIds);
+  loanIds.forEach(loanId => {
+    const dot = document.querySelector(`.notif-dot[data-loan-id="${loanId}"]`);
+    if (dot) dot.style.display = 'block';
+  });
+}
+
+async function _markLoanNotifRead(loanId) {
+  const userId = localStorage.getItem('member_id');
+  if (!userId) return;
+  await db.from('notifications')
+    .update({ read: true })
+    .eq('user_id', userId)
+    .eq('loan_id', loanId)
+    .eq('read', false);
+  const dot = document.querySelector(`.notif-dot[data-loan-id="${loanId}"]`);
+  if (dot) dot.style.display = 'none';
+  updateNotificationBadge();
+}
+
 // ── QR polling ─────────────────────────────────────────────────
 function startQRPolling(loanId, action) {
   stopQRPolling();
@@ -5117,9 +5147,20 @@ function _txSectionCard(tx) {
   parts.appendChild(borrowerEl);
   footer.appendChild(parts);
 
+  // Pastille notification
+  const dot = document.createElement('span');
+  dot.className = 'notif-dot';
+  dot.dataset.loanId = tx.id || '';
+  dot.style.cssText = 'position:absolute;top:8px;left:8px;width:8px;height:8px;background:#FF3B30;border-radius:50%;display:none;';
+  el.appendChild(dot);
+
   el.appendChild(header);
   el.appendChild(footer);
-  el.addEventListener('click', () => tx.id ? showThread(tx.id) : null);
+  el.addEventListener('click', () => {
+    if (!tx.id) return;
+    _markLoanNotifRead(tx.id);
+    showThread(tx.id);
+  });
   return el;
 }
 
@@ -5202,6 +5243,9 @@ function renderExchanges() {
     }
   }
   list.appendChild(archSection);
+
+  // Afficher pastilles notifications
+  _showNotificationDots();
 }
 
 
