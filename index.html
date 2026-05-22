@@ -3311,7 +3311,6 @@ async function _loadBottleNotifEncart(userId) {
   document.getElementById('close-bottle-encart').onclick = _markRead;
 
   document.getElementById('view-bottle-cta').onclick = async () => {
-    await _markRead();
     if (responseItemId) {
       await loadItemDetail(responseItemId);
     } else {
