@@ -175,6 +175,60 @@ Dernière mise à jour : 19 mai 2026 22:30
 - Expiration auto avis recherche 7j
 - Système invitation membre complet (4-6h)
 - Back-office admin (10-15h)
+- NOTIF-01 : Notifications email sélectives (4-6h) → voir specs ci-dessous
+
+---
+
+### NOTIF-01 : Notifications email sélectives
+
+**Contexte :**
+Badge navbar Transactions fonctionne (CH-03) mais pas de notif quand app fermée.
+Email = réactivité immédiate pour demandes critiques.
+
+**Périmètre :**
+- Email UNIQUEMENT pour événements critiques :
+  1. Demande de prêt reçue ("Jean-Pierre veut emprunter votre perceuse")
+  2. Prêt accepté ("Vincent a accepté de vous prêter son escabeau")
+- Pas d'email pour : réponses bouteilles, rappels retour (badge suffit)
+
+**Template email minimaliste :**
+```
+Sujet : [Prénom] veut emprunter votre [objet]
+
+Bonjour [Prénom],
+
+[Prénom emprunteur] a demandé à emprunter votre [objet].
+
+👉 Ouvrir l'app pour répondre : [lien deep link]
+
+---
+FLO · Front de Libération des Objets
+[Lien désinscription]
+```
+
+**Stack technique :**
+- Service email : Resend (recommandé, 100 emails/jour gratuit) ou SendGrid
+- Supabase Edge Functions pour trigger
+- Table `email_preferences` pour opt-in/opt-out
+- Deep links vers app (ex: `flo://transaction/[id]`)
+
+**Implémentation :**
+1. Setup Resend API (30min)
+2. Créer templates HTML emails (1-2h)
+3. Edge Function trigger INSERT notifications (1-2h)
+4. Gestion opt-in/opt-out (1-2h)
+5. Deep links (1h)
+6. Tests (1h)
+
+**Estimation :** 4-6h
+
+**Priorité :** Phase 2 (après feedback test rue)
+
+**Décisions à prendre :**
+- Opt-in obligatoire (RGPD) ou opt-out ?
+- Fréquence max emails/jour (ex: max 3/jour) ?
+
+**Status :** BACKLOG ⏸️
 
 ---
 
