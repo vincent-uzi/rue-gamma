@@ -3272,15 +3272,20 @@ async function _loadBottleNotifEncart(userId) {
 
   let responderName = '', responseItemName = '', responseItemId = null;
   if (srIds.length) {
-    const { data: resp, error: respErr } = await db.from('search_request_responses')
-      .select('item_id, items!item_id(name), responder:members!responder_id(first_name)')
+    const { data: resp } = await db.from('search_request_responses')
+      .select('item_id, responder_id')
       .in('search_request_id', srIds)
       .order('created_at', { ascending: false }).limit(1).single();
-    console.log('[_loadBottleNotifEncart] resp:', resp, 'error:', respErr);
+    console.log('[_loadBottleNotifEncart] resp:', resp);
     if (resp) {
-      responseItemId   = resp.item_id;
-      responseItemName = resp.items?.name || '';
-      responderName    = resp.responder?.first_name || '';
+      responseItemId = resp.item_id;
+      const [itemRes, memberRes] = await Promise.all([
+        db.from('items').select('name').eq('id', resp.item_id).single(),
+        db.from('members').select('first_name').eq('id', resp.responder_id).single(),
+      ]);
+      responseItemName = itemRes.data?.name || '';
+      responderName    = memberRes.data?.first_name || '';
+      console.log('[_loadBottleNotifEncart]', { responseItemId, responseItemName, responderName });
     }
   }
 
