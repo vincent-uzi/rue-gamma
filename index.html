@@ -3281,8 +3281,8 @@ async function _loadBottleNotifEncart(userId) {
     <p style="font-size:14px;color:#666;margin:0 0 8px;">${count} membre${count > 1 ? 's ont' : ' a'} déclaré avoir l'objet que vous recherchiez</p>
     <a id="view-bottle-responses" style="font-size:14px;color:#1F9D55;text-decoration:underline;cursor:pointer;">Voir ces objets →</a>`;
 
-  const shareSection = document.getElementById('card-bottle-request');
-  if (shareSection) shareSection.parentNode.insertBefore(encart, shareSection);
+  const metricsSection = document.querySelector('#panel-home .home-metrics');
+  if (metricsSection) metricsSection.parentNode.insertBefore(encart, metricsSection);
 
   document.getElementById('close-bottle-encart').onclick = async () => {
     await db.from('notifications').update({ read: true }).eq('user_id', userId).eq('type', 'bottle_response').eq('read', false);
