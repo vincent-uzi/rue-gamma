@@ -6461,19 +6461,20 @@ function _showDeleteConfirmModal() {
         <button id="_del-confirm-cancel" style="width:100%;padding:14px;background:#F5F5F5;color:#333;border:none;border-radius:12px;font-size:16px;font-weight:500;cursor:pointer;">Annuler</button>
       </div>`;
 
-    function _close(val) {
+    function _close(val, src) {
+      console.log('[_showDeleteConfirmModal] _close called, val:', val, 'src:', src);
       overlay.remove();
       modal.remove();
       resolve(val);
     }
 
-    modal.querySelector('#_del-confirm-ok').addEventListener('click', () => _close(true));
-    modal.querySelector('#_del-confirm-cancel').addEventListener('click', () => _close(false));
+    modal.querySelector('#_del-confirm-ok').addEventListener('click', () => _close(true, 'btn-supprimer'));
+    modal.querySelector('#_del-confirm-cancel').addEventListener('click', () => _close(false, 'btn-annuler'));
 
     document.body.appendChild(overlay);
     document.body.appendChild(modal);
     // Defer overlay click to avoid propagation from dropdown tap that triggered this modal
-    setTimeout(() => overlay.addEventListener('click', () => _close(false)), 300);
+    setTimeout(() => overlay.addEventListener('click', () => _close(false, 'overlay')), 300);
   });
 }
 
