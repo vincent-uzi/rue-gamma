@@ -2200,9 +2200,16 @@
       </button>
     </div>
 
-    <!-- Version B : bouteille(s) active(s) -->
+    <!-- Section bouteilles (CAS 1 : CTA / CAS 2 : carrousel) -->
     <div id="card-bottle-request" style="display:none;">
-      <h2 style="font-size:20px;font-weight:bold;color:#333;margin:0 0 16px 0;">Avez-vous ces objets ?</h2>
+      <h2 style="font-size:20px;font-weight:bold;color:#333;margin:0 0 16px 0;">Partagez vos objets</h2>
+      <!-- CAS 1 : aucune bouteille des autres -->
+      <div id="share-cta-card" style="display:none;background:#ffeaa7;padding:20px;border-radius:12px;margin-bottom:24px;">
+        <h3 style="font-size:18px;font-weight:bold;color:#333;margin:0 0 8px 0;line-height:1.3;">Prêtez plus<br>pour emprunter plus</h3>
+        <p style="font-size:16px;color:#888;margin:0 0 16px 0;">Vous partagez déjà <span id="share-count">0</span> objets</p>
+        <button id="btn-share-add" style="width:100%;padding:14px;background:#1F9D55;border:none;border-radius:8px;font-size:16px;font-weight:600;color:white;cursor:pointer;">+ Ajouter</button>
+      </div>
+      <!-- CAS 2 : carrousel -->
       <div id="bottle-carousel" class="bottle-carousel"></div>
       <div id="bottle-dots" class="bottle-dots" style="display:none;"></div>
     </div>
@@ -2914,6 +2921,7 @@ function renderItemRow(list, item) {
 
 let _homeBottles = [];
 let _homeBottleIdx = 0;
+let _userItemsCount = 0;
 
 async function loadHomeData() {
   const userId = localStorage.getItem('member_id');
@@ -2959,6 +2967,7 @@ async function loadHomeData() {
 
   // Objets user → CTA texte
   const n = userObjRes.count ?? 0;
+  _userItemsCount = n;
   const userCountEl = document.getElementById('home-user-count');
   if (userCountEl) userCountEl.textContent = n + ' objet' + (n !== 1 ? 's' : '');
 
@@ -3003,12 +3012,6 @@ function _initBottles(bottles, userId) {
   const cardAdd = document.getElementById('card-add-object');
   const cardBottle = document.getElementById('card-bottle-request');
 
-  if (!otherBottles.length) {
-    if (cardAdd) cardAdd.style.display = 'flex';
-    if (cardBottle) cardBottle.style.display = 'none';
-    return;
-  }
-
   if (cardAdd) cardAdd.style.display = 'none';
   if (cardBottle) cardBottle.style.display = 'block';
 
@@ -3019,6 +3022,21 @@ function _renderCarousel(userId) {
   userId = userId || localStorage.getItem('member_id');
   const carousel = document.getElementById('bottle-carousel');
   if (!carousel) return;
+
+  const shareCard = document.getElementById('share-cta-card');
+  if (_homeBottles.length === 0) {
+    carousel.style.display = 'none';
+    document.getElementById('bottle-dots').style.display = 'none';
+    if (shareCard) {
+      shareCard.style.display = 'block';
+      const sc = document.getElementById('share-count');
+      if (sc) sc.textContent = _userItemsCount;
+    }
+    return;
+  }
+
+  if (shareCard) shareCard.style.display = 'none';
+  carousel.style.display = '';
   carousel.innerHTML = '';
 
   const single = _homeBottles.length === 1;
@@ -3137,11 +3155,6 @@ function _dismissBottle(id) {
   localStorage.setItem('dismissed_bottles', JSON.stringify(dismissed));
 
   _homeBottles = _homeBottles.filter(b => b.id !== id);
-  if (!_homeBottles.length) {
-    document.getElementById('card-bottle-request').style.display = 'none';
-    document.getElementById('card-add-object').style.display = 'flex';
-    return;
-  }
   _renderCarousel(localStorage.getItem('member_id'));
 }
 
@@ -6308,6 +6321,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnInvite)   btnInvite.addEventListener('click', () => { modalInvite.style.display = 'flex'; });
   if (closeBtn)    closeBtn.addEventListener('click', () => { modalInvite.style.display = 'none'; });
   if (modalInvite) modalInvite.addEventListener('click', e => { if (e.target.id === 'modal-invite') modalInvite.style.display = 'none'; });
+  document.getElementById('btn-share-add')?.addEventListener('click', () => _navigateTo('add'));
 });
 </script>
 
