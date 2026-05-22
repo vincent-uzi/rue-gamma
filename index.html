@@ -3233,6 +3233,7 @@ function _dismissBottle(id) {
 
 function _answerBottle(id, itemName) {
   window._prefilledItemName = itemName;
+  window._searchRequestId   = id;
   _navigateTo('add');
 }
 
@@ -4105,6 +4106,7 @@ let _allObjects = [];
 function showObjects() {
   showPanel('panel-objects');
   if (!_objectsLoaded) loadObjectsItems();
+  _loadBottleResponseEncart();
 }
 
 function objectsTabClick(tab) {
@@ -4139,6 +4141,74 @@ async function loadObjectsItems() {
   _allObjects = data || [];
   _objectsLoaded = true;
   renderObjects(_allObjects);
+}
+
+async function _loadBottleResponseEncart() {
+  const userId = localStorage.getItem('member_id');
+  if (!userId) return;
+
+  // Vérifier notifs bottle_response non lues
+  const { data: notifs } = await db.from('notifications')
+    .select('id, created_at')
+    .eq('user_id', userId)
+    .eq('type', 'bottle_response')
+    .eq('read', false)
+    .order('created_at', { ascending: false })
+    .limit(1);
+  if (!notifs?.length) return;
+
+  // Récupérer les search requests de l'user
+  const { data: myRequests } = await db.from('search_requests')
+    .select('id, item_name')
+    .eq('requester_id', userId)
+    .in('status', ['notified', 'open']);
+  if (!myRequests?.length) return;
+
+  const requestIds = myRequests.map(r => r.id);
+
+  // Récupérer la réponse la plus récente
+  const { data: responses } = await db.from('search_request_responses')
+    .select('id, item_id, search_request_id, responder:members!responder_id(first_name)')
+    .in('search_request_id', requestIds)
+    .order('created_at', { ascending: false })
+    .limit(1);
+  if (!responses?.length) return;
+
+  const resp    = responses[0];
+  const req     = myRequests.find(r => r.id === resp.search_request_id);
+  const notifId = notifs[0].id;
+  const responderName = resp.responder?.first_name || 'Un voisin';
+  const itemName = req?.item_name || 'un objet';
+
+  // Insérer encart avant la liste
+  const list = document.getElementById('objectsList');
+  const encart = document.createElement('div');
+  encart.id = `encart-bottle-${notifId}`;
+  encart.style.cssText = 'background:#ffeaa7;border-radius:12px;padding:20px;margin:0 20px 24px 20px;';
+  encart.innerHTML = `
+    <p style="font-size:14px;color:#555;margin:0 0 4px 0;">🔔 ${responderName} a un objet pour vous !</p>
+    <p style="font-size:18px;font-weight:bold;color:#333;margin:0 0 16px 0;">${itemName}</p>
+    <div style="display:flex;gap:12px;">
+      <button id="btn-view-${notifId}" style="flex:1;padding:12px 20px;background:#1F9D55;color:white;border:none;border-radius:24px;font-size:16px;font-weight:600;cursor:pointer;font-family:var(--font);">Voir</button>
+      <button id="btn-ignore-${notifId}" style="flex:1;padding:12px 20px;background:white;color:#333;border:1px solid #D0D0D0;border-radius:24px;font-size:16px;cursor:pointer;font-family:var(--font);">Ignorer</button>
+    </div>
+  `;
+  list.insertBefore(encart, list.firstChild);
+
+  document.getElementById(`btn-view-${notifId}`)?.addEventListener('click', async () => {
+    await db.from('notifications').update({ read: true }).eq('id', notifId);
+    encart.style.display = 'none';
+    await updateNotificationBadge();
+    if (resp.item_id) loadItemDetail(resp.item_id);
+    console.log('[bottleEncart] Fiche ouverte pour item:', resp.item_id);
+  });
+
+  document.getElementById(`btn-ignore-${notifId}`)?.addEventListener('click', async () => {
+    await db.from('notifications').update({ read: true }).eq('id', notifId);
+    encart.style.display = 'none';
+    await updateNotificationBadge();
+    console.log('[bottleEncart] Ignoré');
+  });
 }
 
 function renderObjects(items) {
@@ -5054,10 +5124,19 @@ async function _notifySearchRequester(searchRequestId) {
     .select('*', { count: 'exact', head: true })
     .eq('search_request_id', searchRequestId);
   if (!count) return;
+  const { data: sr } = await db.from('search_requests')
+    .select('requester_id')
+    .eq('id', searchRequestId)
+    .single();
   await db.from('search_requests')
     .update({ status: 'notified', notified_at: new Date().toISOString() })
     .eq('id', searchRequestId);
-  console.log(`[search_request] ${count} réponse(s) → requester notifié`);
+  if (sr?.requester_id) {
+    await db.from('notifications').insert({
+      user_id: sr.requester_id, type: 'bottle_response', loan_id: null, read: false
+    });
+    console.log(`[search_request] ${count} réponse(s) → notification bottle_response envoyée à:`, sr.requester_id);
+  }
 }
 
 function showDeclineConfirm(loanId) {
