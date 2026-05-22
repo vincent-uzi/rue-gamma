@@ -3327,7 +3327,7 @@ async function signOut() {
   }
   document.getElementById('app').style.visibility = '';
   initTransactionsState();
-  loadMember();
+  loadMember().then(() => updateNotificationBadge());
   loadCommunity();
   loadHomeData();
   // /v route: index.html?v=1&action=return&id=xxx
@@ -3352,7 +3352,7 @@ function _navigateTo(key) {
 
   if (key === 'objects')        showObjects();
   else if (key === 'add')       showPanel('panel-add');
-  else if (key === 'exchanges') { showPanel('panel-exchanges'); loadTransactions(); }
+  else if (key === 'exchanges') { showPanel('panel-exchanges'); loadTransactions(); _markNotificationsAsRead(); }
   else if (key === 'profile')   { showPanel('panel-profile'); loadMember().then(() => loadProfileTabs()); }
   // 'home': all panels closed, home visible
 
@@ -4712,6 +4712,30 @@ function updateTransactionsBadge(count) {
   badge.style.display = count > 0 ? 'flex' : 'none';
 }
 
+async function updateNotificationBadge() {
+  const userId = localStorage.getItem('member_id');
+  if (!userId) return;
+  const { count, error } = await db.from('notifications')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('read', false);
+  if (error) { console.error('[updateNotificationBadge]', error); return; }
+  console.log('[updateNotificationBadge] Count:', count);
+  updateTransactionsBadge(count || 0);
+}
+
+async function _markNotificationsAsRead() {
+  const userId = localStorage.getItem('member_id');
+  if (!userId) return;
+  const { error } = await db.from('notifications')
+    .update({ read: true })
+    .eq('user_id', userId)
+    .eq('read', false);
+  if (error) { console.error('[markNotificationsAsRead]', error); return; }
+  console.log('[markNotificationsAsRead] Marked as read');
+  updateTransactionsBadge(0);
+}
+
 // ── QR polling ─────────────────────────────────────────────────
 function startQRPolling(loanId, action) {
   stopQRPolling();
@@ -4743,6 +4767,14 @@ async function acceptRequest(loanId) {
   const tx = _findTx(loanId);
   if (!tx) return;
   await updateTransactionStatus(loanId, 'Accepté');
+
+  // Notifier l'emprunteur
+  const borrowerId = tx._loan?.borrower_id;
+  if (borrowerId) {
+    db.from('notifications').insert({ user_id: borrowerId, type: 'loan_accepted', loan_id: loanId, read: false })
+      .then(() => console.log('[acceptRequest] Notification inserted for borrower:', borrowerId))
+      .catch(e => console.warn('[acceptRequest] notification error:', e));
+  }
 
   // Generate accepted_borrower push message (seen by the borrower after acceptance)
   try {
@@ -5865,6 +5897,13 @@ async function borrowItem() {
   hideItem();
   showToast('Demande envoyée !', 'success');
 
+  // Notifier le propriétaire
+  if (data?.id && item.owner_id) {
+    db.from('notifications').insert({ user_id: item.owner_id, type: 'loan_request', loan_id: data.id, read: false })
+      .then(() => console.log('[borrowItem] Notification inserted for owner:', item.owner_id))
+      .catch(e => console.warn('[borrowItem] notification error:', e));
+  }
+
   // Add new loan to active transactions state
   const s = window._transactionsState;
   if (s && data) {
@@ -6317,6 +6356,13 @@ async function borrowItemFromDetail() {
 
   hideItemDetail();
   showToast('Demande envoyée !', 'success');
+
+  // Notifier le propriétaire
+  if (data?.id && item.owner_id) {
+    db.from('notifications').insert({ user_id: item.owner_id, type: 'loan_request', loan_id: data.id, read: false })
+      .then(() => console.log('[borrowItemFromDetail] Notification inserted for owner:', item.owner_id))
+      .catch(e => console.warn('[borrowItemFromDetail] notification error:', e));
+  }
 
   const s = window._transactionsState;
   if (s && data) {
