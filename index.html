@@ -3079,11 +3079,11 @@ function _renderCarousel(userId) {
       card.appendChild(hint);
     } else {
       const actions = document.createElement('div');
-      actions.style.cssText = 'display:flex;gap:12px;';
+      actions.style.cssText = 'display:flex;gap:12px;flex-wrap:wrap;';
 
       const btnNo = document.createElement('button');
-      btnNo.className = 'btn-bottle-no';
-      btnNo.textContent = 'Non, désolé';
+      btnNo.style.cssText = 'display:inline-flex;align-items:center;gap:8px;padding:12px 20px;background:#F0F0F0;border:none;border-radius:24px;font-size:16px;font-weight:600;color:#666;cursor:pointer;font-family:var(--font);';
+      btnNo.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6L18 18M18 6L6 18" stroke="#666" stroke-width="2" stroke-linecap="round"/></svg>Non, désolé';
       btnNo.addEventListener('click', (e) => {
         const cardEl = e.target.closest('.bottle-card');
         if (!cardEl || cardEl.dataset.dismissing) return;
@@ -3111,8 +3111,8 @@ function _renderCarousel(userId) {
       });
 
       const btnYes = document.createElement('button');
-      btnYes.className = 'btn-bottle-yes';
-      btnYes.textContent = "Je l'ai !";
+      btnYes.style.cssText = 'display:inline-flex;align-items:center;gap:8px;padding:12px 20px;background:#1F9D55;border:none;border-radius:24px;font-size:16px;font-weight:600;color:white;cursor:pointer;font-family:var(--font);';
+      btnYes.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="white" stroke-width="2" fill="none"/><path d="M12 8L12 16M8 12L16 12" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>Je l\'ai !';
       btnYes.addEventListener('click', () => _answerBottle(sr.id, sr.item_name));
 
       actions.appendChild(btnNo);
