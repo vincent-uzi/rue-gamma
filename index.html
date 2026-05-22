@@ -4667,10 +4667,12 @@ function _findTx(loanId) {
 }
 
 async function updateTransactionStatus(loanId, frenchStatus) {
+  console.log('[updateTransactionStatus] Called with frenchStatus:', frenchStatus);
   const s = window._transactionsState;
   if (!s) return;
 
   const dbStatus = _STATUS_TO_DB[frenchStatus] || frenchStatus;
+  console.log('[updateTransactionStatus] dbStatus resolved:', dbStatus);
 
   // Update local state
   const idx = s.active.findIndex(t => t.id === loanId);
@@ -4704,9 +4706,14 @@ async function updateTransactionStatus(loanId, frenchStatus) {
     if (dbStatus === 'declined') {
       const tx = _findTx(loanId);
       const borrowerId = tx?._loan?.borrower_id;
+      console.log('[DEBUG] dbStatus:', dbStatus);
+      console.log('[DEBUG] About to insert loan_declined notification for borrower:', borrowerId);
       if (borrowerId) {
-        db.from('notifications').insert({ user_id: borrowerId, type: 'loan_refused', loan_id: loanId, read: false })
-          .then(() => console.log('[updateTransactionStatus] Notification refus envoyée à:', borrowerId))
+        db.from('notifications').insert({ user_id: borrowerId, type: 'loan_declined', loan_id: loanId, read: false })
+          .then(insertResult => {
+            console.log('[DEBUG] Notification inserted:', insertResult);
+            console.log('[updateTransactionStatus] Notification refus envoyée à:', borrowerId);
+          })
           .catch(e => console.warn('[updateTransactionStatus] notification error:', e));
       }
     }
