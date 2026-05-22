@@ -1935,3 +1935,44 @@ Finaliser la refonte Home : section 'Partagez vos objets', bloc 'Bravo la commu 
 **Workaround temporaire :** Mode privé Safari
 
 **Status :** Backlog investigation future
+
+---
+
+## Session 22 mai 2026 — Soir (20h-01h) — 5h
+
+### 🎯 Objectif
+Finaliser les notifications bouteilles à la mer pour débloquer test rue.
+
+### ✅ Réalisations
+
+**Notifs bouteilles 100% fonctionnelles :**
+- INSERT notification après création objet (pas au clic Ajouter)
+- Encart Home discret avec prénom + nom objet
+- Lien direct vers fiche produit du répondant
+- Persistance encart jusqu'à fermeture manuelle (×)
+- Badge navbar synchronisé
+
+**Bugs résolus (debug 4h) :**
+- Fix: Notification créée à CHAQUE réponse (supprimé condition count === 1)
+- Fix: Supprimé vérification count bloquante dans `_notifySearchRequester`
+- Clean: Supprimé ancien encart notif Objets (doublon causant marquage auto `read=true`)
+- Refactor: Query encart — 3 queries simples au lieu de JOIN Supabase complexe
+- Fix: Policy RLS manquante sur `search_request_responses` (bloquait SELECT) ← Boss final
+
+**Autres modifications :**
+- UX: Encart positionné entre recherche et "Bravo la commu !"
+- UX: Persistance encart après consultation produit
+- Soft delete objets : `UPDATE status='archived'` + toast undo 5s
+- Modal suppression → toast undo (suppression différée 5s)
+- Input modifiable dans modal "Demander à la communauté"
+
+### 📋 Backlog ajouté
+- Carrousel notifs bouteilles multiples (nice-to-have)
+- Bug code source affiché sporadiquement (investigation future)
+
+### 🎯 Reste bloquant test rue
+1. ✅ Notifs bouteilles → TERMINÉ
+2. 🔴 ONBOARD-01 : Tunnel ajout objet post-inscription (1-2h)
+3. 🔴 Tests devices complets (2h)
+
+**Estimation test rue : 3-4h travail restant**
