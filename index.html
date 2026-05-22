@@ -6480,9 +6480,9 @@ function _showDeleteConfirmModal() {
 async function deleteItem() {
   const item = _detailItem || window._detailItem;
   if (!item?.id) return;
-  console.log('[deleteItem] AVANT appel modal, itemId:', item.id);
+  console.log('[deleteItem] AVANT appel modal, time:', Date.now());
   const confirmed = await _showDeleteConfirmModal();
-  console.log('[deleteItem] APRES modal, confirmed:', confirmed);
+  console.log('[deleteItem] APRES modal, confirmed:', confirmed, 'time:', Date.now());
   if (!confirmed) { console.log('[deleteItem] Cancelled by user'); return; }
   const { error } = await db.from('items').update({ status: 'archived' }).eq('id', item.id);
   console.log('[deleteItem] Item archived:', item.id);
