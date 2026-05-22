@@ -1974,12 +1974,30 @@ Finaliser les notifications bouteilles à la mer pour débloquer test rue.
 1. ✅ Notifs bouteilles → TERMINÉ
 2. 🔴 ONBOARD-01 : Tunnel ajout objet post-inscription (1-2h)
 3. 🔴 Tests devices complets (2h)
+4. 🔴 **Système invitation membre (4-6h)** — Workflow invitation lien/code, validation modérateur — KPI : taux adoption invitation vs création manuelle
+5. 🔴 **Responsive audit complet (4-6h)** — Tests exhaustifs 320px-428px, toutes pages/flows, iPhone SE / 13 / 14 Pro Max / iPad / Desktop
 
-**Estimation test rue : 3-4h travail restant**
+**Nouvelle estimation test rue : 11-16h restantes**
 
 ---
 
 ## 📝 TODO LIST — Petits debugs & améliorations
+
+### 🎨 IDENTITÉ VISUELLE (avant test rue)
+
+**Logo**
+- Créer/intégrer logo FLO
+- Header + écrans onboarding
+
+**Icône app**
+- Favicon
+- Apple touch icon (PWA)
+- Icône app mobile
+
+**Nommage**
+- 🔍 Audit complet : chercher références "kolkoze" ou "rue gamma"
+- Remplacer par "FLO" / "Front de Libération des Objets"
+- Vérifier : titres pages, messages, logs console, meta tags
 
 ### 🔴 PRIORITÉ HAUTE (avant test rue)
 
