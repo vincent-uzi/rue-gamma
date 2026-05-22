@@ -2880,16 +2880,16 @@
   <div class="qr-choice-handle"></div>
   <div class="qr-choice-content">
     <div class="qr-choice-title">Demander à la communauté</div>
-    <div class="qr-choice-sub" style="margin-bottom:16px;">
-      Vous allez notifier tous les membres de votre communauté que vous recherchez
-      "<strong id="search-request-item-name"></strong>".
+    <div class="qr-choice-sub" style="margin-bottom:12px;">
+      Quel objet recherchez-vous ?
     </div>
+    <input type="text" id="search-request-item-name" maxlength="50" placeholder="Ex: perceuse, vélo, tente…" style="width:100%;border:1px solid #EAF5EA;border-radius:8px;padding:12px 16px;font-size:16px;margin:0 0 8px;box-sizing:border-box;outline:none;" />
     <div style="font-size:13px;color:var(--text-muted);margin-bottom:20px;">
-      Ils pourront déclarer leur objet s'ils en ont un.
+      Tous les membres seront notifiés et pourront déclarer leur objet.
     </div>
-    <div style="display:flex;gap:10px;">
-      <button class="qr-manual-cancel" onclick="hideRequestToCommunityModal()">Annuler</button>
-      <button class="qr-manual-confirm" id="search-request-send-btn">Envoyer</button>
+    <div style="display:flex;gap:12px;">
+      <button onclick="hideRequestToCommunityModal()" style="flex:1;padding:12px 20px;background:white;color:#333;border:1px solid #D0D0D0;border-radius:24px;font-size:16px;font-weight:600;cursor:pointer;">Non, désolé</button>
+      <button id="search-request-send-btn" style="flex:1;padding:12px 20px;background:#1F9D55;color:white;border:none;border-radius:24px;font-size:16px;font-weight:600;cursor:pointer;">Envoyer</button>
     </div>
   </div>
 </div>
@@ -4975,7 +4975,7 @@ function showRequestToCommunityModal() {
   console.log('[showRequestToCommunityModal] appelée — query:', window._currentSearchQuery);
   const q = window._currentSearchQuery;
   if (!q) { console.warn('[showRequestToCommunityModal] _currentSearchQuery vide'); return; }
-  document.getElementById('search-request-item-name').textContent = q;
+  document.getElementById('search-request-item-name').value = q;
 
   // Rebrancher le listener proprement (clone pour éviter les doublons)
   const oldBtn = document.getElementById('search-request-send-btn');
@@ -5008,12 +5008,14 @@ function hideRequestToCommunityModal() {
 }
 
 async function sendSearchRequest() {
-  const itemName = window._currentSearchQuery;
+  const inputVal = document.getElementById('search-request-item-name')?.value.trim();
+  const itemName = inputVal || window._currentSearchQuery;
   const userId   = localStorage.getItem('member_id');
   console.log('[sendSearchRequest] itemName:', itemName, '| userId:', userId);
 
-  if (!itemName || !userId) {
-    console.warn('[sendSearchRequest] early return — itemName ou userId manquant');
+  if (!itemName) { showToast('Veuillez saisir un objet', 'error'); return; }
+  if (!userId) {
+    console.warn('[sendSearchRequest] early return — userId manquant');
     showToast('Erreur : session expirée, reconnectez-vous', 'error');
     return;
   }
