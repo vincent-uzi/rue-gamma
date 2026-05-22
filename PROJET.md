@@ -1713,3 +1713,111 @@ iPhone validations :
 - Commits : 15+ commits fonctionnels
 - Features complètes : Header, Recherche, Avis de recherche (carrousel)
 - **Avancement Home : ~60% (3/6 sections finalisées)**
+
+---
+
+## SESSION HOME REFONTE (SUITE) - 22 Mai 2026
+
+### OBJECTIF
+Finaliser la refonte Home : section 'Partagez vos objets', bloc 'Bravo la commu !', Contact G.O, et cohérence visuelle globale.
+
+### RÉALISATIONS
+
+#### 1. SECTION 'PARTAGEZ VOS OBJETS' - Finalisation
+
+**Logique dynamique fusionnée :**
+- CAS 1 (défaut) : Card incitation 'Prêtez plus pour emprunter plus' + bouton pill 'Ajouter'
+- CAS 2 (si bouteilles autres) : Carrousel bouteilles avec bouton 'Ajouter' + lien 'Non, désolé'
+- Titre section unique : 'Partagez vos objets'
+- Transition automatique entre les 2 cas
+
+**Bouton pill arrondi :**
+- Style : border-radius 24px, icône + entourée intégrée, calé à gauche
+- Appliqué sur : bouton 'Ajouter' (card + carrousel)
+- CTA secondaire 'Non, désolé' reste en texte souligné
+
+**Carrousel recherche ajusté :**
+- Nom produit limité à 1 ligne avec ellipsis
+- Typo uniformisée : 'Vincent recherche un·e' (18px bold) puis nom produit
+- 'Vous avez cet objet ?' en 16px gris (comme 'Vous partagez déjà X objets')
+- Bouton 'Ajouter' au lieu de 'Je l'ai !'
+
+#### 2. BLOC 'BRAVO LA COMMU !' - Refonte complète
+
+**Structure 3 cartes metrics :**
+- Carte 1 : Total | 57,4kg | CO₂ évités (vert #1F9D55 bold)
+- Carte 2 : Mois | 20 | Nouveaux objets
+- Carte 3 : Mois | 25 | Échanges
+
+**Design :**
+- 3 cartes même hauteur/largeur, flex côte à côte
+- Chiffres 28px bold, unité 'kg' 18px bold
+- Contenus alignés à gauche
+- Padding ajusté : 12px vertical, 8px horizontal (carte 1), 16px horizontal (cartes 2-3)
+- Gap entre cartes réduit à 6px
+
+**Données dynamiques :**
+- CO₂ mois : Déjà calculé
+- Nouveaux objets : COUNT items WHERE created_at >= début mois
+- Échanges : COUNT loans WHERE handed_at >= début mois
+
+#### 3. CONTACT G.O - Card wrapper
+
+**Modifications :**
+- Bloc 'Une question ?' entouré d'une card blanche
+- Padding vertical réduit à 10px
+- Typo 'Une question ?' uniformisée : 18px bold (comme carrousel)
+
+#### 4. COHÉRENCE VISUELLE GLOBALE
+
+**Fond page :**
+- Body Home en #FBFDFB (gris très clair)
+- Header conserve fond blanc
+
+**Bordures vertes :**
+- Toutes les cards (metrics, contact, objets, transactions, profil) : border 1px solid #EAF5EA
+- Suppression borders grises #F0F0F0
+- Cohérence visuelle totale
+
+**Espacements titres sections :**
+- Espacement avant augmenté de 40% : margin-top 34px (au lieu de 24px)
+- Espacement après conservé : margin-bottom 16px
+
+### ÉTAT FINAL HOME
+
+#### ✅ TERMINÉ (100%)
+1. Header (Bonjour + metrics + Inviter inline)
+2. Bandeau recherche (bord-à-bord vert)
+3. Section 'Partagez vos objets' (card + carrousel dynamique)
+4. Bloc 'Bravo la commu !' (3 cartes metrics)
+5. Contact G.O (card 'Une question ?')
+6. Cohérence visuelle (fond #FBFDFB + bordures vertes #EAF5EA)
+
+**HOME TERMINÉE ! 🎉**
+
+### PRINCIPES DESIGN APPLIQUÉS
+
+1. **Bouton pill arrondi** : Style cohérent sur toute l'app (border-radius 24px + icône)
+2. **Bordures vertes** : #EAF5EA sur toutes les cards pour cohérence
+3. **Fond gris clair** : #FBFDFB pour contraste doux avec cards blanches
+4. **Typo uniformisée** : 18px bold pour tous les headlines sections
+5. **Espacements maîtrisés** : Padding/margins optimisés pour densité visuelle
+
+### DÉCISION STRATÉGIQUE : NOTIFICATIONS
+
+**Constat :**
+- Messages push Profil (12-18h dev) apportent peu de valeur
+- Vrai pain point : Pas de notifications sur demandes/acceptations/réponses bouteilles
+- Solution : CH-03 Badge navbar Transactions (3-4h)
+
+**Priorisation :**
+1. 🔴 **CH-03 : Badge Transactions** (3-4h) — BLOQUANT test rue
+2. 🟡 ONBOARD-01 : Tunnel ajout objet (1-2h) — BLOQUANT test rue
+3. ⚪ Messages push Profil — ABANDONNÉ (effort/valeur désaligné)
+
+### MÉTRIQUES SESSION
+
+- Durée : ~3h (matinée 22 mai)
+- Commits : 25+ commits fonctionnels
+- Features complètes : Home 100% + cohérence visuelle app
+- **Avancement global : Home TERMINÉE ! 🚀**
