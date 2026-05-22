@@ -3078,11 +3078,21 @@ function _renderCarousel(userId) {
       hint.textContent = 'En attente de réponses…';
       card.appendChild(hint);
     } else {
-      const actions = document.createElement('div');
-      actions.style.cssText = 'display:flex;gap:12px;';
+      const question = document.createElement('p');
+      question.style.cssText = 'font-size:16px;color:#888;margin:0 0 16px 0;';
+      question.textContent = 'Vous avez cet objet ?';
+      card.appendChild(question);
 
-      const btnNo = document.createElement('button');
-      btnNo.className = 'btn-bottle-no';
+      const actions = document.createElement('div');
+      actions.style.cssText = 'display:flex;align-items:center;gap:0;';
+
+      const btnYes = document.createElement('button');
+      btnYes.style.cssText = 'display:inline-flex;align-items:center;gap:8px;padding:12px 20px;background:#1F9D55;border:none;border-radius:24px;font-size:16px;font-weight:600;color:white;cursor:pointer;font-family:var(--font);';
+      btnYes.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="white" stroke-width="2" fill="none"/><path d="M12 8L12 16M8 12L16 12" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>Je l\'ai !';
+      btnYes.addEventListener('click', () => _answerBottle(sr.id, sr.item_name));
+
+      const btnNo = document.createElement('a');
+      btnNo.style.cssText = 'font-size:16px;color:#333;text-decoration:underline;cursor:pointer;margin-left:16px;';
       btnNo.textContent = 'Non, désolé';
       btnNo.addEventListener('click', (e) => {
         const cardEl = e.target.closest('.bottle-card');
@@ -3098,7 +3108,6 @@ function _renderCarousel(userId) {
 
         setTimeout(() => {
           _dismissBottle(sr.id);
-          // Scroll vers carte appropriée après re-render
           if (_homeBottles.length > 0) {
             const c = document.getElementById('bottle-carousel');
             const newIdx = Math.min(idx, _homeBottles.length - 1);
@@ -3110,13 +3119,8 @@ function _renderCarousel(userId) {
         }, 800);
       });
 
-      const btnYes = document.createElement('button');
-      btnYes.className = 'btn-bottle-yes';
-      btnYes.textContent = "Je l'ai !";
-      btnYes.addEventListener('click', () => _answerBottle(sr.id, sr.item_name));
-
-      actions.appendChild(btnNo);
       actions.appendChild(btnYes);
+      actions.appendChild(btnNo);
       card.appendChild(actions);
     }
 
