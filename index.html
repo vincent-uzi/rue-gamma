@@ -3488,21 +3488,14 @@ function _navigateTo(key) {
 }
 
 function showPanel(id) {
+  if (id === 'panel-add') { _openModalAdd(); return; }
   const el = document.getElementById(id);
   if (el) el.style.display = 'flex';
-  if (id === 'panel-add') {
-    const nav = document.querySelector('.tab-bar');
-    if (nav) nav.style.display = 'none';
-  }
 }
 function hidePanel(id) {
+  if (id === 'panel-add') { _closeModalAdd(); return; }
   const el = document.getElementById(id);
   if (el) el.style.display = 'none';
-  if (id === 'panel-add') {
-    const nav = document.querySelector('.tab-bar');
-    if (nav) nav.style.display = '';
-    _resetAddForm();
-  }
   if (id === 'panel-search') _resetSearch();
   if (id === 'panel-objects') _objectsLoaded = false;
 }
@@ -6764,6 +6757,130 @@ document.head.appendChild(mLink);
   });
 })();
 
+// ── Modal ajout objet ─────────────────────────────────────────
+let _modalPhotoFile = null;
+
+function _resetModalAdd() {
+  clearTimeout(_catTimer);
+  const nameInp = document.getElementById('modal-item-name');
+  if (nameInp) nameInp.value = '';
+  const descInp = document.getElementById('modal-item-description');
+  if (descInp) descInp.value = '';
+  const catArea = document.getElementById('modal-cat-area');
+  if (catArea) catArea.innerHTML = '';
+  const preview = document.getElementById('modal-photo-preview');
+  if (preview) preview.style.display = 'none';
+  const previewImg = document.getElementById('modal-photo-preview-img');
+  if (previewImg) previewImg.src = '';
+  const photoInp = document.getElementById('modal-photo-input');
+  if (photoInp) photoInp.value = '';
+  const photoBtn = document.getElementById('btn-modal-photo');
+  if (photoBtn) photoBtn.style.display = 'flex';
+  _modalPhotoFile = null;
+  detectedCo2 = 8.2;
+  detectedCategory = '';
+}
+
+function _openModalAdd() {
+  document.querySelectorAll('.overlay-panel').forEach(el => { el.style.display = 'none'; });
+  _resetModalAdd();
+  // _resetAddForm (called before showPanel in _navigateTo) may have already consumed
+  // _prefilledItemName into nameInput — read from either source
+  const prefilled = window._prefilledItemName || document.getElementById('nameInput')?.value || '';
+  if (prefilled) {
+    if (window._prefilledItemName) delete window._prefilledItemName;
+    const nameInp = document.getElementById('nameInput');
+    if (nameInp) nameInp.value = '';
+    const inp = document.getElementById('modal-item-name');
+    if (inp) { inp.value = prefilled; _onModalNameInput(inp); }
+  }
+  const modal = document.getElementById('modal-add-item');
+  if (modal) modal.style.display = 'flex';
+  const nav = document.querySelector('.tab-bar');
+  if (nav) nav.style.display = 'none';
+}
+
+function _closeModalAdd() {
+  const modal = document.getElementById('modal-add-item');
+  if (modal) modal.style.display = 'none';
+  const nav = document.querySelector('.tab-bar');
+  if (nav) nav.style.display = '';
+  _resetModalAdd();
+  _resetAddForm();
+}
+
+function _onModalNameInput(input) {
+  clearTimeout(_catTimer);
+  const area = document.getElementById('modal-cat-area');
+  if (!area) return;
+  area.innerHTML = '';
+  if (!input.value.trim()) return;
+
+  _catTimer = setTimeout(async () => {
+    area.innerHTML = `<span class="cat-spinner-wrap"><span class="cat-spinner"></span>Détection en cours…</span>`;
+    await new Promise(r => setTimeout(r, 540));
+    const result = _detectCat(input.value);
+    if (!result) { area.innerHTML = ''; return; }
+    const [cat, co2] = result;
+    detectedCo2 = co2;
+    detectedCategory = cat;
+    area.innerHTML = `<button class="cat-pill" onclick="_clearModalCat()" title="Modifier la catégorie">
+      <span class="cat-dot"></span>${cat}
+      <svg width="9" height="9" viewBox="0 0 14 14" fill="none" style="opacity:.7">
+        <path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg></button>`;
+  }, 800);
+}
+
+function _clearModalCat() {
+  const area = document.getElementById('modal-cat-area');
+  if (area) area.innerHTML = '';
+  detectedCo2 = 8.2;
+  detectedCategory = '';
+}
+
+function _onModalPhotoSelected(input) {
+  if (!input.files[0]) return;
+  _modalPhotoFile = input.files[0];
+  document.getElementById('modal-photo-preview-img').src = URL.createObjectURL(_modalPhotoFile);
+  document.getElementById('modal-photo-preview').style.display = 'block';
+  document.getElementById('btn-modal-photo').style.display = 'none';
+}
+
+function _clearModalPhoto() {
+  _modalPhotoFile = null;
+  document.getElementById('modal-photo-preview').style.display = 'none';
+  document.getElementById('modal-photo-preview-img').src = '';
+  document.getElementById('modal-photo-input').value = '';
+  document.getElementById('btn-modal-photo').style.display = 'flex';
+}
+
+async function _submitModalAdd() {
+  const nameInp = document.getElementById('modal-item-name');
+  const name = nameInp?.value.trim();
+  if (!name) { nameInp?.focus(); return; }
+
+  const btn = document.getElementById('btn-submit-add-modal');
+  if (btn) { btn.disabled = true; btn.textContent = 'En cours…'; }
+
+  document.getElementById('nameInput').value = name;
+  document.getElementById('descInput').value = document.getElementById('modal-item-description')?.value.trim() || '';
+
+  if (_modalPhotoFile) {
+    try {
+      const dt = new DataTransfer();
+      dt.items.add(_modalPhotoFile);
+      document.getElementById('photoInput').files = dt.files;
+    } catch (e) { console.warn('[_submitModalAdd] DataTransfer:', e); }
+  } else {
+    document.getElementById('photoInput').value = '';
+  }
+
+  await submitForm();
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Mettre à disposition'; }
+}
+
 // ── Modal invite (éléments définis après balise script → DOMContentLoaded) ──
 document.addEventListener('DOMContentLoaded', () => {
   const btnInvite   = document.getElementById('btn-invite');
@@ -6773,6 +6890,13 @@ document.addEventListener('DOMContentLoaded', () => {
   if (closeBtn)    closeBtn.addEventListener('click', () => { modalInvite.style.display = 'none'; });
   if (modalInvite) modalInvite.addEventListener('click', e => { if (e.target.id === 'modal-invite') modalInvite.style.display = 'none'; });
   document.getElementById('btn-share-add')?.addEventListener('click', () => _navigateTo('add'));
+
+  document.getElementById('btn-close-add')?.addEventListener('click', _closeModalAdd);
+  document.getElementById('btn-cancel-add-modal')?.addEventListener('click', _closeModalAdd);
+  document.getElementById('btn-modal-photo')?.addEventListener('click', () => {
+    document.getElementById('modal-photo-input')?.click();
+  });
+  document.getElementById('btn-submit-add-modal')?.addEventListener('click', _submitModalAdd);
 });
 </script>
 
@@ -6821,6 +6945,63 @@ document.addEventListener('DOMContentLoaded', () => {
     <button id="close-modal-invite" style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:24px;color:#888;cursor:pointer;">×</button>
     <p style="font-size:16px;color:#333;text-align:center;margin:0;">Parcours invitation</p>
   </div>
+</div>
+<div id="modal-add-item" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#FBFDFB;z-index:9999;overflow:hidden;">
+
+  <!-- Header -->
+  <div style="position:fixed;top:0;left:0;right:0;background:#FBFDFB;display:flex;align-items:center;justify-content:flex-end;padding:calc(env(safe-area-inset-top) + 12px) 20px 12px;z-index:10000;">
+    <button id="btn-close-add" style="background:none;border:none;font-size:28px;color:#555;cursor:pointer;padding:8px;line-height:1;">×</button>
+  </div>
+
+  <!-- Contenu scrollable -->
+  <div style="padding-top:calc(60px + env(safe-area-inset-top));padding-bottom:calc(90px + env(safe-area-inset-bottom));overflow-y:auto;height:100%;-webkit-overflow-scrolling:touch;">
+
+    <!-- Card Nom -->
+    <div style="padding:24px 0 0;">
+      <div style="margin:0 20px;background:white;border:1px solid #EAF5EA;border-radius:12px;padding:20px;">
+        <label style="display:block;font-size:16px;font-weight:600;color:#333;margin-bottom:12px;">Nom de l'objet</label>
+        <input type="text" id="modal-item-name" placeholder="Ex : Perceuse Bosch GSR 12V"
+               autocomplete="off" autocorrect="off" spellcheck="false"
+               oninput="_onModalNameInput(this)"
+               style="width:100%;padding:12px 16px;border:1px solid #E5E5E5;border-radius:8px;font-size:16px;background:white;box-sizing:border-box;">
+        <p style="font-size:13px;color:#999;margin:8px 0 0;">Type d'objet · marque · modèle</p>
+        <div id="modal-cat-area"></div>
+      </div>
+    </div>
+
+    <!-- Card Description -->
+    <div style="padding:16px 0 0;">
+      <div style="margin:0 20px;background:white;border:1px solid #EAF5EA;border-radius:12px;padding:20px;">
+        <label style="display:block;font-size:16px;font-weight:600;color:#333;margin-bottom:12px;">Description <span style="font-weight:400;color:#999;">(optionnel)</span></label>
+        <textarea id="modal-item-description" placeholder="Ex : Légère, idéale pour les petits travaux. Livrée avec tous les embouts et 2 batteries."
+                  style="width:100%;min-height:100px;padding:12px 16px;border:1px solid #E5E5E5;border-radius:8px;font-size:16px;background:white;resize:none;box-sizing:border-box;font-family:inherit;"></textarea>
+      </div>
+    </div>
+
+    <!-- Card Photo -->
+    <div style="padding:16px 0 24px;">
+      <div style="margin:0 20px;background:white;border:1px solid #EAF5EA;border-radius:12px;padding:20px;">
+        <label style="display:block;font-size:16px;font-weight:600;color:#333;margin-bottom:12px;">Photo <span style="font-weight:400;color:#999;">(optionnel)</span></label>
+        <button id="btn-modal-photo" style="width:100%;padding:36px 24px;border:2px dashed #D0D0D0;border-radius:12px;background:#FAFAFA;display:flex;flex-direction:column;align-items:center;gap:12px;cursor:pointer;">
+          <span style="font-size:40px;">📷</span>
+          <span style="font-size:15px;color:#1F9D55;font-weight:600;">Ajouter une photo</span>
+        </button>
+        <input type="file" id="modal-photo-input" accept="image/*" style="display:none;" onchange="_onModalPhotoSelected(this)">
+        <div id="modal-photo-preview" style="margin-top:16px;display:none;">
+          <img id="modal-photo-preview-img" style="width:100%;border-radius:12px;border:1px solid #EAF5EA;">
+          <button onclick="_clearModalPhoto()" style="margin-top:8px;background:none;border:none;color:#999;font-size:13px;cursor:pointer;text-decoration:underline;">Supprimer la photo</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div style="position:fixed;bottom:0;left:0;right:0;padding:12px 20px calc(env(safe-area-inset-bottom) + 12px);background:white;border-top:1px solid #E5E5E5;display:flex;gap:12px;z-index:10000;">
+    <button id="btn-cancel-add-modal" style="flex:1;padding:14px;border:1px solid #D0D0D0;border-radius:24px;background:white;font-size:16px;font-weight:600;color:#333;cursor:pointer;font-family:inherit;">Annuler</button>
+    <button id="btn-submit-add-modal" style="flex:2;padding:14px;border:none;border-radius:24px;background:#1F9D55;color:white;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;">Mettre à disposition</button>
+  </div>
+
 </div>
 </body>
 </html>
