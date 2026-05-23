@@ -6801,10 +6801,12 @@ function _resetModalAdd() {
 }
 
 function _openModalAdd() {
-  document.querySelectorAll('.overlay-panel').forEach(el => { el.style.display = 'none'; });
+  // Fermer seulement le panel search (temporaire), pas les panels principaux
+  const searchPanel = document.getElementById('panel-search');
+  if (searchPanel) searchPanel.style.display = 'none';
+
   _resetModalAdd();
-  // _resetAddForm (called before showPanel in _navigateTo) may have already consumed
-  // _prefilledItemName into nameInput — read from either source
+  // _prefilledItemName peut venir directement ou avoir été consommé dans nameInput
   const prefilled = window._prefilledItemName || document.getElementById('nameInput')?.value || '';
   if (prefilled) {
     if (window._prefilledItemName) delete window._prefilledItemName;
