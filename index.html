@@ -6946,61 +6946,66 @@ document.addEventListener('DOMContentLoaded', () => {
     <p style="font-size:16px;color:#333;text-align:center;margin:0;">Parcours invitation</p>
   </div>
 </div>
-<div id="modal-add-item" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#FBFDFB;z-index:9999;overflow:hidden;margin:0;padding:0;">
+<div id="modal-add-item" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:rgba(0,0,0,0.3);justify-content:center;align-items:stretch;">
 
-  <!-- Header -->
-  <div style="position:fixed;top:0;left:0;right:0;background:#FBFDFB;display:flex;align-items:center;justify-content:flex-end;padding:calc(env(safe-area-inset-top) + 12px) 20px 12px;z-index:10000;">
-    <button id="btn-close-add" style="background:none;border:none;font-size:28px;color:#555;cursor:pointer;padding:8px;line-height:1;">×</button>
-  </div>
+  <!-- Inner container max-width -->
+  <div style="width:100%;max-width:500px;background:#FBFDFB;display:flex;flex-direction:column;overflow:hidden;">
 
-  <!-- Contenu scrollable -->
-  <div style="padding-top:calc(60px + env(safe-area-inset-top));padding-bottom:calc(90px + env(safe-area-inset-bottom));overflow-y:auto;height:100%;-webkit-overflow-scrolling:touch;">
-
-    <!-- Card Nom -->
-    <div style="padding:24px 0 0;">
-      <div style="margin:0;background:white;border:1px solid #EAF5EA;border-radius:12px;padding:20px;">
-        <label style="display:block;font-size:16px;font-weight:600;color:#333;margin-bottom:12px;">Nom de l'objet</label>
-        <input type="text" id="modal-item-name" placeholder="Ex : Perceuse Bosch GSR 12V"
-               autocomplete="off" autocorrect="off" spellcheck="false"
-               oninput="_onModalNameInput(this)"
-               style="width:100%;padding:12px 16px;border:1px solid #E5E5E5;border-radius:8px;font-size:16px;background:white;box-sizing:border-box;">
-        <p style="font-size:13px;color:#999;margin:8px 0 0;">Type d'objet · marque · modèle</p>
-        <div id="modal-cat-area"></div>
-      </div>
+    <!-- Header -->
+    <div style="flex-shrink:0;background:#FBFDFB;display:flex;align-items:center;justify-content:flex-end;padding:calc(env(safe-area-inset-top) + 12px) 20px 12px;">
+      <button id="btn-close-add" style="background:none;border:none;font-size:28px;color:#555;cursor:pointer;padding:8px;line-height:1;">×</button>
     </div>
 
-    <!-- Card Description -->
-    <div style="padding:16px 0 0;">
-      <div style="margin:0;background:white;border:1px solid #EAF5EA;border-radius:12px;padding:20px;">
-        <label style="display:block;font-size:16px;font-weight:600;color:#333;margin-bottom:12px;">Description <span style="font-weight:400;color:#999;">(optionnel)</span></label>
-        <textarea id="modal-item-description" placeholder="Ex : Légère, idéale pour les petits travaux. Livrée avec tous les embouts et 2 batteries."
-                  style="width:100%;min-height:100px;padding:12px 16px;border:1px solid #E5E5E5;border-radius:8px;font-size:16px;background:white;resize:none;box-sizing:border-box;font-family:inherit;"></textarea>
-      </div>
-    </div>
+    <!-- Contenu scrollable -->
+    <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;">
 
-    <!-- Card Photo -->
-    <div style="padding:16px 0 24px;">
-      <div style="margin:0;background:white;border:1px solid #EAF5EA;border-radius:12px;padding:20px;">
-        <label style="display:block;font-size:16px;font-weight:600;color:#333;margin-bottom:12px;">Photo <span style="font-weight:400;color:#999;">(optionnel)</span></label>
-        <button id="btn-modal-photo" style="width:100%;padding:36px 24px;border:2px dashed #D0D0D0;border-radius:12px;background:#FAFAFA;display:flex;flex-direction:column;align-items:center;gap:12px;cursor:pointer;">
-          <span style="font-size:40px;">📷</span>
-          <span style="font-size:15px;color:#1F9D55;font-weight:600;">Ajouter une photo</span>
-        </button>
-        <input type="file" id="modal-photo-input" accept="image/*" style="display:none;" onchange="_onModalPhotoSelected(this)">
-        <div id="modal-photo-preview" style="margin-top:16px;display:none;">
-          <img id="modal-photo-preview-img" style="width:100%;border-radius:12px;border:1px solid #EAF5EA;">
-          <button onclick="_clearModalPhoto()" style="margin-top:8px;background:none;border:none;color:#999;font-size:13px;cursor:pointer;text-decoration:underline;">Supprimer la photo</button>
+      <!-- Card Nom -->
+      <div style="padding:8px 16px 0;">
+        <div style="background:white;border:1px solid #EAF5EA;border-radius:12px;padding:20px;">
+          <label style="display:block;font-size:16px;font-weight:600;color:#333;margin-bottom:12px;">Nom de l'objet</label>
+          <input type="text" id="modal-item-name" placeholder="Ex : Perceuse Bosch GSR 12V"
+                 autocomplete="off" autocorrect="off" spellcheck="false"
+                 oninput="_onModalNameInput(this)"
+                 style="width:100%;padding:12px 16px;border:1px solid #E5E5E5;border-radius:8px;font-size:16px;background:white;box-sizing:border-box;">
+          <p style="font-size:13px;color:#999;margin:8px 0 0;">Type d'objet · marque · modèle</p>
+          <div id="modal-cat-area"></div>
         </div>
       </div>
+
+      <!-- Card Description -->
+      <div style="padding:12px 16px 0;">
+        <div style="background:white;border:1px solid #EAF5EA;border-radius:12px;padding:20px;">
+          <label style="display:block;font-size:16px;font-weight:600;color:#333;margin-bottom:12px;">Description <span style="font-weight:400;color:#999;">(optionnel)</span></label>
+          <textarea id="modal-item-description" placeholder="Ex : Légère, idéale pour les petits travaux. Livrée avec tous les embouts et 2 batteries."
+                    style="width:100%;min-height:100px;padding:12px 16px;border:1px solid #E5E5E5;border-radius:8px;font-size:16px;background:white;resize:none;box-sizing:border-box;font-family:inherit;"></textarea>
+        </div>
+      </div>
+
+      <!-- Card Photo -->
+      <div style="padding:12px 16px 24px;">
+        <div style="background:white;border:1px solid #EAF5EA;border-radius:12px;padding:20px;">
+          <label style="display:block;font-size:16px;font-weight:600;color:#333;margin-bottom:12px;">Photo <span style="font-weight:400;color:#999;">(optionnel)</span></label>
+          <button id="btn-modal-photo" style="width:100%;padding:36px 24px;border:2px dashed #D0D0D0;border-radius:12px;background:#FAFAFA;display:flex;flex-direction:column;align-items:center;gap:12px;cursor:pointer;">
+            <span style="font-size:40px;">📷</span>
+            <span style="font-size:15px;color:#1F9D55;font-weight:600;">Ajouter une photo</span>
+          </button>
+          <input type="file" id="modal-photo-input" accept="image/*" style="display:none;" onchange="_onModalPhotoSelected(this)">
+          <div id="modal-photo-preview" style="margin-top:16px;display:none;">
+            <img id="modal-photo-preview-img" style="width:100%;border-radius:12px;border:1px solid #EAF5EA;">
+            <button onclick="_clearModalPhoto()" style="margin-top:8px;background:none;border:none;color:#999;font-size:13px;cursor:pointer;text-decoration:underline;">Supprimer la photo</button>
+          </div>
+        </div>
+      </div>
+
     </div>
 
-  </div>
+    <!-- Footer -->
+    <div style="flex-shrink:0;padding:12px 20px calc(env(safe-area-inset-bottom) + 12px);background:white;border-top:1px solid #E5E5E5;display:flex;gap:12px;">
+      <button id="btn-cancel-add-modal" style="flex:1;padding:14px;border:1px solid #D0D0D0;border-radius:24px;background:white;font-size:16px;font-weight:600;color:#333;cursor:pointer;font-family:inherit;">Annuler</button>
+      <button id="btn-submit-add-modal" style="flex:2;padding:14px;border:none;border-radius:24px;background:#1F9D55;color:white;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;">Mettre à disposition</button>
+    </div>
 
-  <!-- Footer -->
-  <div style="position:fixed;bottom:0;left:0;right:0;padding:12px 20px calc(env(safe-area-inset-bottom) + 12px);background:white;border-top:1px solid #E5E5E5;display:flex;gap:12px;z-index:10000;">
-    <button id="btn-cancel-add-modal" style="flex:1;padding:14px;border:1px solid #D0D0D0;border-radius:24px;background:white;font-size:16px;font-weight:600;color:#333;cursor:pointer;font-family:inherit;">Annuler</button>
-    <button id="btn-submit-add-modal" style="flex:2;padding:14px;border:none;border-radius:24px;background:#1F9D55;color:white;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;">Mettre à disposition</button>
-  </div>
+  </div><!-- /inner -->
 
 </div>
 </body>
