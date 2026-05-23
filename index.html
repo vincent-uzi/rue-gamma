@@ -3472,6 +3472,8 @@ function _setActiveTab(key) {
 }
 
 function _navigateTo(key) {
+  if (key === 'add') { _openModalAdd(); return; }
+
   // Close all overlay panels (transient and main)
   document.querySelectorAll('.overlay-panel').forEach(el => { el.style.display = 'none'; });
   _resetAddForm();
@@ -3479,7 +3481,6 @@ function _navigateTo(key) {
   _objectsLoaded = false;
 
   if (key === 'objects')        showObjects();
-  else if (key === 'add')       showPanel('panel-add');
   else if (key === 'exchanges') { showPanel('panel-exchanges'); loadTransactions(); }
   else if (key === 'profile')   { showPanel('panel-profile'); loadMember().then(() => loadProfileTabs()); }
   // 'home': all panels closed, home visible
@@ -3647,7 +3648,6 @@ async function submitForm() {
   const itemName = document.getElementById('nameInput').value;
   hidePanel('panel-add');
   _showAddSuccessToast(itemId, itemName);
-  loadHomeData();
 }
 
 function _showAddSuccessToast(itemId, itemName) {
