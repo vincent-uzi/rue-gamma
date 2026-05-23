@@ -1981,6 +1981,119 @@ Finaliser les notifications bouteilles à la mer pour débloquer test rue.
 
 ---
 
+### Session 23 Mai 2026 - Samedi après-midi
+
+**Durée** : ~3h30  
+**Focus** : Bug critique résolu + Modale ajout objet complète
+
+**Réalisations :**
+
+✅ **Bug `</script>` résolu (BOSS FINAL)**
+   - Commentaire JS ligne 6757 contenait littéralement `</script>`
+   - Parser HTML fermait prématurément le bloc script
+   - Code source affiché comme texte brut
+   - Investigation cumulée : 3h+ (22 mai soir + aujourd'hui)
+   - **Règle apprise** : Ne JAMAIS écrire `</script>` dans code JS (même commentaires)
+
+✅ **Bugs Home fixés**
+   - Bouton "Ajouter" bloc "Prêtez plus" fonctionnel
+   - Bouton "Vincent" contact fonctionnel
+
+✅ **Modale ajout objet complète et fonctionnelle**
+   - Design : 3 cards blanches bordure verte (Nom, Description, Photo)
+   - Comportement : Overlay pur (position:fixed z-index:9999)
+   - Header épuré : juste × (pas de flèche back)
+   - Navbar masquée pendant modale ouverte
+   - Fond vert clair #FBFDFB
+   - Formulaire :
+     * Nom de l'objet (avec helper text "Type d'objet · marque · modèle")
+     * Description (avec guidance "Quel usage ? État ? Accessoires disponibles ?")
+     * Photo (titre "Avec une photo c'est mieux", icône SVG appareil photo, border dashed verte)
+   - Toast confirmation : "Merci ! Vous avez partagé '{nom}' [Voir]" avec lien vers fiche
+   - Navigation préservée : utilisateur reste sur page actuelle après ajout
+   - JS wiring complet : bridge modal → ancien form via DataTransfer
+
+**Architecture navbar - Exception bouton Ajouter :**
+
+⚠️ **IMPORTANT : Comportement spécial du bouton "+" navbar**
+
+Tous les boutons de la navbar (Home, Objets, Transactions, Profil) fonctionnent sur le modèle **navigation** :
+- Clic → `_navigateTo('home'|'objects'|'exchanges'|'profile')`
+- Ferme tous les panels
+- Affiche le panel cible
+- Met à jour le tab actif
+
+**EXCEPTION : Le bouton "+" Ajouter fonctionne en mode OVERLAY :**
+- Clic → `_navigateTo('add')` intercepté AVANT le switch
+- `if (key === 'add') { _openModalAdd(); return; }`
+- Ne ferme PAS les panels principaux (home/objects/profile/exchanges)
+- Affiche modale en overlay z-index:9999
+- Masque la navbar pendant affichage modale
+- À la fermeture : restore navbar + reste sur page sous-jacente
+
+**Raison technique :**
+- Modale ajout = action transverse possible depuis toute page
+- Pas une "page" en soi mais une action
+- Utilisateur doit revenir où il était après ajout
+
+**Code clé (ligne ~3475) :**
+```javascript
+function _navigateTo(key) {
+  if (key === 'add') { _openModalAdd(); return; }  // ← Exception
+  
+  // Comportement normal pour autres tabs
+  document.querySelectorAll('.overlay-panel').forEach(el => { 
+    el.style.display = 'none'; 
+  });
+  // ...
+}
+```
+
+**Bugs résolus :**
+
+✅ **Navigation après validation**
+   - Problème : Fermeture modale ramenait sur Home
+   - Cause : `_navigateTo('add')` considéré comme navigation au lieu d'overlay
+   - Solution : Interception early return dans `_navigateTo()`
+   - Résultat : Modale = vrai overlay, page sous-jacente préservée
+
+✅ **Largeur cards modale**
+   - 15+ aller-retours sur margin/padding/wrapper
+   - Problème : Double padding (wrapper + card)
+   - Solution finale : padding sur wrapper, margin:0 sur cards
+
+**Leçons apprises :**
+
+📝 **Refactors HTML complexes**
+   - ❌ Ne JAMAIS itérer avec Claude Code sur CSS/layout
+   - ✅ Toujours donner HTML complet à copier/coller
+   - ✅ Tester desktop ET mobile dès le début
+   - ✅ Définir si overlay ou navigation AVANT implémentation
+
+📝 **Bug `</script>` dans code JS**
+   - Parser HTML traite `</script>` littéralement même dans commentaires/strings
+   - Toujours reformuler ou découper : `<' + '/script>`
+   - S'applique aussi aux strings multiligne et innerHTML
+
+📝 **Pattern overlay vs navigation**
+   - Bien distinguer les deux modèles dès la conception
+   - Overlay = action transverse (modale, popin)
+   - Navigation = changement de contexte (page différente)
+
+**Commits :** 25 commits
+
+**Prochaines étapes :**
+
+- [ ] Fix responsive desktop modale (si nécessaire)
+- [ ] ONBOARD-01 : Tunnel ajout objet post-inscription (1-2h)
+- [ ] Identité visuelle : Logo FLO + Icône app + Audit noms (2-3h)
+- [ ] Responsive audit complet (4-6h)
+- [ ] Tests devices (2h)
+
+**Estimation reste bloquant test rue** : ~8-10h
+
+---
+
 ## 📝 TODO LIST — Petits debugs & améliorations
 
 ### 🎨 IDENTITÉ VISUELLE (avant test rue)
