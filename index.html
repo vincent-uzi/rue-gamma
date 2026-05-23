@@ -2353,11 +2353,10 @@
 </div><!-- /#panel-objects -->
 
 <!-- ── Écran "Ajouter un objet" ───────────────────────────────── -->
-<div class="overlay-panel" id="panel-add" style="background:#F5F5F5;">
+<div class="overlay-panel" id="panel-add" style="background:#FBFDFB;">
 
   <!-- Header fixe -->
   <div style="position:fixed;top:0;left:0;right:0;background:white;border-bottom:1px solid #E5E5E5;display:flex;align-items:center;justify-content:space-between;padding:calc(env(safe-area-inset-top) + 14px) 16px 14px;z-index:10;">
-    <button onclick="hidePanel(‘panel-add’)" style="background:none;border:none;font-size:22px;color:#333;cursor:pointer;padding:4px 8px 4px 0;">←</button>
     <span style="font-size:17px;font-weight:600;color:#1A1A1C;">Ajouter un objet</span>
     <button onclick="hidePanel(‘panel-add’)" style="background:none;border:none;font-size:24px;color:#888;cursor:pointer;padding:4px 0 4px 8px;">×</button>
   </div>
@@ -2416,7 +2415,7 @@
 
   </div><!-- /.add-scroll -->
 
-  <div class="add-cta" style="padding:16px 20px calc(16px + env(safe-area-inset-bottom));background:white;border-top:1px solid #E5E5E5;display:flex;gap:12px;">
+  <div class="add-cta" style="padding:16px 20px calc(16px + env(safe-area-inset-bottom) + 0px);background:white;border-top:1px solid #E5E5E5;display:flex;gap:12px;">
     <button onclick="hidePanel(‘panel-add’)" style="flex:1;padding:14px;border:1px solid #D0D0D0;border-radius:24px;background:white;font-size:16px;font-weight:600;color:#333;cursor:pointer;font-family:inherit;">Annuler</button>
     <button class="cta-btn" onclick="submitForm()" style="flex:2;border-radius:24px;padding:14px;">Mettre à disposition</button>
   </div>
@@ -3488,11 +3487,19 @@ function _navigateTo(key) {
 function showPanel(id) {
   const el = document.getElementById(id);
   if (el) el.style.display = 'flex';
+  if (id === 'panel-add') {
+    const nav = document.querySelector('.tab-bar');
+    if (nav) nav.style.display = 'none';
+  }
 }
 function hidePanel(id) {
   const el = document.getElementById(id);
   if (el) el.style.display = 'none';
-  if (id === 'panel-add')    _resetAddForm();
+  if (id === 'panel-add') {
+    const nav = document.querySelector('.tab-bar');
+    if (nav) nav.style.display = '';
+    _resetAddForm();
+  }
   if (id === 'panel-search') _resetSearch();
   if (id === 'panel-objects') _objectsLoaded = false;
 }
