@@ -33,7 +33,7 @@
 
     .login-scroll {
       flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
-      padding: max(72px, calc(var(--sat) + 60px)) 20px 160px;
+      padding: max(72px, calc(var(--sat) + 60px)) 20px 48px;
       overscroll-behavior-y: contain;
     }
 
@@ -125,10 +125,7 @@
         <div style="font-size:20px;color:#333;margin-top:4px;font-weight:600;">Rue Charles-Saint-Venant</div>
       </div>
 
-      <div class="heading">
-        <h1 class="heading-title">Bon retour !</h1>
-        <p class="heading-sub">Connectez-vous à votre compte</p>
-      </div>
+      <h2 style="font-size:20px;font-weight:700;color:#333;margin:0 0 24px;text-align:left;">Se connecter</h2>
 
       <div class="form-section">
         <div class="form-label">Email</div>
@@ -145,35 +142,19 @@
                onkeydown="if(event.key==='Enter'){event.preventDefault();login();}">
       </div>
 
-      <div style="text-align:right;margin-top:8px;margin-bottom:24px;">
-        <a href="#" onclick="alert('Fonctionnalité à venir');return false;" style="font-size:14px;color:#1F9D55;text-decoration:underline;">Mot de passe oublié ?</a>
+      <div style="text-align:left;margin-top:8px;margin-bottom:24px;">
+        <a href="#" onclick="alert('Fonctionnalité à venir');return false;" style="font-size:14px;color:#666;text-decoration:underline;">Mot de passe oublié ?</a>
       </div>
 
       <div class="form-error" id="login-error">Email ou mot de passe incorrect</div>
 
-      <!-- Séparateur -->
-      <div style="margin:40px 0;text-align:center;">
-        <div style="border-top:1px solid #E5E5E5;"></div>
+      <button class="cta-btn" id="login-btn" onclick="login()" style="margin-bottom:0;">Se connecter</button>
+
+      <div style="text-align:center;margin-top:40px;padding-top:32px;border-top:1px solid #E5E5E5;">
+        <p style="font-size:16px;color:#333;margin:0 0 8px;">Première visite ?</p>
+        <a href="signup.html" style="font-size:16px;color:#1F9D55;text-decoration:underline;font-weight:600;">Créez votre compte</a>
       </div>
 
-      <!-- Section Inscription -->
-      <div style="text-align:center;margin-bottom:24px;">
-        <h3 style="font-size:16px;font-weight:600;color:#333;margin:0 0 8px;">Première visite ?</h3>
-        <p style="font-size:14px;color:#666;margin:0;">Entrez votre code d'invitation</p>
-      </div>
-
-      <div style="margin-bottom:16px;">
-        <input type="text" id="invite-code-input" placeholder="FLO-XXXX" maxlength="8" style="width:100%;padding:16px;border:1px solid #E5E5E5;border-radius:12px;font-size:16px;text-align:center;text-transform:uppercase;letter-spacing:2px;box-sizing:border-box;">
-      </div>
-
-      <button id="btn-validate-code" onclick="validateInviteCode()" style="width:100%;padding:16px;background:white;color:#1F9D55;border:2px solid #1F9D55;border-radius:24px;font-size:16px;font-weight:600;cursor:pointer;">
-        Valider
-      </button>
-
-    </div>
-
-    <div class="login-cta">
-      <button class="cta-btn" id="login-btn" onclick="login()">Se connecter</button>
     </div>
   </div>
 
@@ -230,51 +211,6 @@ async function login() {
   }
 
   window.location.replace('index.html')
-}
-
-async function validateInviteCode() {
-  const codeInput = document.getElementById('invite-code-input');
-  const code = codeInput.value.trim().toUpperCase();
-
-  if (!code || code.length < 7) {
-    alert('Code invalide');
-    return;
-  }
-
-  const btn = document.getElementById('btn-validate-code');
-  btn.disabled = true;
-  btn.textContent = 'Vérification...';
-
-  try {
-    const { data, error } = await db
-      .from('invitations')
-      .select('*')
-      .eq('code', code)
-      .single();
-
-    if (error || !data) {
-      alert('Code invalide ou expiré');
-      btn.disabled = false;
-      btn.textContent = 'Valider';
-      return;
-    }
-
-    if (new Date(data.expires_at) < new Date()) {
-      alert('Code expiré');
-      btn.disabled = false;
-      btn.textContent = 'Valider';
-      return;
-    }
-
-    localStorage.setItem('invite_code', code);
-    window.location.href = 'signup.html';
-
-  } catch (err) {
-    console.error('Erreur validation code:', err);
-    alert('Erreur lors de la validation');
-    btn.disabled = false;
-    btn.textContent = 'Valider';
-  }
 }
 </script>
 </body>
