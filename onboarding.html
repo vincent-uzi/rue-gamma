@@ -2,323 +2,364 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="theme-color" content="#ffffff">
-  <title>Kolkoze · Rejoindre</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Bienvenue - FLO</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root {
-      --bg:          #ffffff;
-      --surface:     #ffffff;
-      --surface-alt: #F7F7F5;
-      --line:        rgba(60,60,67,0.12);
-      --text:        #1A1A1C;
-      --text-muted:  rgba(60,60,67,0.62);
-      --text-dim:    rgba(60,60,67,0.38);
-      --accent:      #1F9D55;
-      --accent-ink:  #ffffff;
-      --accent-soft: #E5EAE2;
-      --danger:      #D9363E;
-      --font: -apple-system, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', system-ui, sans-serif;
-      --sat: env(safe-area-inset-top,    0px);
-      --sab: env(safe-area-inset-bottom, 0px);
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    html { height: 100%; background: var(--bg); }
-    body { min-height: 100%; font-family: var(--font); color: var(--text); background: var(--bg); -webkit-font-smoothing: antialiased; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background:#FBFDFB; }
 
-    #app { max-width: 430px; margin: 0 auto; height: 100dvh; overflow: hidden; position: relative; background: var(--bg); }
-    .screen { position: absolute; inset: 0; background: var(--bg); display: flex; flex-direction: column; }
+    /* Navbar */
+    .navbar { position:fixed; top:0; left:0; right:0; height:60px; background:white; border-bottom:1px solid #E5E5E5; display:flex; align-items:center; justify-content:space-between; padding:0 20px; z-index:1000; }
+    .navbar-title { font-size:18px; font-weight:600; color:#1F9D55; }
+    .navbar-subtitle { font-size:14px; color:#666; font-weight:600; }
 
-    .onb-scroll {
-      flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
-      padding: max(60px, calc(var(--sat) + 48px)) 20px 160px;
-      overscroll-behavior-y: contain;
-    }
+    /* Container */
+    .container { max-width:400px; margin:0 auto; padding:80px 20px 100px; }
 
-    /* Logo */
-    .onb-logo { text-align: center; margin-bottom: 36px; }
-    .onb-logo-leaf {
-      width: 48px; height: 48px; border-radius: 14px;
-      background: var(--accent-soft); color: var(--accent);
-      display: inline-flex; align-items: center; justify-content: center; margin-bottom: 10px;
-    }
-    .onb-logo-name { color: var(--accent); font-size: 28px; font-weight: 700; line-height: 34px; letter-spacing: -0.4px; }
-    .onb-logo-street { color: var(--text-muted); font-size: 11px; font-weight: 500; letter-spacing: 0.1px; margin-top: 4px; }
+    /* Header */
+    .header-title { font-size:20px; font-weight:700; color:#333; margin-bottom:8px; }
+    .header-desc { font-size:16px; color:#333; margin-bottom:4px; }
+    .header-subtitle { font-size:14px; color:#666; margin-bottom:32px; }
 
-    /* Heading */
-    .onb-heading { text-align: center; margin-bottom: 32px; }
-    .onb-heading-title { font-size: 22px; font-weight: 700; line-height: 28px; letter-spacing: -0.2px; color: var(--text); margin-bottom: 6px; }
-    .onb-heading-sub { font-size: 15px; font-weight: 400; line-height: 20px; color: var(--text-muted); }
+    /* Object cards */
+    .object-card { background:white; border:1px solid #EAF5EA; border-radius:12px; padding:16px; margin-bottom:16px; display:flex; align-items:center; gap:12px; }
+    .object-card.empty { border:2px dashed #D0D0D0; background:#FAFAFA; flex-direction:column; padding:20px; }
+    .object-card.empty .suggestion { text-align:center; color:#666; font-size:14px; margin-bottom:12px; line-height:1.4; }
+    .btn-add { width:48px; height:48px; border-radius:50%; background:#1F9D55; color:white; border:none; font-size:24px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
 
-    /* Form */
-    .form-section { margin-bottom: 16px; }
-    .form-label { font-size: 11px; font-weight: 500; color: var(--text-muted); letter-spacing: 0.1px; margin-bottom: 7px; line-height: 14px; }
-    .form-input {
-      display: block; width: 100%; height: 50px;
-      background: var(--surface-alt); border: 1px solid var(--line);
-      border-radius: 14px; padding: 0 16px;
-      font-family: var(--font); font-size: 16px; color: var(--text);
-      outline: none; -webkit-appearance: none;
-      transition: border-color .18s, background .18s;
-    }
-    .form-input:focus { border-color: var(--accent); background: var(--surface); }
-    .form-input::placeholder { color: var(--text-dim); }
-    .form-row { display: flex; gap: 10px; }
-    .form-row .form-section { flex: 1; }
+    .object-icon { width:48px; height:48px; background:#EAF5EA; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:24px; flex-shrink:0; }
+    .object-info { flex:1; }
+    .object-name { font-size:15px; font-weight:600; color:#333; margin-bottom:4px; }
+    .object-meta { display:flex; gap:8px; font-size:13px; }
+    .owner-badge { background:#1F9D55; color:white; padding:2px 8px; border-radius:4px; font-weight:600; }
+    .co2 { color:#666; }
 
-    /* Password feedback */
-    .pw-hint { font-size: 11px; color: var(--text-muted); margin-top: 5px; line-height: 15px; }
-    .pw-error { font-size: 12px; color: var(--danger); margin-top: 5px; line-height: 15px; display: none; }
-    .pw-ok { font-size: 12px; color: var(--accent); margin-top: 5px; line-height: 15px; display: none; gap: 4px; align-items: center; }
+    /* Bottom button */
+    .bottom-bar { position:fixed; bottom:0; left:0; right:0; background:white; border-top:1px solid #E5E5E5; padding:16px 20px; padding-bottom:calc(16px + env(safe-area-inset-bottom)); }
+    .btn-primary { width:100%; padding:16px; background:#1F9D55; color:white; border:none; border-radius:24px; font-size:16px; font-weight:600; cursor:pointer; }
+    .btn-primary:disabled { background:#D0D0D0; cursor:not-allowed; }
 
-    /* Global error */
-    .form-error { display: none; font-size: 13px; color: var(--danger); margin-top: 4px; line-height: 17px; text-align: center; }
-
-    /* Login link */
-    .login-link { text-align: center; margin-top: 20px; font-size: 14px; color: var(--text-muted); line-height: 20px; }
-    .login-link a { color: var(--accent); text-decoration: none; font-weight: 500; }
-
-    /* Sticky CTA */
-    .onb-cta {
-      position: absolute; bottom: 0; left: 0; right: 0;
-      padding: 32px 20px calc(max(20px, var(--sab)) + 4px);
-      background: linear-gradient(to top, var(--bg) 60%, transparent);
-      pointer-events: none;
-    }
-    .cta-btn {
-      pointer-events: auto; display: block; width: 100%; height: 54px;
-      border-radius: 16px; border: none; background: var(--accent);
-      color: var(--accent-ink); font-family: var(--font);
-      font-size: 16px; font-weight: 600; letter-spacing: -0.2px;
-      cursor: pointer; -webkit-appearance: none; transition: opacity .15s;
-    }
-    .cta-btn:active { opacity: .82; }
-    .cta-btn:disabled { opacity: .45; cursor: default; }
-
-    /* Loading */
-    #screen-loading { align-items: center; justify-content: center; }
-    .spinner { width: 32px; height: 32px; border: 2.5px solid var(--surface-alt); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    /* Cat pill / spinner (modale) */
+    .cat-pill { display:inline-flex; align-items:center; gap:5px; padding:4px 10px 4px 8px; border-radius:9999px; background:#EAF5EA; color:#1F9D55; font-size:12px; font-weight:600; line-height:1.3; cursor:pointer; transition:opacity .15s; border:none; }
+    .cat-pill:active { opacity:.7; }
+    .cat-dot { width:6px; height:6px; border-radius:50%; background:#1F9D55; flex-shrink:0; }
+    .cat-spinner-wrap { display:inline-flex; align-items:center; gap:7px; padding:4px 12px; border-radius:9999px; background:#F7F7F5; font-size:12px; color:#888; }
+    .cat-spinner { width:12px; height:12px; border:1.5px solid rgba(60,60,67,0.25); border-top-color:#888; border-radius:50%; animation:cat-spin .7s linear infinite; flex-shrink:0; }
+    @keyframes cat-spin { to { transform:rotate(360deg); } }
   </style>
 </head>
 <body>
-<div id="app">
-
-  <div class="screen" id="screen-loading">
-    <div class="spinner"></div>
+  <!-- Navbar -->
+  <div class="navbar">
+    <div class="navbar-title">FLO</div>
+    <div class="navbar-subtitle">Bienvenue</div>
   </div>
 
-  <div class="screen" id="screen-form" style="display:none;">
-    <div class="onb-scroll">
+  <!-- Container -->
+  <div class="container">
+    <h1 class="header-title">Votre compte est créé !</h1>
+    <p class="header-desc">Pour rejoindre la communauté, partagez 3 objets</p>
+    <p class="header-subtitle">3 objets que l'on pourra vous emprunter</p>
 
-      <div class="onb-logo">
-        <div class="onb-logo-leaf" aria-hidden="true">
-          <svg width="24" height="24" viewBox="0 0 18 18" fill="none">
-            <path d="M15 2.5C9 2.5 3 6 3 12c0 1.5.5 2.8 1.3 3.7C5.2 16.6 6.7 15.5 8 14c2.5-3 5-5 7-7-1 4-3.5 7-6 9"
-                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-        <div class="onb-logo-name">Kolkoze</div>
-        <div class="onb-logo-street">Rue Charles-Saint-Venant</div>
-      </div>
-
-      <div class="onb-heading">
-        <h1 class="onb-heading-title">Bienvenue sur Kolkoze</h1>
-        <p class="onb-heading-sub">Rejoignez vos voisins et partagez vos objets</p>
-      </div>
-
-      <!-- Prénom + Nom -->
-      <div class="form-row">
-        <div class="form-section">
-          <div class="form-label">Prénom</div>
-          <input class="form-input" id="f-prenom" type="text"
-                 autocomplete="given-name" placeholder="Marie"
-                 autocorrect="off" spellcheck="false" oninput="_validate()">
-        </div>
-        <div class="form-section">
-          <div class="form-label">Nom</div>
-          <input class="form-input" id="f-nom" type="text"
-                 autocomplete="family-name" placeholder="Dupont"
-                 autocorrect="off" spellcheck="false" oninput="_validate()">
-        </div>
-      </div>
-
-      <!-- Adresse -->
-      <div class="form-section">
-        <div class="form-label">Adresse — numéro + rue</div>
-        <input class="form-input" id="f-adresse" type="text"
-               autocomplete="street-address"
-               placeholder="12 rue Charles-Saint-Venant"
-               autocorrect="off" spellcheck="false" oninput="_validate()">
-      </div>
-
-      <!-- Email -->
-      <div class="form-section">
-        <div class="form-label">Email</div>
-        <input class="form-input" id="f-email" type="email"
-               autocomplete="email" placeholder="marie@email.com"
-               autocapitalize="none" autocorrect="off" oninput="_validate()">
-      </div>
-
-      <!-- Mot de passe -->
-      <div class="form-section">
-        <div class="form-label">Mot de passe</div>
-        <input class="form-input" id="f-password" type="password"
-               autocomplete="new-password" placeholder="8 caractères minimum"
-               oninput="_onPasswordInput()">
-        <div class="pw-hint" id="pw-hint">Minimum 8 caractères</div>
-      </div>
-
-      <!-- Confirmer -->
-      <div class="form-section">
-        <div class="form-label">Confirmer le mot de passe</div>
-        <input class="form-input" id="f-confirm" type="password"
-               autocomplete="new-password" placeholder="Répétez le mot de passe"
-               oninput="_onConfirmInput()">
-        <div class="pw-error" id="pw-mismatch">Les mots de passe ne correspondent pas</div>
-        <div class="pw-ok" id="pw-match">
-          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-            <path d="M2 7l4 4 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          Les mots de passe correspondent
-        </div>
-      </div>
-
-      <div class="form-error" id="global-error"></div>
-
-      <div class="login-link">
-        Déjà membre ? <a href="login.html">Se connecter</a>
-      </div>
-
+    <!-- Slot 1 -->
+    <div id="slot-1" class="object-card empty">
+      <p class="suggestion">Un outil, un ustensile que vous utilisez souvent</p>
+      <button class="btn-add" onclick="openAddModal(1)">+</button>
     </div>
 
-    <div class="onb-cta">
-      <button class="cta-btn" id="join-btn" disabled onclick="signup()">Rejoindre la communauté</button>
+    <!-- Slot 2 -->
+    <div id="slot-2" class="object-card empty">
+      <p class="suggestion">Un objet de bricolage, de jardinage</p>
+      <button class="btn-add" onclick="openAddModal(2)">+</button>
+    </div>
+
+    <!-- Slot 3 -->
+    <div id="slot-3" class="object-card empty">
+      <p class="suggestion">Un objet de sport, de loisirs</p>
+      <button class="btn-add" onclick="openAddModal(3)">+</button>
     </div>
   </div>
 
-</div>
+  <!-- Bottom bar -->
+  <div class="bottom-bar">
+    <button id="btn-finish" class="btn-primary" onclick="finishOnboarding()" disabled>
+      Accéder à la communauté
+    </button>
+  </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-const SUPABASE_URL      = 'https://optfcepolcjyregdaxpt.supabase.co'
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wdGZjZXBvbGNqeXJlZ2RheHB0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5NzE1MjgsImV4cCI6MjA5MzU0NzUyOH0.ZvHOCyd8SQYzh7AQw4PexH742aFvPkeq1JKcLMaQytc'
-const COMMUNITY_ID      = 'ed225eef-e9e0-4cf8-9ae9-aaf687b55c42'
-const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: { persistSession: true },
-})
+  <!-- Modale ajout objet (copiée depuis index.html) -->
+  <div id="modal-add-item" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:rgba(0,0,0,0.3);justify-content:center;align-items:stretch;">
+    <div style="width:100%;max-width:500px;background:#FBFDFB;display:flex;flex-direction:column;overflow:hidden;">
 
-// ── Init : si déjà connecté → index.html ─────────────────────
-;(async () => {
-  const { data: { session } } = await db.auth.getSession()
-  if (session) {
-    window.location.replace('index.html')
-    return
-  }
-  document.getElementById('screen-loading').style.display = 'none'
-  document.getElementById('screen-form').style.display    = 'flex'
-})()
+      <!-- Header -->
+      <div style="flex-shrink:0;background:#FBFDFB;display:flex;align-items:center;justify-content:flex-end;padding:calc(env(safe-area-inset-top) + 12px) 20px 12px;position:relative;">
+        <h1 style="position:absolute;left:20px;right:60px;font-size:18px;font-weight:600;color:#333;margin:0;">Partagez un objet</h1>
+        <button id="btn-close-add" style="background:none;border:none;font-size:28px;color:#555;cursor:pointer;padding:8px;line-height:1;">×</button>
+      </div>
 
-// ── Validation temps réel ─────────────────────────────────────
-function _onPasswordInput() {
-  const pwd = document.getElementById('f-password').value
-  const hint = document.getElementById('pw-hint')
-  hint.style.color = pwd.length >= 8 ? 'var(--accent)' : 'var(--text-muted)'
-  _onConfirmInput()
-  _validate()
-}
+      <!-- Contenu scrollable -->
+      <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;">
 
-function _onConfirmInput() {
-  const pwd  = document.getElementById('f-password').value
-  const conf = document.getElementById('f-confirm').value
-  const errEl   = document.getElementById('pw-mismatch')
-  const checkEl = document.getElementById('pw-match')
+        <!-- Card Nom -->
+        <div style="padding:8px 16px 0;">
+          <div style="background:white;border:1px solid #EAF5EA;border-radius:12px;padding:20px;">
+            <label style="display:block;font-size:16px;font-weight:600;color:#333;margin-bottom:12px;">Nom de l'objet</label>
+            <input type="text" id="modal-item-name" placeholder="Ex : Perceuse Bosch GSR 12V"
+                   autocomplete="off" autocorrect="off" spellcheck="false"
+                   oninput="_onModalNameInput(this)"
+                   style="width:100%;padding:12px 16px;border:1px solid #E5E5E5;border-radius:8px;font-size:16px;background:white;box-sizing:border-box;">
+            <p style="font-size:13px;color:#999;margin:8px 0 0;">Type d'objet · marque · modèle</p>
+            <div id="modal-cat-area"></div>
+          </div>
+        </div>
 
-  if (!conf) {
-    errEl.style.display   = 'none'
-    checkEl.style.display = 'none'
-  } else if (conf !== pwd) {
-    errEl.style.display   = 'block'
-    checkEl.style.display = 'none'
-  } else {
-    errEl.style.display   = 'none'
-    checkEl.style.display = 'flex'
-  }
-  _validate()
-}
+        <!-- Card Description -->
+        <div style="padding:12px 16px 0;">
+          <div style="background:white;border:1px solid #EAF5EA;border-radius:12px;padding:20px;">
+            <label style="display:block;font-size:16px;font-weight:600;color:#333;margin-bottom:12px;">Description</label>
+            <textarea id="modal-item-description" placeholder="Ex : Légère, idéale pour les petits travaux. Livrée avec tous les embouts et 2 batteries."
+                      style="width:100%;min-height:100px;padding:12px 16px;border:1px solid #E5E5E5;border-radius:8px;font-size:16px;background:white;resize:none;box-sizing:border-box;font-family:inherit;"></textarea>
+            <p style="font-size:13px;color:#999;margin:8px 0 0;">Quel usage ? État ? Accessoires disponibles ?</p>
+          </div>
+        </div>
 
-function _validate() {
-  const prenom  = document.getElementById('f-prenom').value.trim()
-  const nom     = document.getElementById('f-nom').value.trim()
-  const adresse = document.getElementById('f-adresse').value.trim()
-  const email   = document.getElementById('f-email').value.trim()
-  const pwd     = document.getElementById('f-password').value
-  const conf    = document.getElementById('f-confirm').value
+        <!-- Card Photo -->
+        <div style="padding:12px 16px 24px;">
+          <div style="background:white;border:1px solid #EAF5EA;border-radius:12px;padding:20px;">
+            <label style="display:block;font-size:16px;font-weight:600;color:#333;margin-bottom:12px;">Avec une photo c'est mieux</label>
+            <button id="btn-modal-photo" style="width:100%;padding:36px 24px;border:2px dashed #1F9D55;border-radius:12px;background:#FAFAFA;display:flex;flex-direction:column;align-items:center;gap:12px;cursor:pointer;color:#1F9D55;">
+              <svg width="48" height="44" viewBox="0 0 20 18" fill="none" aria-hidden="true">
+                <path d="M6.4 3.2l.7-1.4c.3-.5.8-.8 1.4-.8h3c.6 0 1.1.3 1.4.8l.7 1.4h2.6c1.1 0 2 .9 2 2v8.4c0 1.1-.9 2-2 2H3.8c-1.1 0-2-.9-2-2V5.2c0-1.1.9-2 2-2h2.6z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                <circle cx="10" cy="9.6" r="3.2" stroke="currentColor" stroke-width="1.5"/>
+                <circle cx="15.5" cy="6" r="0.6" fill="currentColor"/>
+              </svg>
+              <span style="font-size:15px;color:#1F9D55;font-weight:600;">Ajouter une photo</span>
+            </button>
+            <input type="file" id="modal-photo-input" accept="image/*" style="display:none;" onchange="_onModalPhotoSelected(this)">
+            <div id="modal-photo-preview" style="margin-top:16px;display:none;">
+              <img id="modal-photo-preview-img" style="width:100%;border-radius:12px;border:1px solid #EAF5EA;">
+              <button onclick="_clearModalPhoto()" style="margin-top:8px;background:none;border:none;color:#999;font-size:13px;cursor:pointer;text-decoration:underline;">Supprimer la photo</button>
+            </div>
+          </div>
+        </div>
 
-  const ok = prenom && nom && adresse && email.includes('@')
-    && pwd.length >= 8 && pwd === conf
-  document.getElementById('join-btn').disabled = !ok
-}
+      </div>
 
-// ── Inscription ───────────────────────────────────────────────
-async function signup() {
-  const prenom  = document.getElementById('f-prenom').value.trim()
-  const nom     = document.getElementById('f-nom').value.trim()
-  const adresse = document.getElementById('f-adresse').value.trim()
-  const email   = document.getElementById('f-email').value.trim()
-  const pwd     = document.getElementById('f-password').value
-  const errEl   = document.getElementById('global-error')
-  errEl.style.display = 'none'
+      <!-- Footer -->
+      <div style="flex-shrink:0;padding:12px 20px calc(env(safe-area-inset-bottom) + 12px);background:white;border-top:1px solid #E5E5E5;display:flex;gap:12px;">
+        <button id="btn-cancel-add-modal" style="flex:1;padding:14px;border:1px solid #D0D0D0;border-radius:24px;background:white;font-size:16px;font-weight:600;color:#333;cursor:pointer;font-family:inherit;">Annuler</button>
+        <button id="btn-submit-add-modal" style="flex:2;padding:14px;border:none;border-radius:24px;background:#1F9D55;color:white;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;">Mettre à disposition</button>
+      </div>
 
-  const btn = document.getElementById('join-btn')
-  btn.disabled    = true
-  btn.textContent = 'Création du compte…'
+    </div>
+  </div>
 
-  // 1. Créer le compte auth
-  const { data, error } = await db.auth.signUp({ email, password: pwd })
+  <script>
+    const SUPABASE_URL      = 'https://optfcepolcjyregdaxpt.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wdGZjZXBvbGNqeXJlZ2RheHB0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5NzE1MjgsImV4cCI6MjA5MzU0NzUyOH0.ZvHOCyd8SQYzh7AQw4PexH742aFvPkeq1JKcLMaQytc';
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const COMMUNITY_ID = 'ed225eef-e9e0-4cf8-9ae9-aaf687b55c42';
 
-  if (error) {
-    console.error('[signup] auth error:', error)
-    btn.disabled    = false
-    btn.textContent = 'Rejoindre la communauté'
-    const isDup = (error.message || '').toLowerCase().includes('already')
-    errEl.textContent = isDup
-      ? 'Cet email est déjà utilisé. Connecte-toi sur login.html'
-      : 'Une erreur est survenue, réessaie.'
-    errEl.style.display = 'block'
-    return
-  }
+    // ── Onboarding state ──────────────────────────────────────────
+    let onboardingObjects = { 1: null, 2: null, 3: null };
+    let currentSlot = null;
 
-  const userId = data.user?.id
-  if (!userId) {
-    btn.disabled    = false
-    btn.textContent = 'Rejoindre la communauté'
-    errEl.textContent = 'Une erreur inattendue, réessaie.'
-    errEl.style.display = 'block'
-    return
-  }
+    function openAddModal(slotNumber) {
+      currentSlot = slotNumber;
+      _openModalAdd();
+    }
 
-  // 2. Insérer le profil membre
-  const { data: memberData, error: memberError } = await db.from('members').insert([{
-    id:           userId,
-    community_id: COMMUNITY_ID,
-    first_name:   prenom,
-    last_name:    nom,
-    address:      adresse,
-    email,
-  }]).select()
+    function fillSlot(slotNumber, objectData) {
+      const slot = document.getElementById('slot-' + slotNumber);
+      slot.className = 'object-card';
+      slot.innerHTML = `
+        <div class="object-icon">${objectData.icon || '📦'}</div>
+        <div class="object-info">
+          <div class="object-name">${objectData.name}</div>
+          <div class="object-meta">
+            <span class="owner-badge">Vous</span>
+            <span class="co2">${objectData.co2 || 0} kg CO₂</span>
+          </div>
+        </div>
+      `;
+      onboardingObjects[slotNumber] = objectData;
+      checkCompletion();
+    }
 
-  if (memberError) {
-    console.error('[signup] member insert error:', memberError)
-    // Compte créé mais profil échoué — rediriger quand même
-  }
+    function checkCompletion() {
+      const completed = Object.values(onboardingObjects).every(obj => obj !== null);
+      document.getElementById('btn-finish').disabled = !completed;
+    }
 
-  if (memberData?.[0]?.id) localStorage.setItem('member_id', memberData[0].id)
+    function finishOnboarding() {
+      localStorage.setItem('onboarding_completed', 'true');
+      window.location.href = 'index.html';
+    }
 
-  window.location.replace('index.html')
-}
-</script>
+    // ── Détection catégorie ───────────────────────────────────────
+    const CAT_MAP = [
+      [/perceu|visseuse|marteau|clé|scie|tournevis|meuleuse|niveau|pince|étau/i, ['Outils',           8.2]],
+      [/échelle|escabeau|établi/i,                                                ['Outils',          10.5]],
+      [/tondeuse|taille.haie|souffleur|débroussailleuse|arrosoir/i,              ['Jardinage',        7.2]],
+      [/barbecue|plancha|brasero/i,                                               ['Jardinage',       14.0]],
+      [/vélo|trottinette|skateboard|roller|surf|kayak|paddle/i,                  ['Sport & loisirs', 45.0]],
+      [/ski|snowboard|raquette/i,                                                 ['Sport & loisirs', 22.0]],
+      [/tente|sac de couchage|matelas gonflable|réchaud|camping/i,               ['Camping',         12.4]],
+      [/sorbetière|mixeur|robot|raclette|fondue|crêpière|gaufrier|thermomix/i,   ['Cuisine',          6.5]],
+      [/projecteur|drone|appareil photo|objectif|trépied|gopro/i,                ['Multimédia',      14.0]],
+      [/canapé|fauteuil|bureau|étagère|armoire/i,                                ['Mobilier',        32.0]],
+      [/aspirateur|karcher|nettoyeur|vapeur/i,                                   ['Électroménager',  11.0]],
+    ];
+
+    let _catTimer, detectedCo2 = 8.2, detectedCategory = '';
+
+    function _detectCat(name) {
+      for (const [re, res] of CAT_MAP) if (re.test(name)) return res;
+      return name.trim().length > 3 ? ['Divers', 5.0] : null;
+    }
+
+    // ── Modale ajout objet ────────────────────────────────────────
+    let _modalPhotoFile = null;
+
+    function _resetModalAdd() {
+      clearTimeout(_catTimer);
+      const nameInp = document.getElementById('modal-item-name');
+      if (nameInp) nameInp.value = '';
+      const descInp = document.getElementById('modal-item-description');
+      if (descInp) descInp.value = '';
+      const catArea = document.getElementById('modal-cat-area');
+      if (catArea) catArea.innerHTML = '';
+      const preview = document.getElementById('modal-photo-preview');
+      if (preview) preview.style.display = 'none';
+      const previewImg = document.getElementById('modal-photo-preview-img');
+      if (previewImg) previewImg.src = '';
+      const photoInp = document.getElementById('modal-photo-input');
+      if (photoInp) photoInp.value = '';
+      const photoBtn = document.getElementById('btn-modal-photo');
+      if (photoBtn) photoBtn.style.display = 'flex';
+      _modalPhotoFile = null;
+      detectedCo2 = 8.2;
+      detectedCategory = '';
+    }
+
+    function _openModalAdd() {
+      _resetModalAdd();
+      const modal = document.getElementById('modal-add-item');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function _closeModalAdd() {
+      const modal = document.getElementById('modal-add-item');
+      if (modal) modal.style.display = 'none';
+      _resetModalAdd();
+    }
+
+    function _onModalNameInput(input) {
+      clearTimeout(_catTimer);
+      const area = document.getElementById('modal-cat-area');
+      if (!area) return;
+      area.innerHTML = '';
+      if (!input.value.trim()) return;
+
+      _catTimer = setTimeout(async () => {
+        area.innerHTML = `<span class="cat-spinner-wrap"><span class="cat-spinner"></span>Détection en cours…</span>`;
+        await new Promise(r => setTimeout(r, 540));
+        const result = _detectCat(input.value);
+        if (!result) { area.innerHTML = ''; return; }
+        const [cat, co2] = result;
+        detectedCo2 = co2;
+        detectedCategory = cat;
+        area.innerHTML = `<button class="cat-pill" onclick="_clearModalCat()" title="Modifier la catégorie">
+          <span class="cat-dot"></span>${cat}
+          <svg width="9" height="9" viewBox="0 0 14 14" fill="none" style="opacity:.7">
+            <path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg></button>`;
+      }, 800);
+    }
+
+    function _clearModalCat() {
+      const area = document.getElementById('modal-cat-area');
+      if (area) area.innerHTML = '';
+      detectedCo2 = 8.2;
+      detectedCategory = '';
+    }
+
+    function _onModalPhotoSelected(input) {
+      if (!input.files[0]) return;
+      _modalPhotoFile = input.files[0];
+      document.getElementById('modal-photo-preview-img').src = URL.createObjectURL(_modalPhotoFile);
+      document.getElementById('modal-photo-preview').style.display = 'block';
+      document.getElementById('btn-modal-photo').style.display = 'none';
+    }
+
+    function _clearModalPhoto() {
+      _modalPhotoFile = null;
+      document.getElementById('modal-photo-preview').style.display = 'none';
+      document.getElementById('modal-photo-preview-img').src = '';
+      document.getElementById('modal-photo-input').value = '';
+      document.getElementById('btn-modal-photo').style.display = 'flex';
+    }
+
+    async function _submitModalAdd() {
+      const nameInp = document.getElementById('modal-item-name');
+      const name = nameInp?.value.trim();
+      if (!name) { nameInp?.focus(); return; }
+
+      const btn = document.getElementById('btn-submit-add-modal');
+      if (btn) { btn.disabled = true; btn.textContent = 'En cours…'; }
+
+      // Upload photo
+      let photo_url = null;
+      if (_modalPhotoFile) {
+        const fileExt = _modalPhotoFile.name.split('.').pop();
+        const fileName = `item-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const { error: uploadError } = await db.storage
+          .from('Items-photos')
+          .upload(fileName, _modalPhotoFile);
+        if (!uploadError) {
+          const { data: urlData } = db.storage.from('Items-photos').getPublicUrl(fileName);
+          photo_url = urlData.publicUrl;
+        }
+      }
+
+      const communityId = localStorage.getItem('community_id') || COMMUNITY_ID;
+      const { data: newItem, error } = await db
+        .from('items')
+        .insert([{
+          community_id: communityId,
+          owner_id:     localStorage.getItem('member_id') || undefined,
+          name,
+          description:  document.getElementById('modal-item-description')?.value.trim() || null,
+          category:     detectedCategory || null,
+          co2_saved_kg: detectedCo2,
+          status:       'available',
+          photo_url,
+        }])
+        .select('id')
+        .single();
+
+      if (btn) { btn.disabled = false; btn.textContent = 'Mettre à disposition'; }
+
+      if (error) {
+        console.error('Erreur ajout objet:', error);
+        alert('Erreur lors de l\'ajout de l\'objet');
+        return;
+      }
+
+      _closeModalAdd();
+      fillSlot(currentSlot, { name, co2: detectedCo2, icon: '📦' });
+    }
+
+    // ── DOMContentLoaded : bind boutons modale ────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('btn-close-add')?.addEventListener('click', _closeModalAdd);
+      document.getElementById('btn-cancel-add-modal')?.addEventListener('click', _closeModalAdd);
+      document.getElementById('btn-modal-photo')?.addEventListener('click', () => {
+        document.getElementById('modal-photo-input')?.click();
+      });
+      document.getElementById('btn-submit-add-modal')?.addEventListener('click', _submitModalAdd);
+    });
+  </script>
 </body>
 </html>
