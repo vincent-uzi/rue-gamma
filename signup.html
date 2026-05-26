@@ -39,10 +39,30 @@
     <p class="baseline">Front de Libération des Objets</p>
     <p class="community">Rue Charles-Saint-Venant</p>
 
-    <div id="code-badge" class="code-badge"></div>
+    <!-- ÉTAPE 0 : Code -->
+    <div id="step-0" class="step active">
+      <h2 class="step-title">Rejoindre FLO</h2>
+      <p class="step-desc">Entrez votre code d'invitation</p>
+
+      <label>Code d'invitation</label>
+      <input type="text" id="invite-code" placeholder="FLO-XXXX" maxlength="8" autocomplete="off"
+             style="text-transform:uppercase;letter-spacing:2px;text-align:center;"
+             oninput="this.value=this.value.toUpperCase()"
+             onkeydown="if(event.key==='Enter'){event.preventDefault();validateInviteCode();}">
+      <div id="code-error" class="error">Code invalide ou expiré</div>
+
+      <div id="community-display" style="display:none;background:#EAF5EA;padding:16px;border-radius:12px;margin-bottom:16px;text-align:center;">
+        <p style="font-size:14px;color:#1F9D55;font-weight:600;margin-bottom:4px;">✓ Vous rejoignez</p>
+        <p id="community-name-display" style="font-size:16px;color:#333;font-weight:600;"></p>
+      </div>
+
+      <button id="btn-validate-code" class="btn btn-primary" onclick="validateInviteCode()">Valider le code</button>
+      <button id="btn-continue-after-code" class="btn btn-primary" onclick="goToStep(1)" style="display:none;">Continuer</button>
+      <p class="progress">Étape 1/4</p>
+    </div>
 
     <!-- ÉTAPE 1 : Identité -->
-    <div id="step-1" class="step active">
+    <div id="step-1" class="step">
       <h2 class="step-title">Bienvenue sur FLO !</h2>
       <p class="step-desc">Commençons par vous connaître</p>
 
@@ -55,7 +75,7 @@
       <div id="last-name-error" class="error">Le nom est obligatoire</div>
 
       <button class="btn btn-primary" onclick="goToStep2()">Continuer</button>
-      <p class="progress">Étape 1/3</p>
+      <p class="progress">Étape 2/4</p>
     </div>
 
     <!-- ÉTAPE 2 : Contact -->
@@ -80,7 +100,7 @@
         <button class="btn btn-secondary" onclick="goToStep(1)">← Retour</button>
         <button class="btn btn-primary" onclick="goToStep3()">Continuer →</button>
       </div>
-      <p class="progress">Étape 2/3</p>
+      <p class="progress">Étape 3/4</p>
     </div>
 
     <!-- ÉTAPE 3 : Sécurité -->
@@ -97,7 +117,7 @@
         <button class="btn btn-secondary" onclick="goToStep(2)">← Retour</button>
         <button id="btn-submit" class="btn btn-primary" onclick="createAccount()">Créer mon compte</button>
       </div>
-      <p class="progress">Étape 3/3</p>
+      <p class="progress">Étape 4/4</p>
     </div>
   </div>
 
@@ -111,16 +131,69 @@
     let inviteCode = null;
 
     window.onload = function() {
-      inviteCode = localStorage.getItem('invite_code');
+      // Début direct à l'étape 0 — pas de vérification localStorage au chargement
+    };
 
-      if (!inviteCode) {
-        alert('Code d\'invitation manquant');
-        window.location.href = 'login.html';
+    async function validateInviteCode() {
+      const codeInput = document.getElementById('invite-code');
+      const code = codeInput.value.trim().toUpperCase();
+
+      document.getElementById('code-error').style.display = 'none';
+      codeInput.classList.remove('error-input');
+
+      if (!code || code.length < 7) {
+        document.getElementById('code-error').style.display = 'block';
+        codeInput.classList.add('error-input');
         return;
       }
 
-      document.getElementById('code-badge').textContent = 'Code : ' + inviteCode + ' ✓';
-    };
+      const btn = document.getElementById('btn-validate-code');
+      btn.disabled    = true;
+      btn.textContent = 'Vérification...';
+
+      try {
+        const { data, error } = await db
+          .from('invitations')
+          .select('*, community:communities(*)')
+          .eq('code', code)
+          .single();
+
+        if (error || !data) {
+          document.getElementById('code-error').style.display = 'block';
+          codeInput.classList.add('error-input');
+          btn.disabled    = false;
+          btn.textContent = 'Valider le code';
+          return;
+        }
+
+        if (new Date(data.expires_at) < new Date()) {
+          document.getElementById('code-error').textContent = 'Code expiré';
+          document.getElementById('code-error').style.display = 'block';
+          codeInput.classList.add('error-input');
+          btn.disabled    = false;
+          btn.textContent = 'Valider le code';
+          return;
+        }
+
+        inviteCode = code;
+        signupData.communityId   = data.community_id;
+        signupData.communityName = data.community.name;
+
+        document.getElementById('community-name-display').textContent = data.community.name;
+        document.getElementById('community-display').style.display = 'block';
+
+        btn.style.display = 'none';
+        document.getElementById('btn-continue-after-code').style.display = 'block';
+        codeInput.disabled = true;
+
+      } catch (err) {
+        console.error('Erreur validation code:', err);
+        document.getElementById('code-error').style.display = 'block';
+        codeInput.classList.add('error-input');
+        btn.disabled    = false;
+        btn.textContent = 'Valider le code';
+      }
+    }
 
     function hideAllErrors() {
       document.querySelectorAll('.error').forEach(e => e.style.display = 'none');
@@ -204,7 +277,7 @@
         const { data: member, error: memberError } = await db
           .from('members')
           .insert({
-            community_id: COMMUNITY_ID,
+            community_id: signupData.communityId,
             first_name:   signupData.firstName,
             last_name:    signupData.lastName,
             email:        signupData.email,
