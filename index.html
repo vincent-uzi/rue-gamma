@@ -6931,12 +6931,13 @@ let _currentInviteCode = null;
 async function _openInviteModal() {
   try {
     const member_id = localStorage.getItem('member_id');
-    const community_id = localStorage.getItem('community_id');
 
-    if (!member_id || !community_id) {
+    if (!member_id) {
       showToast('Erreur: membre non identifié', 'error');
       return;
     }
+
+    const community_id = COMMUNITY_ID;
 
     const code = _generateInviteCode();
     const expiresAt = new Date();
