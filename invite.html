@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Rejoindre FLO</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background:#FBFDFB; min-height:100vh; display:flex; align-items:center; justify-content:center; }
+    .container { max-width:400px; width:100%; padding:40px 20px; }
+    .logo { width:80px; height:80px; margin:0 auto 16px; background:#EAF5EA; border-radius:20px; display:flex; align-items:center; justify-content:center; font-size:40px; }
+    h1 { font-size:28px; font-weight:700; color:#1F9D55; text-align:center; margin-bottom:4px; }
+    .baseline { font-size:14px; color:#666; text-align:center; margin-bottom:32px; }
+    .step { display:none; }
+    .step.active { display:block; }
+    .title { font-size:18px; font-weight:600; color:#333; text-align:center; margin-bottom:24px; }
+    label { display:block; font-size:14px; font-weight:600; color:#333; margin-bottom:8px; text-align:center; }
+    input { width:100%; padding:16px; border:1px solid #E5E5E5; border-radius:12px; font-size:16px; text-align:center; text-transform:uppercase; letter-spacing:2px; margin-bottom:4px; }
+    input.error-input { border-color:#E74C3C; }
+    .error { font-size:13px; color:#E74C3C; text-align:center; margin-bottom:16px; display:none; }
+    .btn { width:100%; padding:16px; border:none; border-radius:24px; font-size:16px; font-weight:600; cursor:pointer; margin-top:16px; }
+    .btn:disabled { opacity:0.5; cursor:not-allowed; }
+    .btn-primary { background:#1F9D55; color:white; }
+    .success { text-align:center; font-size:16px; color:#1F9D55; font-weight:600; margin-bottom:24px; }
+    .community-card { background:#F5F5F5; border:1px solid #E5E5E5; border-radius:12px; padding:20px; text-align:center; margin-bottom:24px; }
+    .community-name { font-size:18px; font-weight:600; color:#333; margin-bottom:4px; }
+    .community-city { font-size:14px; color:#666; }
+    .footer-link { text-align:center; margin-top:24px; font-size:14px; color:#666; }
+    .footer-link a { color:#1F9D55; text-decoration:underline; font-weight:600; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">🍃</div>
+    <h1>FLO</h1>
+    <p class="baseline">Front de Libération des Objets</p>
+
+    <!-- ÉTAPE 1 : Saisie code -->
+    <div id="step-code" class="step active">
+      <p class="title">Entrez votre code d'invitation</p>
+
+      <label>Code d'invitation</label>
+      <input type="text" id="invite-code" placeholder="FLO-XXXX" maxlength="8" autocomplete="off"
+             oninput="this.value=this.value.toUpperCase()"
+             onkeydown="if(event.key==='Enter'){event.preventDefault();validateCode();}">
+      <div id="code-error" class="error">Code invalide ou expiré</div>
+
+      <button id="btn-validate" class="btn btn-primary" onclick="validateCode()">Valider</button>
+
+      <div class="footer-link">
+        Déjà membre ? <a href="login.html">Se connecter</a>
+      </div>
+    </div>
+
+    <!-- ÉTAPE 2 : Affichage communauté -->
+    <div id="step-community" class="step">
+      <p class="success">✓ Code valide !</p>
+      <p class="title">Vous rejoignez :</p>
+
+      <div class="community-card">
+        <div class="community-name" id="community-name"></div>
+        <div class="community-city" id="community-city"></div>
+      </div>
+
+      <button class="btn btn-primary" onclick="goToSignup()">Créer mon compte</button>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL      = 'https://optfcepolcjyregdaxpt.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wdGZjZXBvbGNqeXJlZ2RheHB0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5NzE1MjgsImV4cCI6MjA5MzU0NzUyOH0.ZvHOCyd8SQYzh7AQw4PexH742aFvPkeq1JKcLMaQytc';
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function validateCode() {
+      const codeInput = document.getElementById('invite-code');
+      const code = codeInput.value.trim().toUpperCase();
+
+      document.getElementById('code-error').style.display = 'none';
+      codeInput.classList.remove('error-input');
+
+      if (!code || code.length < 7) {
+        showCodeError();
+        return;
+      }
+
+      const btn = document.getElementById('btn-validate');
+      btn.disabled    = true;
+      btn.textContent = 'Vérification...';
+
+      try {
+        const { data, error } = await db
+          .from('invitations')
+          .select('*, community:communities(*)')
+          .eq('code', code)
+          .single();
+
+        if (error || !data) {
+          showCodeError();
+          btn.disabled    = false;
+          btn.textContent = 'Valider';
+          return;
+        }
+
+        if (new Date(data.expires_at) < new Date()) {
+          showCodeError();
+          btn.disabled    = false;
+          btn.textContent = 'Valider';
+          return;
+        }
+
+        document.getElementById('community-name').textContent = data.community.name;
+        document.getElementById('community-city').textContent = data.community.city || '';
+
+        localStorage.setItem('invite_code',     code);
+        localStorage.setItem('community_id',    data.community_id);
+        localStorage.setItem('community_name',  data.community.name);
+
+        document.getElementById('step-code').classList.remove('active');
+        document.getElementById('step-community').classList.add('active');
+
+      } catch (err) {
+        console.error('Erreur validation code:', err);
+        showCodeError();
+        btn.disabled    = false;
+        btn.textContent = 'Valider';
+      }
+    }
+
+    function showCodeError() {
+      document.getElementById('code-error').style.display = 'block';
+      document.getElementById('invite-code').classList.add('error-input');
+    }
+
+    function goToSignup() {
+      window.location.href = 'signup.html';
+    }
+  </script>
+</body>
+</html>
