@@ -269,7 +269,7 @@
       document.getElementById('email').focus();
     }
 
-    function goToStep3() {
+    async function goToStep3() {
       hideAllErrors();
 
       const email   = document.getElementById('email').value.trim();
@@ -285,6 +285,25 @@
 
       if (!address) { showError('address'); hasError = true; }
       if (hasError) return;
+
+      // Vérifier si email existe déjà
+      try {
+        const { data: existingUser, error: checkError } = await db
+          .from('members')
+          .select('id')
+          .eq('email', email)
+          .single();
+
+        if (existingUser) {
+          showError('email');
+          document.getElementById('email-error').textContent = 'Cet email est déjà utilisé';
+          return;
+        }
+      } catch (err) {
+        if (err.code !== 'PGRST116') {
+          console.error('Erreur vérification email:', err);
+        }
+      }
 
       signupData.email   = email;
       signupData.phone   = phone;
@@ -342,9 +361,7 @@
         localStorage.setItem('member_id', member.id);
         localStorage.removeItem('invite_code');
 
-        // TODO: Rediriger vers tunnel 3 objets (Phase 2)
-        alert('Compte créé ! Direction tunnel 3 objets (à créer)');
-        window.location.href = 'index.html';
+        window.location.href = 'onboarding.html';
 
       } catch (err) {
         console.error('Erreur création compte:', err);
