@@ -37,27 +37,27 @@
     <div class="logo">🍃</div>
     <h1>FLO</h1>
     <p class="baseline">Front de Libération des Objets</p>
-    <p class="community">Rue Charles-Saint-Venant</p>
-
     <!-- ÉTAPE 0 : Code -->
     <div id="step-0" class="step active">
-      <h2 class="step-title">Rejoindre FLO</h2>
-      <p class="step-desc">Entrez votre code d'invitation</p>
+      <h2 style="font-size:24px;font-weight:700;color:#333;text-align:center;margin-bottom:32px;">Rejoindre FLO</h2>
 
-      <label>Code d'invitation</label>
-      <input type="text" id="invite-code" placeholder="FLO-XXXX" maxlength="8" autocomplete="off"
-             style="text-transform:uppercase;letter-spacing:2px;text-align:center;"
-             oninput="this.value=this.value.toUpperCase()"
-             onkeydown="if(event.key==='Enter'){event.preventDefault();validateInviteCode();}">
-      <div id="code-error" class="error">Code invalide ou expiré</div>
+      <div style="background:white;border:1px solid #EAF5EA;border-radius:12px;padding:24px;margin-bottom:24px;">
+        <label style="display:block;font-size:16px;font-weight:600;color:#333;margin-bottom:12px;text-align:left;">Code d'invitation</label>
+        <input type="text" id="invite-code" placeholder="FLO-XXXX" maxlength="8" autocomplete="off"
+               style="text-transform:uppercase;letter-spacing:2px;text-align:center;"
+               oninput="this.value=this.value.toUpperCase()"
+               onkeydown="if(event.key==='Enter'){event.preventDefault();validateInviteCode();}">
+        <div id="code-error" class="error" style="text-align:left;">Code invalide ou expiré</div>
 
-      <div id="community-display" style="display:none;background:#EAF5EA;padding:16px;border-radius:12px;margin-bottom:16px;text-align:center;">
-        <p style="font-size:14px;color:#1F9D55;font-weight:600;margin-bottom:4px;">✓ Vous rejoignez</p>
-        <p id="community-name-display" style="font-size:16px;color:#333;font-weight:600;"></p>
+        <div id="community-display" style="display:none;background:#EAF5EA;padding:16px;border-radius:12px;margin-top:16px;text-align:center;">
+          <p style="font-size:14px;color:#1F9D55;font-weight:600;margin-bottom:4px;">✓ Vous rejoignez</p>
+          <p id="community-name-display" style="font-size:16px;color:#333;font-weight:600;"></p>
+        </div>
+
+        <button id="btn-validate-code" class="btn btn-primary" onclick="validateInviteCode()" style="margin-top:16px;">Valider</button>
+        <button id="btn-continue-after-code" class="btn btn-primary" onclick="goToStep(1)" style="display:none;margin-top:16px;">Continuer</button>
       </div>
 
-      <button id="btn-validate-code" class="btn btn-primary" onclick="validateInviteCode()">Valider le code</button>
-      <button id="btn-continue-after-code" class="btn btn-primary" onclick="goToStep(1)" style="display:none;">Continuer</button>
       <p class="progress">Étape 1/4</p>
     </div>
 
