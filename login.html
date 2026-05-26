@@ -33,12 +33,12 @@
 
     .login-scroll {
       flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
-      padding: max(72px, calc(var(--sat) + 60px)) 20px 48px;
+      padding: max(40px, calc(var(--sat) + 28px)) 20px 32px;
       overscroll-behavior-y: contain;
     }
 
     /* Logo */
-    .logo { text-align: center; margin-bottom: 48px; }
+    .logo { text-align: center; margin-bottom: 24px; }
     .logo-leaf {
       width: 52px; height: 52px; border-radius: 16px;
       background: var(--accent-soft); color: var(--accent);
@@ -125,8 +125,6 @@
         <div style="font-size:20px;color:#333;margin-top:4px;font-weight:600;">Rue Charles-Saint-Venant</div>
       </div>
 
-      <h2 style="font-size:20px;font-weight:700;color:#333;margin:0 0 24px;text-align:left;">Se connecter</h2>
-
       <div class="form-section">
         <div class="form-label">Email</div>
         <input class="form-input" id="f-email" type="email"
@@ -142,7 +140,7 @@
                onkeydown="if(event.key==='Enter'){event.preventDefault();login();}">
       </div>
 
-      <div style="text-align:left;margin-top:8px;margin-bottom:24px;">
+      <div style="text-align:left;margin-top:8px;margin-bottom:16px;">
         <a href="#" onclick="alert('Fonctionnalité à venir');return false;" style="font-size:14px;color:#666;text-decoration:underline;">Mot de passe oublié ?</a>
       </div>
 
@@ -150,7 +148,7 @@
 
       <button class="cta-btn" id="login-btn" onclick="login()" style="margin-bottom:0;">Se connecter</button>
 
-      <div style="text-align:center;margin-top:40px;padding-top:32px;border-top:1px solid #E5E5E5;">
+      <div style="text-align:center;margin-top:24px;padding-top:20px;border-top:1px solid #E5E5E5;">
         <p style="font-size:16px;color:#333;margin:0 0 8px;">Première visite ?</p>
         <a href="signup.html" style="font-size:16px;color:#1F9D55;text-decoration:underline;font-weight:600;">Créez votre compte</a>
       </div>
