@@ -8,7 +8,7 @@
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background:#FBFDFB; }
-    .container { max-width:400px; margin:0 auto; padding:40px 20px; }
+    .container { max-width:400px; margin:0 auto; padding:80px 20px 40px; }
     .logo { width:80px; height:80px; margin:0 auto 16px; background:#EAF5EA; border-radius:20px; display:flex; align-items:center; justify-content:center; font-size:40px; }
     h1 { font-size:28px; font-weight:700; color:#1F9D55; text-align:center; margin-bottom:4px; }
     .baseline { font-size:14px; color:#666; text-align:center; margin-bottom:8px; }
@@ -33,10 +33,12 @@
   </style>
 </head>
 <body>
+  <div style="position:fixed;top:0;left:0;right:0;height:60px;padding-top:env(safe-area-inset-top);background:white;border-bottom:1px solid #E5E5E5;display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:1000;">
+    <div style="font-size:18px;font-weight:600;color:#1F9D55;">FLO</div>
+    <div id="nav-progress" style="font-size:14px;color:#666;font-weight:600;">Inscription 1/4</div>
+  </div>
+
   <div class="container">
-    <div class="logo">🍃</div>
-    <h1>FLO</h1>
-    <p class="baseline">Front de Libération des Objets</p>
     <!-- ÉTAPE 0 : Code -->
     <div id="step-0" class="step active">
       <h2 style="font-size:24px;font-weight:700;color:#333;text-align:center;margin-bottom:32px;">Rejoindre FLO</h2>
@@ -57,71 +59,72 @@
         <button id="btn-validate-code" class="btn btn-primary" onclick="validateInviteCode()" style="margin-top:16px;">Valider</button>
         <button id="btn-continue-after-code" class="btn btn-primary" onclick="goToStep(1)" style="display:none;margin-top:16px;">Continuer</button>
       </div>
-
-      <p class="progress">Étape 1/4</p>
     </div>
 
     <!-- ÉTAPE 1 : Identité -->
     <div id="step-1" class="step">
-      <h2 class="step-title">Bienvenue sur FLO !</h2>
-      <p class="step-desc">Commençons par vous connaître</p>
+      <div style="background:white;border:1px solid #EAF5EA;border-radius:12px;padding:24px;">
+        <h2 class="step-title">Bienvenue sur FLO !</h2>
+        <p class="step-desc">Commençons par vous connaître</p>
 
-      <label>Prénom</label>
-      <input type="text" id="first-name" autocomplete="given-name">
-      <div id="first-name-error" class="error">Le prénom est obligatoire</div>
+        <label>Prénom</label>
+        <input type="text" id="first-name" autocomplete="given-name">
+        <div id="first-name-error" class="error">Le prénom est obligatoire</div>
 
-      <label>Nom</label>
-      <input type="text" id="last-name" autocomplete="family-name">
-      <div id="last-name-error" class="error">Le nom est obligatoire</div>
+        <label>Nom</label>
+        <input type="text" id="last-name" autocomplete="family-name">
+        <div id="last-name-error" class="error">Le nom est obligatoire</div>
 
-      <button class="btn btn-primary" onclick="goToStep2()">Continuer</button>
-      <p class="progress">Étape 2/4</p>
+        <button class="btn btn-primary" onclick="goToStep2()">Continuer</button>
+      </div>
     </div>
 
     <!-- ÉTAPE 2 : Contact -->
     <div id="step-2" class="step">
-      <h2 class="step-title">Pour organiser les prêts</h2>
-      <p class="step-desc">Votre email et téléphone permettent à vos voisins de vous contacter pour organiser la remise des objets</p>
+      <div style="background:white;border:1px solid #EAF5EA;border-radius:12px;padding:24px;">
+        <h2 class="step-title">Pour organiser les prêts</h2>
+        <p class="step-desc">Votre email et téléphone permettent à vos voisins de vous contacter pour organiser la remise des objets</p>
 
-      <label>Email</label>
-      <input type="email" id="email" autocomplete="email">
-      <div id="email-error" class="error">Email invalide</div>
+        <label>Email</label>
+        <input type="email" id="email" autocomplete="email">
+        <div id="email-error" class="error">Email invalide</div>
 
-      <label>Téléphone</label>
-      <input type="tel" id="phone" placeholder="06 12 34 56 78" autocomplete="tel">
-      <div id="phone-error" class="error">Numéro de téléphone invalide (format : 06 12 34 56 78)</div>
+        <label>Téléphone</label>
+        <input type="tel" id="phone" placeholder="06 12 34 56 78" autocomplete="tel">
+        <div id="phone-error" class="error">Numéro de téléphone invalide (format : 06 12 34 56 78)</div>
 
-      <label>Adresse dans la rue</label>
-      <input type="text" id="address" autocomplete="street-address">
-      <p class="helper">Pour vérifier que vous êtes bien résident de la communauté</p>
-      <div id="address-error" class="error">L'adresse est obligatoire</div>
+        <label>Adresse dans la rue</label>
+        <input type="text" id="address" autocomplete="street-address">
+        <p class="helper">Pour vérifier que vous êtes bien résident de la communauté</p>
+        <div id="address-error" class="error">L'adresse est obligatoire</div>
 
-      <div class="nav-buttons">
-        <button class="btn btn-secondary" onclick="goToStep(1)">← Retour</button>
-        <button class="btn btn-primary" onclick="goToStep3()">Continuer →</button>
+        <div class="nav-buttons">
+          <button class="btn btn-secondary" onclick="goToStep(1)">← Retour</button>
+          <button class="btn btn-primary" onclick="goToStep3()">Continuer →</button>
+        </div>
       </div>
-      <p class="progress">Étape 3/4</p>
     </div>
 
     <!-- ÉTAPE 3 : Sécurité -->
     <div id="step-3" class="step">
-      <h2 class="step-title">Dernière étape !</h2>
-      <p class="step-desc">Choisissez votre mot de passe</p>
+      <div style="background:white;border:1px solid #EAF5EA;border-radius:12px;padding:24px;">
+        <h2 class="step-title">Dernière étape !</h2>
+        <p class="step-desc">Choisissez votre mot de passe</p>
 
-      <label>Mot de passe</label>
-      <input type="password" id="password" autocomplete="new-password">
-      <p class="helper">Au moins 8 caractères</p>
-      <div id="password-error" class="error">Le mot de passe doit contenir au moins 8 caractères</div>
+        <label>Mot de passe</label>
+        <input type="password" id="password" autocomplete="new-password">
+        <p class="helper">Au moins 8 caractères</p>
+        <div id="password-error" class="error">Le mot de passe doit contenir au moins 8 caractères</div>
 
-      <label>Confirmer le mot de passe</label>
-      <input type="password" id="password-confirm" autocomplete="new-password">
-      <div id="password-confirm-error" class="error">Les mots de passe ne correspondent pas</div>
+        <label>Confirmer le mot de passe</label>
+        <input type="password" id="password-confirm" autocomplete="new-password">
+        <div id="password-confirm-error" class="error">Les mots de passe ne correspondent pas</div>
 
-      <div class="nav-buttons">
-        <button class="btn btn-secondary" onclick="goToStep(2)">← Retour</button>
-        <button id="btn-submit" class="btn btn-primary" onclick="createAccount()">Créer mon compte</button>
+        <div class="nav-buttons">
+          <button class="btn btn-secondary" onclick="goToStep(2)">← Retour</button>
+          <button id="btn-submit" class="btn btn-primary" onclick="createAccount()">Créer mon compte</button>
+        </div>
       </div>
-      <p class="progress">Étape 4/4</p>
     </div>
   </div>
 
@@ -215,6 +218,8 @@
       hideAllErrors();
       document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
       document.getElementById('step-' + step).classList.add('active');
+      const stepNum = parseInt(step) + 1;
+      document.getElementById('nav-progress').textContent = 'Inscription ' + stepNum + '/4';
     }
 
     function goToStep2() {
