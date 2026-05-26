@@ -64,8 +64,7 @@
     <!-- ÉTAPE 1 : Identité -->
     <div id="step-1" class="step">
       <div style="background:white;border:1px solid #EAF5EA;border-radius:12px;padding:24px;">
-        <h2 class="step-title">Bienvenue sur FLO !</h2>
-        <p class="step-desc">Commençons par vous connaître</p>
+        <p class="step-desc" style="font-size:16px;font-weight:600;color:#333;margin-bottom:24px;">Commençons par vous connaître</p>
 
         <label>Prénom</label>
         <input type="text" id="first-name" autocomplete="given-name">
@@ -75,7 +74,7 @@
         <input type="text" id="last-name" autocomplete="family-name">
         <div id="last-name-error" class="error">Le nom est obligatoire</div>
 
-        <button class="btn btn-primary" onclick="goToStep2()">Continuer</button>
+        <button class="btn btn-primary" onclick="goToStep2()" style="margin-top:24px;">Continuer</button>
       </div>
     </div>
 
@@ -98,7 +97,7 @@
         <p class="helper">Pour vérifier que vous êtes bien résident de la communauté</p>
         <div id="address-error" class="error">L'adresse est obligatoire</div>
 
-        <div class="nav-buttons">
+        <div class="nav-buttons" style="margin-top:24px;">
           <button class="btn btn-secondary" onclick="goToStep(1)">← Retour</button>
           <button class="btn btn-primary" onclick="goToStep3()">Continuer →</button>
         </div>
@@ -112,15 +111,23 @@
         <p class="step-desc">Choisissez votre mot de passe</p>
 
         <label>Mot de passe</label>
-        <input type="password" id="password" autocomplete="new-password">
-        <p class="helper">Au moins 8 caractères</p>
+        <div style="position:relative;">
+          <input type="password" id="password" autocomplete="new-password" oninput="checkPasswordStrength()">
+          <button type="button" onclick="togglePassword('password')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#666;font-size:14px;cursor:pointer;padding:4px 8px;">👁️</button>
+        </div>
+        <div id="password-strength" style="font-size:13px;margin-top:8px;margin-bottom:12px;display:none;">
+          <span id="password-length-check" style="color:#E74C3C;">✗ Au moins 8 caractères</span>
+        </div>
         <div id="password-error" class="error">Le mot de passe doit contenir au moins 8 caractères</div>
 
         <label>Confirmer le mot de passe</label>
-        <input type="password" id="password-confirm" autocomplete="new-password">
+        <div style="position:relative;">
+          <input type="password" id="password-confirm" autocomplete="new-password">
+          <button type="button" onclick="togglePassword('password-confirm')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#666;font-size:14px;cursor:pointer;padding:4px 8px;">👁️</button>
+        </div>
         <div id="password-confirm-error" class="error">Les mots de passe ne correspondent pas</div>
 
-        <div class="nav-buttons">
+        <div class="nav-buttons" style="margin-top:24px;">
           <button class="btn btn-secondary" onclick="goToStep(2)">← Retour</button>
           <button id="btn-submit" class="btn btn-primary" onclick="createAccount()">Créer mon compte</button>
         </div>
@@ -200,6 +207,29 @@
         btn.disabled    = false;
         btn.textContent = 'Valider le code';
       }
+    }
+
+    function checkPasswordStrength() {
+      const password = document.getElementById('password').value;
+      const strengthDiv = document.getElementById('password-strength');
+      const lengthCheck = document.getElementById('password-length-check');
+      if (password.length > 0) {
+        strengthDiv.style.display = 'block';
+        if (password.length >= 8) {
+          lengthCheck.style.color = '#1F9D55';
+          lengthCheck.textContent = '✓ Au moins 8 caractères';
+        } else {
+          lengthCheck.style.color = '#E74C3C';
+          lengthCheck.textContent = '✗ Au moins 8 caractères';
+        }
+      } else {
+        strengthDiv.style.display = 'none';
+      }
+    }
+
+    function togglePassword(fieldId) {
+      const input = document.getElementById(fieldId);
+      input.type = input.type === 'password' ? 'text' : 'password';
     }
 
     function hideAllErrors() {
