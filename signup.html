@@ -113,6 +113,10 @@
       <p class="helper">Au moins 8 caractères</p>
       <div id="password-error" class="error">Le mot de passe doit contenir au moins 8 caractères</div>
 
+      <label>Confirmer le mot de passe</label>
+      <input type="password" id="password-confirm" autocomplete="new-password">
+      <div id="password-confirm-error" class="error">Les mots de passe ne correspondent pas</div>
+
       <div class="nav-buttons">
         <button class="btn btn-secondary" onclick="goToStep(2)">← Retour</button>
         <button id="btn-submit" class="btn btn-primary" onclick="createAccount()">Créer mon compte</button>
@@ -259,6 +263,10 @@
 
       const password = document.getElementById('password').value;
       if (password.length < 8) { showError('password'); return; }
+
+      const passwordConfirm = document.getElementById('password-confirm').value;
+      if (password !== passwordConfirm) { showError('password-confirm'); return; }
+
       signupData.password = password;
 
       const btn = document.getElementById('btn-submit');
