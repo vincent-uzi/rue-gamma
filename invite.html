@@ -135,6 +135,19 @@
     function goToSignup() {
       window.location.href = 'signup.html';
     }
+
+    window.addEventListener('DOMContentLoaded', function() {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
+
+      if (code) {
+        const input = document.getElementById('invite-code');
+        if (input) {
+          input.value = code.toUpperCase();
+          validateCode();
+        }
+      }
+    });
   </script>
 </body>
 </html>

@@ -6993,6 +6993,30 @@ async function _copyInviteCode() {
     showToast('Code: ' + _currentInviteCode, 'info');
   }
 }
+
+async function _copyInviteLink() {
+  if (!_currentInviteCode) return;
+
+  const inviteLink = window.location.origin + '/invite.html?code=' + _currentInviteCode;
+
+  try {
+    await navigator.clipboard.writeText(inviteLink);
+
+    const btn = document.getElementById('btn-copy-link');
+    const originalText = btn.textContent;
+    btn.textContent = '✓ Lien copié !';
+    btn.style.background = '#EAF5EA';
+
+    setTimeout(() => {
+      btn.textContent = originalText;
+      btn.style.background = 'white';
+    }, 2000);
+
+  } catch (error) {
+    console.error('Erreur copie lien:', error);
+    showToast('Lien: ' + inviteLink, 'info');
+  }
+}
 </script>
 
 <!-- ── Edit-item modal ─────────────────────────────────────────── -->
@@ -7045,7 +7069,8 @@ async function _copyInviteCode() {
     <div style="background:#F5F5F5;padding:20px;border-radius:12px;text-align:center;margin-bottom:16px;">
       <div id="invite-code" style="font-size:32px;font-weight:700;color:#1F9D55;letter-spacing:2px;font-family:monospace;">••••••••</div>
     </div>
-    <button id="btn-copy-code" onclick="_copyInviteCode()" style="width:100%;padding:14px;background:#1F9D55;color:white;border:none;border-radius:24px;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:16px;">📋 Copier le code</button>
+    <button id="btn-copy-code" onclick="_copyInviteCode()" style="width:100%;padding:14px;background:#1F9D55;color:white;border:none;border-radius:24px;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:12px;">📋 Copier le code</button>
+    <button id="btn-copy-link" onclick="_copyInviteLink()" style="width:100%;padding:14px;background:white;color:#1F9D55;border:2px solid #1F9D55;border-radius:24px;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:16px;">🔗 Copier le lien</button>
     <p style="font-size:14px;color:#666;margin-bottom:12px;line-height:1.5;">Partagez ce code avec votre voisin (WhatsApp, SMS, de vive voix...)</p>
     <div style="background:#F5F5F5;padding:12px;border-radius:8px;">
       <p style="font-size:13px;color:#666;margin:0;line-height:1.5;">ℹ️ Ce code est valide 7 jours</p>
