@@ -3689,7 +3689,7 @@ function _resetAddForm() {
     <circle cx="15.5" cy="6" r="0.6" fill="currentColor"/>
   </svg><span class="photo-area-label">Ajouter une photo</span>`;
   document.getElementById('photoInput').value = '';
-  detectedCo2 = 8.2;
+  detectedCo2 = 30;
   detectedCategory = '';
   // Pré-remplir si provient d'un avis de recherche
   if (window._prefilledItemName) {
@@ -6845,14 +6845,11 @@ function _onModalNameInput(input) {
 
   _catTimer = setTimeout(async () => {
     area.innerHTML = `<span class="cat-spinner-wrap"><span class="cat-spinner"></span>Détection en cours…</span>`;
-    await new Promise(r => setTimeout(r, 540));
-    const result = _detectCat(input.value);
-    if (!result) { area.innerHTML = ''; return; }
-    const [cat, co2] = result;
-    detectedCo2 = co2;
-    detectedCategory = cat;
+    const result = await _detectCategory(input.value);
+    detectedCo2 = result.co2_kg;
+    detectedCategory = result.category;
     area.innerHTML = `<button class="cat-pill" onclick="_clearModalCat()" title="Modifier la catégorie">
-      <span class="cat-dot"></span>${cat}
+      <span class="cat-dot"></span>${result.category}
       <svg width="9" height="9" viewBox="0 0 14 14" fill="none" style="opacity:.7">
         <path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       </svg></button>`;
@@ -6862,7 +6859,7 @@ function _onModalNameInput(input) {
 function _clearModalCat() {
   const area = document.getElementById('modal-cat-area');
   if (area) area.innerHTML = '';
-  detectedCo2 = 8.2;
+  detectedCo2 = 30;
   detectedCategory = '';
 }
 
