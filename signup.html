@@ -113,7 +113,13 @@
         <label>Mot de passe</label>
         <div style="position:relative;">
           <input type="password" id="password" autocomplete="new-password" oninput="checkPasswordStrength()">
-          <button type="button" onclick="togglePassword('password')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#666;font-size:14px;cursor:pointer;padding:4px 8px;">👁️</button>
+          <button type="button" onclick="togglePassword('password')" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; color:#666; cursor:pointer; padding:4px 8px; display:flex; align-items:center;">
+            <svg id="eye-password" width="22" height="18" viewBox="0 0 24 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M 1.5 9 C 4.5 3.5, 8 1.5, 12 1.5 C 16 1.5, 19.5 3.5, 22.5 9 C 19.5 14.5, 16 16.5, 12 16.5 C 8 16.5, 4.5 14.5, 1.5 9 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" fill="none"/>
+              <circle cx="12" cy="9" r="3.2" stroke="currentColor" stroke-width="1.6" fill="none"/>
+              <circle cx="12" cy="9" r="1.2" fill="currentColor"/>
+            </svg>
+          </button>
         </div>
         <div id="password-strength" style="font-size:13px;margin-top:8px;margin-bottom:12px;display:none;">
           <span id="password-length-check" style="color:#E74C3C;">✗ Au moins 8 caractères</span>
@@ -123,7 +129,13 @@
         <label>Confirmer le mot de passe</label>
         <div style="position:relative;">
           <input type="password" id="password-confirm" autocomplete="new-password">
-          <button type="button" onclick="togglePassword('password-confirm')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#666;font-size:14px;cursor:pointer;padding:4px 8px;">👁️</button>
+          <button type="button" onclick="togglePassword('password-confirm')" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; color:#666; cursor:pointer; padding:4px 8px; display:flex; align-items:center;">
+            <svg id="eye-password-confirm" width="22" height="18" viewBox="0 0 24 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M 1.5 9 C 4.5 3.5, 8 1.5, 12 1.5 C 16 1.5, 19.5 3.5, 22.5 9 C 19.5 14.5, 16 16.5, 12 16.5 C 8 16.5, 4.5 14.5, 1.5 9 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" fill="none"/>
+              <circle cx="12" cy="9" r="3.2" stroke="currentColor" stroke-width="1.6" fill="none"/>
+              <circle cx="12" cy="9" r="1.2" fill="currentColor"/>
+            </svg>
+          </button>
         </div>
         <div id="password-confirm-error" class="error">Les mots de passe ne correspondent pas</div>
 
@@ -229,7 +241,24 @@
 
     function togglePassword(fieldId) {
       const input = document.getElementById(fieldId);
-      input.type = input.type === 'password' ? 'text' : 'password';
+      const eyeIcon = document.getElementById('eye-' + fieldId);
+
+      const isVisible = input.type === 'text';
+      input.type = isVisible ? 'password' : 'text';
+
+      if (isVisible) {
+        eyeIcon.innerHTML = `
+          <path d="M 1.5 9 C 4.5 3.5, 8 1.5, 12 1.5 C 16 1.5, 19.5 3.5, 22.5 9 C 19.5 14.5, 16 16.5, 12 16.5 C 8 16.5, 4.5 14.5, 1.5 9 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" fill="none"/>
+          <circle cx="12" cy="9" r="3.2" stroke="currentColor" stroke-width="1.6" fill="none"/>
+          <path d="M 3 17 L 21 1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+        `;
+      } else {
+        eyeIcon.innerHTML = `
+          <path d="M 1.5 9 C 4.5 3.5, 8 1.5, 12 1.5 C 16 1.5, 19.5 3.5, 22.5 9 C 19.5 14.5, 16 16.5, 12 16.5 C 8 16.5, 4.5 14.5, 1.5 9 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" fill="none"/>
+          <circle cx="12" cy="9" r="3.2" stroke="currentColor" stroke-width="1.6" fill="none"/>
+          <circle cx="12" cy="9" r="1.2" fill="currentColor"/>
+        `;
+      }
     }
 
     function hideAllErrors() {
