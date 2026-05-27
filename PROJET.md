@@ -2281,3 +2281,71 @@ function _navigateTo(key) {
 **Profil**
 - Supprimer section 'Push' (messages profil)
 - Devenue obsolète avec CH-03
+
+---
+
+## SESSION 27 MAI 2026 — THÉSAURUS CO₂ + FIXES ONBOARDING
+
+### RÉALISATIONS PRINCIPALES
+
+#### 1. TABLE item_categories (DB)
+- 309 keywords répartis sur 12 catégories
+- Double niveau de catégorisation :
+  * Niveau 1 : category (visible utilisateur) — Bricolage, Jardinage, Cuisine...
+  * Niveau 2 : co2_subcategory (invisible, calcul uniquement) — Outillage électrique batterie, Gros électroménager...
+- Données ADEME précises pour 21 objets (lave-linge 513kg, armoire 907kg, TV 472kg, vélo 134kg...)
+- Valeurs estimées pour le reste, par sous-catégorie
+- Source tracée par entrée (ADEME / estimé)
+- RLS : SELECT pour anon + authenticated
+
+#### 2. DÉTECTION CATÉGORIE VIA DB
+- Suppression CAT_MAP local (11 règles regex) dans index.html + onboarding.html
+- Nouvelle fonction _detectCategory(name) :
+  * Recherche nom complet d'abord
+  * Fallback mot par mot, du plus long au plus court (priorité aux mots significatifs)
+  * Fallback final : Divers / 30 kg
+- Fix boucle infinie : ReferenceError _detectCat résiduel + try/catch manquant
+- Fix RLS : policy authenticated manquante sur item_categories
+- Fix détection : 'poussette yoyo' → priorité 'poussette' (mot le plus long) → 100 kg ✅
+
+#### 3. FIXES ONBOARDING
+- Fix redirect signup → onboarding.html (community_id manquant en localStorage)
+- Fix INSERT objets : RLS items bloquait (owner_id ≠ auth.uid())
+- Fix code parrainage : RLS invitations bloquait SELECT authenticated
+- Slots numérotés (Objet N°1/2/3) + bouton + progressif
+- Gabarits conformes au template liste objets
+
+#### 4. FIXES SIGNUP
+- Toggle password SVG œil ouvert/barré fonctionnel
+- Vérification email unique avant étape 3
+- Stockage community_id en localStorage après création compte
+
+#### 5. MODAL INVITATION SIMPLIFIÉE
+- Affichage URL complète avec code intégré
+- Bouton 'Copier ce lien' (SVG chaîne)
+- SVG info devant 'Ce lien est valide 7 jours'
+- URL format : https://[domaine]/invite.html?code=FLO-XXXX
+
+#### 6. DB MAINTENANCE
+- Cascade delete members → items ajoutée
+- Nettoyage membres/objets fantômes
+- Procédure suppression user documentée
+
+### BUGS IDENTIFIÉS (à traiter)
+- [ ] Home : compteur objets 'Prêtez plus' non synchronisé après suppression
+- [ ] Home : Total CO₂ > 100 kg → supprimer les décimales
+- [ ] Home : Notif 'Bouteille à la mer reçue' s'affiche sur Transactions au lieu de Accueil
+- [ ] Home : Bouton contact 'Une question ?' → doit ouvrir popin contact
+- [ ] Bouteilles à la mer : règles affichage + suppression à définir
+
+### DÉCISIONS ARCHITECTURE
+- Thésaurus en DB > CAT_MAP local : évolutif, maintenable, source unique
+- Double catégorisation : UX (lisible) vs CO₂ (précis, invisible)
+- Principe CO₂ : un emprunt évite un achat → CO₂ fabrication évité
+- Détection par longueur de mot : priorité au terme le plus spécifique
+
+### MÉTRIQUES SESSION
+- Commits : 15+
+- Table créée : item_categories (309 entrées)
+- Bugs résolus : 8
+- Pages modifiées : index.html, onboarding.html, signup.html, login.html, invite.html
