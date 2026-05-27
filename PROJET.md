@@ -2331,12 +2331,29 @@ function _navigateTo(key) {
 - Nettoyage membres/objets fantômes
 - Procédure suppression user documentée
 
+#### 7. VIEWPORT MOBILE (VIEWPORT-01)
+- Meta viewport : maximum-scale=1.0, user-scalable=no, viewport-fit=cover sur tous les fichiers
+- Safe-area iPhone : --sat/--sab/--sal/--sar CSS vars + padding body
+- Meta PWA : apple-mobile-web-app-capable, status-bar-style, theme-color #1F9D55
+- -webkit-tap-highlight-color: transparent (no flash au tap)
+- Fichiers mis à jour : index.html, login.html, invite.html, signup.html, onboarding.html
+
+#### 8. FIXES DB & RECHERCHE
+- Suppression objets archivés (cascade : loans + search_request_responses → items)
+- Filtrage archived dans browse (L4252) et search (L4444) : neq('archived')
+- Logique statuts : available = dispo, unavailable = emprunté, archived = supprimé
+- Objets empruntés restent visibles (grisés) dans la recherche — choix UX intentionnel
+
+#### 9. PROFIL
+- Suppression section Push obsolète
+
 ### BUGS IDENTIFIÉS (à traiter)
 - [ ] Home : compteur objets 'Prêtez plus' non synchronisé après suppression
 - [ ] Home : Total CO₂ > 100 kg → supprimer les décimales
 - [ ] Home : Notif 'Bouteille à la mer reçue' s'affiche sur Transactions au lieu de Accueil
 - [ ] Home : Bouton contact 'Une question ?' → doit ouvrir popin contact
 - [ ] Bouteilles à la mer : règles affichage + suppression à définir
+- [ ] Transactions : revue complète du design d'information (hiérarchie visuelle, titres, phases)
 
 ### DÉCISIONS ARCHITECTURE
 - Thésaurus en DB > CAT_MAP local : évolutif, maintenable, source unique
@@ -2345,7 +2362,7 @@ function _navigateTo(key) {
 - Détection par longueur de mot : priorité au terme le plus spécifique
 
 ### MÉTRIQUES SESSION
-- Commits : 15+
+- Commits : 20+
 - Table créée : item_categories (309 entrées)
-- Bugs résolus : 8
+- Bugs résolus : 10+
 - Pages modifiées : index.html, onboarding.html, signup.html, login.html, invite.html
