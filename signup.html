@@ -359,6 +359,7 @@
 
         // 4. Stocker member_id et rediriger
         localStorage.setItem('member_id', member.id);
+        localStorage.setItem('community_id', signupData.communityId);
         localStorage.removeItem('invite_code');
 
         window.location.href = 'onboarding.html';
