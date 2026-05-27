@@ -6957,7 +6957,8 @@ async function _openInviteModal() {
     if (error) throw error;
 
     _currentInviteCode = code;
-    document.getElementById('invite-code').textContent = code;
+    const inviteUrl = window.location.origin + '/invite.html?code=' + code;
+    document.getElementById('invite-url-display').textContent = inviteUrl;
     document.getElementById('modal-invite').style.display = 'flex';
 
   } catch (error) {
@@ -6968,7 +6969,7 @@ async function _openInviteModal() {
 
 function _closeInviteModal() {
   document.getElementById('modal-invite').style.display = 'none';
-  document.getElementById('invite-code').textContent = '••••••••';
+  document.getElementById('invite-url-display').textContent = '';
   _currentInviteCode = null;
 }
 
@@ -6995,9 +6996,8 @@ async function _copyInviteCode() {
 }
 
 async function _copyInviteLink() {
-  if (!_currentInviteCode) return;
-
-  const inviteLink = window.location.origin + '/invite.html?code=' + _currentInviteCode;
+  const inviteLink = document.getElementById('invite-url-display').textContent;
+  if (!inviteLink) return;
 
   try {
     await navigator.clipboard.writeText(inviteLink);
@@ -7065,15 +7065,20 @@ async function _copyInviteLink() {
       <h2 style="font-size:18px;font-weight:600;margin:0;color:#333;">Inviter un voisin</h2>
       <button onclick="_closeInviteModal()" style="background:none;border:none;font-size:24px;color:#888;cursor:pointer;padding:4px;">×</button>
     </div>
-    <p style="font-size:15px;color:#333;margin-bottom:20px;line-height:1.4;">Code d'invitation</p>
-    <div style="background:#F5F5F5;padding:20px;border-radius:12px;text-align:center;margin-bottom:16px;">
-      <div id="invite-code" style="font-size:32px;font-weight:700;color:#1F9D55;letter-spacing:2px;font-family:monospace;">••••••••</div>
+    <p style="font-size:15px;color:#333;margin-bottom:16px;line-height:1.4;">Partagez ce lien avec votre voisin</p>
+    <div style="background:#F5F5F5;padding:16px;border-radius:12px;margin-bottom:16px;word-break:break-all;">
+      <p id="invite-url-display" style="font-size:14px;color:#1F9D55;font-family:monospace;margin:0;"></p>
     </div>
-    <button id="btn-copy-code" onclick="_copyInviteCode()" style="width:100%;padding:14px;background:#1F9D55;color:white;border:none;border-radius:24px;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:12px;">📋 Copier le code</button>
-    <button id="btn-copy-link" onclick="_copyInviteLink()" style="width:100%;padding:14px;background:white;color:#1F9D55;border:2px solid #1F9D55;border-radius:24px;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:16px;">🔗 Copier le lien</button>
-    <p style="font-size:14px;color:#666;margin-bottom:12px;line-height:1.5;">Partagez ce code avec votre voisin (WhatsApp, SMS, de vive voix...)</p>
+    <button id="btn-copy-link" onclick="_copyInviteLink()" style="width:100%;padding:14px;background:#1F9D55;color:white;border:none;border-radius:24px;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:8px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M 10 4 L 13.5 0.5 Q 17 -3 20.5 0.5 Q 24 4 20.5 7.5 L 17 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <path d="M 14 20 L 10.5 23.5 Q 7 27 3.5 23.5 Q 0 20 3.5 16.5 L 7 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <path d="M 9 15 L 15 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+      </svg>
+      Copier ce lien
+    </button>
     <div style="background:#F5F5F5;padding:12px;border-radius:8px;">
-      <p style="font-size:13px;color:#666;margin:0;line-height:1.5;">ℹ️ Ce code est valide 7 jours</p>
+      <p style="font-size:13px;color:#666;margin:0;line-height:1.5;">ℹ️ Ce lien est valide 7 jours</p>
     </div>
   </div>
 </div>
