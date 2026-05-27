@@ -2990,7 +2990,7 @@ async function loadHomeData() {
       .eq('status', 'available'),
     // Objets de l'utilisateur
     userId
-      ? db.from('items').select('id', { count: 'exact', head: true }).eq('owner_id', userId)
+      ? db.from('items').select('id', { count: 'exact', head: true }).eq('owner_id', userId).neq('status', 'archived')
       : Promise.resolve({ count: 0 }),
     // Avis de recherche actifs
     db.from('search_requests')
@@ -3009,6 +3009,7 @@ async function loadHomeData() {
     db.from('items')
       .select('id', { count: 'exact', head: true })
       .eq('community_id', COMMUNITY_ID)
+      .neq('status', 'archived')
       .gte('created_at', startOfMonth.toISOString()),
     // Échanges ce mois (loans avec item dans la communauté)
     db.from('loans')
@@ -3416,7 +3417,7 @@ async function loadMember() {
 
   // 4. Stats — 3 requêtes parallèles
   const [itemsRes, loansRes, borrowsRes] = await Promise.all([
-    db.from('items').select('*', { count: 'exact', head: true }).eq('owner_id', resolved.id),
+    db.from('items').select('*', { count: 'exact', head: true }).eq('owner_id', resolved.id).neq('status', 'archived'),
     db.from('loans').select('*', { count: 'exact', head: true }).eq('owner_id', resolved.id),
     db.from('loans').select('*', { count: 'exact', head: true }).eq('borrower_id', resolved.id),
   ]);
@@ -4443,6 +4444,7 @@ async function _doSearch(q) {
     .from('items')
     .select('*, owner:members!owner_id(first_name)')
     .eq('community_id', COMMUNITY_ID)
+    .neq('status', 'archived')
     .ilike('name', `%${q}%`)
     .order('created_at', { ascending: false });
 
