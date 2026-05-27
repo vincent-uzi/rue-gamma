@@ -62,22 +62,39 @@
     <p class="header-desc">Pour rejoindre la communauté, partagez 3 objets</p>
     <p class="header-subtitle">3 objets que l'on pourra vous emprunter</p>
 
-    <!-- Slot 1 -->
-    <div id="slot-1" class="object-card empty">
-      <p class="suggestion">Un outil, un ustensile que vous utilisez souvent</p>
-      <button class="btn-add" onclick="openAddModal(1)">+</button>
+    <p style="font-size:14px; color:#666; margin-bottom:16px;">Un objet de bricolage, jardinage, cuisine, sport...</p>
+
+    <div id="slot-1" class="object-slot" onclick="openAddModal(1)" style="background:white; border:1px solid #EAF5EA; border-radius:12px; padding:16px 16px; margin-bottom:12px; cursor:pointer;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+        <span style="font-size:15px; color:#CCC;">Un objet à partager</span>
+        <span style="width:32px; height:32px; background:#1F9D55; border-radius:50%; color:white; font-size:20px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">+</span>
+      </div>
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <span style="background:#E5E5E5; color:#999; padding:3px 12px; border-radius:20px; font-size:13px; font-weight:600;">Vous</span>
+        <span style="background:#F5F5F5; color:#999; padding:3px 10px; border-radius:20px; font-size:13px;">🍃 — kg</span>
+      </div>
     </div>
 
-    <!-- Slot 2 -->
-    <div id="slot-2" class="object-card empty">
-      <p class="suggestion">Un objet de bricolage, de jardinage</p>
-      <button class="btn-add" onclick="openAddModal(2)">+</button>
+    <div id="slot-2" class="object-slot" onclick="openAddModal(2)" style="background:white; border:1px solid #EAF5EA; border-radius:12px; padding:16px 16px; margin-bottom:12px; cursor:pointer;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+        <span style="font-size:15px; color:#CCC;">Un objet à partager</span>
+        <span style="width:32px; height:32px; background:#1F9D55; border-radius:50%; color:white; font-size:20px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">+</span>
+      </div>
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <span style="background:#E5E5E5; color:#999; padding:3px 12px; border-radius:20px; font-size:13px; font-weight:600;">Vous</span>
+        <span style="background:#F5F5F5; color:#999; padding:3px 10px; border-radius:20px; font-size:13px;">🍃 — kg</span>
+      </div>
     </div>
 
-    <!-- Slot 3 -->
-    <div id="slot-3" class="object-card empty">
-      <p class="suggestion">Un objet de sport, de loisirs</p>
-      <button class="btn-add" onclick="openAddModal(3)">+</button>
+    <div id="slot-3" class="object-slot" onclick="openAddModal(3)" style="background:white; border:1px solid #EAF5EA; border-radius:12px; padding:16px 16px; margin-bottom:12px; cursor:pointer;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+        <span style="font-size:15px; color:#CCC;">Un objet à partager</span>
+        <span style="width:32px; height:32px; background:#1F9D55; border-radius:50%; color:white; font-size:20px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">+</span>
+      </div>
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <span style="background:#E5E5E5; color:#999; padding:3px 12px; border-radius:20px; font-size:13px; font-weight:600;">Vous</span>
+        <span style="background:#F5F5F5; color:#999; padding:3px 10px; border-radius:20px; font-size:13px;">🍃 — kg</span>
+      </div>
     </div>
   </div>
 
@@ -172,17 +189,21 @@
 
     function fillSlot(slotNumber, objectData) {
       const slot = document.getElementById('slot-' + slotNumber);
-      slot.className = 'object-card';
+      const co2 = objectData.co2 ? '-' + objectData.co2.toFixed(1) + ' kg' : '—';
+
+      slot.style.cursor = 'default';
+      slot.onclick = null;
       slot.innerHTML = `
-        <div class="object-icon">${objectData.icon || '📦'}</div>
-        <div class="object-info">
-          <div class="object-name">${objectData.name}</div>
-          <div class="object-meta">
-            <span class="owner-badge">Vous</span>
-            <span class="co2">${objectData.co2 || 0} kg CO₂</span>
-          </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+          <span style="font-size:15px; font-weight:500; color:#333;">${objectData.name}</span>
+          <span style="color:#CCC; font-size:18px;">›</span>
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between;">
+          <span style="background:#1F9D55; color:white; padding:3px 12px; border-radius:20px; font-size:13px; font-weight:600;">Vous</span>
+          <span style="background:#EAF5EA; color:#1F9D55; padding:3px 10px; border-radius:20px; font-size:13px;">🍃 ${co2}</span>
         </div>
       `;
+
       onboardingObjects[slotNumber] = objectData;
       checkCompletion();
     }
