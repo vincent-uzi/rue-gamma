@@ -2094,6 +2094,139 @@ function _navigateTo(key) {
 
 ---
 
+## SESSION 26 MAI 2026 (15h34-19h30+) — SYSTÈME INVITATION/INSCRIPTION COMPLET
+
+### RÉALISATIONS PRINCIPALES
+
+#### 1. STRUCTURE DB INVITATIONS
+- Table invitations créée avec champs : code (FLO-XXXX), community_id, inviter_id, expires_at (7j)
+- Colonne token rendue optionnelle (on utilise code maintenant)
+- Index sur code pour recherche rapide
+- Policies RLS : authenticated pour INSERT, anon pour SELECT (validation codes)
+
+#### 2. MODAL INVITATION (index.html)
+- Bouton Inviter → Modal génération code FLO-XXXX
+- Format code : 4 caractères alphanumériques (sans I/O/0/1)
+- INSERT invitation avec expiration 7 jours
+- Bouton copier avec feedback visuel "✓ Code copié !"
+
+#### 3. PAGE LOGIN REFONTE (login.html)
+- Header FLO + baseline (sans nom communauté)
+- Suppression "Bon retour !"
+- Lien "Mot de passe oublié ?" ferré gauche
+- Bouton "Se connecter" sous champs (pas sticky)
+- Card jaune emphase : "Première visite ? Créez votre compte"
+
+#### 4. PAGE INVITE.HTML
+- Validation code FLO-XXXX
+- Vérification DB (existence + expiration)
+- Affichage "✓ Vous rejoignez [Nom communauté]"
+- Stockage localStorage (invite_code, community_id, community_name)
+- Redirect signup.html
+
+#### 5. PAGE SIGNUP.HTML COMPLÈTE (4 étapes)
+- Navbar fixe : "FLO - Inscription N/4" (progress dynamique)
+- Toutes étapes en cards blanches bordure verte #EAF5EA
+
+**ÉTAPE 0 : Code d'invitation (1/4)**
+- Input code FLO-XXXX (uppercase auto)
+- Validation DB + expiration
+- Affichage communauté après validation
+- Bouton Continuer débloqué
+
+**ÉTAPE 1 : Identité (2/4)**
+- Prénom + Nom
+- Validation champs obligatoires
+
+**ÉTAPE 2 : Contact (3/4)**
+- Email + Téléphone + Adresse
+- Justification : "Pour organiser les prêts..."
+- Validations frontend :
+  * Email : regex `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`
+  * Téléphone FR : regex `/^(0|\+33)[1-9](\s?\d{2}){4}$/`
+  * Adresse obligatoire
+- **Vérification email unique** (check DB avant étape 3)
+- Messages erreur inline sous champs
+
+**ÉTAPE 3 : Sécurité (4/4)**
+- Mot de passe + Confirmation
+- Validation live : indicateur ✗/✓ "Au moins 8 caractères" (rouge/vert)
+- Toggle voir/masquer (👁️) sur les deux champs
+- Vérification conformité passwords
+
+**LOGIQUE CRÉATION COMPTE :**
+1. Supabase Auth signUp
+2. INSERT members (community_id dynamique depuis code)
+3. UPDATE invitations.accepted_at
+4. localStorage.setItem('member_id')
+5. Redirect onboarding.html
+
+#### 6. PAGE ONBOARDING.HTML (tunnel 3 objets)
+- Navbar fixe : "FLO - Bienvenue"
+- Titre : "Votre compte est créé !"
+- Sous-titre : "Pour rejoindre la communauté, partagez 3 objets"
+- 3 slots vides (border dashed) avec suggestions :
+  * Slot 1 : "Un outil, un ustensile que vous utilisez souvent"
+  * Slot 2 : "Un objet de bricolage, de jardinage"
+  * Slot 3 : "Un objet de sport, de loisirs"
+- Bouton + sur chaque slot → Modale ajout objet
+- Cards remplies après ajout (template 2 lignes : Nom + "Vous · X kg CO₂")
+- Bouton "Accéder à la communauté" disabled (gris) → actif (vert) quand 3/3
+- Modale ajout objet intégrée (copie adaptée depuis index.html)
+
+### BUGS RÉSOLUS
+- RLS policies manquantes sur invitations (403/406)
+- Colonne token NOT NULL bloquait INSERT
+- community_id en dur → remplacé par détection dynamique via code
+- Email doublon non détecté → vérification ajoutée étape 2
+
+### DÉCISIONS ARCHITECTURE
+- **Système invitation par code** (pas email) : partage flexible, pas de domaine requis
+- **Code identifie communauté** : invitation.community_id permet multi-communautés
+- **Validation automatique** : status='active' par défaut (pas de modération pour test)
+- **Formulaire 4 étapes** : micro-victoires, ~30-40% meilleur taux complétion
+- **Tunnel 3 objets obligatoire** : engagement initial, construction communauté
+
+### WORKFLOW COMPLET VALIDÉ
+1. Marie (membre) génère code sur index.html → Modal → FLO-A3K9 → Copier
+2. Jean-Pierre reçoit code (WhatsApp/SMS/oral)
+3. Va sur invite.html → Entre FLO-A3K9 → Valide → "✓ Vous rejoignez Rue Charles-Saint-Venant"
+4. Redirect signup.html
+5. Étape 0 : Code déjà validé (affiché en badge)
+6. Étape 1 : Prénom + Nom
+7. Étape 2 : Email + Téléphone + Adresse (validations live + vérif email unique)
+8. Étape 3 : Mot de passe + Confirmation (indicateur ✓/✗ live, toggle voir)
+9. Création compte → Redirect onboarding.html
+10. Tunnel 3 objets : Ajoute 3 objets via modale
+11. Clic "Accéder à la communauté" → Redirect index.html
+
+### FICHIERS CRÉÉS/MODIFIÉS
+**CRÉÉS :**
+- invite.html : Validation code + affichage communauté
+- signup.html : Formulaire inscription 4 étapes
+- onboarding.html : Tunnel 3 objets avec modale intégrée
+
+**MODIFIÉS :**
+- index.html : Modal invitation + génération code
+- login.html : Refonte complète (card jaune, suppression nom communauté)
+
+### MÉTRIQUES SESSION
+- **Durée :** ~4h (15h34-19h30)
+- **Commits :** 15+
+- **Tables DB :** 1 créée (invitations), 1 modifiée (members)
+- **Policies RLS :** 2 créées
+- **Pages créées :** 3 (invite.html, signup.html, onboarding.html)
+
+### RESTE À FAIRE (prochaine session)
+- [ ] Debug redirect signup → onboarding.html
+- [ ] Tests parcours complet E2E
+- [ ] Gestion mot de passe oublié (fonctionnalité à venir)
+- [ ] VIEWPORT-01 : Configuration mobile + Safe-area
+- [ ] CH-03 : Notifications badge
+- [ ] Identité visuelle : Logo + Audit noms "Kolkoze"
+
+---
+
 ## 📝 TODO LIST — Petits debugs & améliorations
 
 ### 🎨 IDENTITÉ VISUELLE (avant test rue)

@@ -228,26 +228,29 @@
       if (!name || name.trim().length < 2) return { category: 'Divers', co2_kg: 30 };
       const cleanName = name.trim().toLowerCase();
       try {
-        const { data, error } = await db
+        const { data } = await db
           .from('item_categories')
-          .select('category, co2_kg')
+          .select('category, co2_kg, co2_subcategory')
           .ilike('keyword', '%' + cleanName + '%')
           .order('co2_kg', { ascending: false })
           .limit(1);
-        if (!error && data && data.length > 0) return data[0];
-        const words = cleanName.split(' ').filter(w => w.length > 3);
+        if (data && data.length > 0) return data[0];
+        const words = cleanName
+          .split(' ')
+          .filter(w => w.length > 3)
+          .sort((a, b) => b.length - a.length);
         for (const word of words) {
-          const { data: wd } = await db
+          const { data: wordData } = await db
             .from('item_categories')
-            .select('category, co2_kg')
+            .select('category, co2_kg, co2_subcategory')
             .ilike('keyword', '%' + word + '%')
             .order('co2_kg', { ascending: false })
             .limit(1);
-          if (wd && wd.length > 0) return wd[0];
+          if (wordData && wordData.length > 0) return wordData[0];
         }
         return { category: 'Divers', co2_kg: 30 };
-      } catch (e) {
-        console.error('Erreur détection catégorie:', e);
+      } catch (error) {
+        console.error('Erreur détection catégorie:', error);
         return { category: 'Divers', co2_kg: 30 };
       }
     }
