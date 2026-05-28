@@ -2366,3 +2366,65 @@ function _navigateTo(key) {
 - Table créée : item_categories (309 entrées)
 - Bugs résolus : 10+
 - Pages modifiées : index.html, onboarding.html, signup.html, login.html, invite.html
+
+---
+
+## SESSION 28 MAI 2026 (13h30-...) — NOTIFICATIONS REALTIME + IDENTITÉ VISUELLE
+
+### RÉALISATIONS PRINCIPALES
+
+#### 1. BADGE TRANSACTIONS — SOURCE UNIQUE
+- updateNotificationBadge() : filtre uniquement loan_request / loan_accepted / loan_declined
+- markNotificationsAsRead() : marque comme lu à l'ouverture de l'onglet Transactions
+- bottle_response exclu du badge (géré séparément sur Home)
+
+#### 2. SUPABASE REALTIME
+- Subscription WebSocket sur table notifications
+- _subscribeToNotifications(memberId) : channel personnel par user
+- Badge mis à jour instantanément sans reload
+- Activation : ALTER PUBLICATION supabase_realtime ADD TABLE notifications
+- Fix timing : appel dans .then() de loadMember() pour garantir member_id disponible
+
+#### 3. IDENTITÉ VISUELLE — AUDIT KOLKOZE → FLO
+- 8 occurrences remplacées dans index.html
+- shareKolkoze() → shareFLO()
+- Texte partage natif : 'FLO - Front de Libération des Objets...'
+- Manifest PWA : name/short_name → 'FLO'
+- Legacy QR codes kolkoze: conservés (backward compat)
+
+#### 4. ICÔNES FLO
+- Dossier /icons/ créé à la racine
+- 5 déclinaisons : logo-1024.png, logo-512.png, logo-192.png, apple-touch-icon.png, favicon-32.png
+- Intégrées dans tous les fichiers HTML (favicon + apple-touch-icon + PWA manifest)
+- Remplacement icône feuille 🍃 par logo FLO sur login/invite/signup/onboarding
+
+#### 5. SPLASH SCREEN
+- splash.html créé
+- Fond vert #1F9D55
+- Logo grand calé en bas (déborde légèrement)
+- FLO + baseline en haut
+- 'Chargement' + 3 points animés
+- Phrases Boris Vian qui défilent (La Complainte du Progrès)
+- Durée 3.5s → fade out → redirect index.html
+- ⚠️ À débugger : comportement redirect + intégration dans le flow login
+
+#### 6. FIXES DB & PROFIL
+- Suppression section Push obsolète dans Profil
+- Filtrage objets archived dans browse + search : neq('archived')
+- Cascade delete : loans + search_request_responses → items avant suppression
+- Logique statuts confirmée : available / unavailable / archived
+
+### BUGS IDENTIFIÉS (à traiter)
+- [ ] Splash screen : débugger redirect + intégrer dans flow login → splash → index
+- [ ] Home : compteur objets 'Prêtez plus' désynchronisé après suppression
+- [ ] Home : Total CO₂ > 100 kg → supprimer les décimales
+- [ ] Home : Notif bouteille à la mer → s'affiche sur Transactions au lieu de Home
+- [ ] Home : Bouton contact 'Une question ?' → popin contact non fonctionnel
+- [ ] Bouteilles à la mer : règles affichage + suppression + durée de vie à définir
+- [ ] Transactions : revue complète du design d'information
+- [ ] Sécurité : audit complet policies RLS Supabase
+
+### MÉTRIQUES SESSION
+- Commits : 10+
+- Fichiers créés : splash.html, icons/ (5 fichiers)
+- Fichiers modifiés : index.html, login.html, invite.html, signup.html, onboarding.html
