@@ -3441,6 +3441,26 @@ async function signOut() {
   window.location.replace('login.html');
 }
 
+function _subscribeToNotifications(memberId) {
+  db.channel('notifications-' + memberId)
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'notifications',
+        filter: 'user_id=eq.' + memberId
+      },
+      (payload) => {
+        console.log('Nouvelle notification:', payload.new.type);
+        if (['loan_request', 'loan_accepted', 'loan_declined'].includes(payload.new.type)) {
+          updateNotificationBadge();
+        }
+      }
+    )
+    .subscribe();
+}
+
 (async function checkAuth() {
   const { data: { session } } = await db.auth.getSession();
   if (!session) {
@@ -3452,6 +3472,8 @@ async function signOut() {
   loadMember().then(() => updateNotificationBadge());
   loadCommunity();
   loadHomeData();
+  const memberId = localStorage.getItem('member_id');
+  if (memberId) _subscribeToNotifications(memberId);
   // /v route: index.html?v=1&action=return&id=xxx
   if (new URLSearchParams(window.location.search).has('v')) handleValidation();
 })();
