@@ -3475,7 +3475,7 @@ function _navigateTo(key) {
   _objectsLoaded = false;
 
   if (key === 'objects')        showObjects();
-  else if (key === 'exchanges') { showPanel('panel-exchanges'); loadTransactions(); }
+  else if (key === 'exchanges') { showPanel('panel-exchanges'); loadTransactions(); markNotificationsAsRead(); }
   else if (key === 'profile')   { showPanel('panel-profile'); loadMember().then(() => loadProfileTabs()); }
   // 'home': all panels closed, home visible
 
@@ -4884,27 +4884,36 @@ function updateTransactionsBadge(count) {
 }
 
 async function updateNotificationBadge() {
-  const userId = localStorage.getItem('member_id');
-  if (!userId) return;
-  const { count, error } = await db.from('notifications')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId)
-    .eq('read', false);
-  if (error) { console.error('[updateNotificationBadge]', error); return; }
-  console.log('[updateNotificationBadge] Count:', count);
-  updateTransactionsBadge(count || 0);
+  const memberId = localStorage.getItem('member_id');
+  if (!memberId) return;
+  try {
+    const { data, error } = await db
+      .from('notifications')
+      .select('id')
+      .eq('user_id', memberId)
+      .eq('read', false)
+      .in('type', ['loan_request', 'loan_accepted', 'loan_declined']);
+    if (error) throw error;
+    updateTransactionsBadge(data?.length || 0);
+  } catch (e) {
+    console.error('Erreur badge notifications:', e);
+  }
 }
 
-async function _markNotificationsAsRead() {
-  const userId = localStorage.getItem('member_id');
-  if (!userId) return;
-  const { error } = await db.from('notifications')
-    .update({ read: true })
-    .eq('user_id', userId)
-    .eq('read', false);
-  if (error) { console.error('[markNotificationsAsRead]', error); return; }
-  console.log('[markNotificationsAsRead] Marked as read');
-  updateTransactionsBadge(0);
+async function markNotificationsAsRead() {
+  const memberId = localStorage.getItem('member_id');
+  if (!memberId) return;
+  try {
+    await db
+      .from('notifications')
+      .update({ read: true })
+      .eq('user_id', memberId)
+      .eq('read', false)
+      .in('type', ['loan_request', 'loan_accepted', 'loan_declined']);
+    updateTransactionsBadge(0);
+  } catch (e) {
+    console.error('Erreur mark as read:', e);
+  }
 }
 
 async function _showNotificationDots() {
