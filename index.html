@@ -3442,6 +3442,7 @@ async function signOut() {
 }
 
 function _subscribeToNotifications(memberId) {
+  console.log('Realtime souscrit pour:', memberId);
   db.channel('notifications-' + memberId)
     .on(
       'postgres_changes',
@@ -3458,7 +3459,9 @@ function _subscribeToNotifications(memberId) {
         }
       }
     )
-    .subscribe();
+    .subscribe((status, err) => {
+      console.log('Realtime status:', status, err || '');
+    });
 }
 
 (async function checkAuth() {
@@ -3469,11 +3472,14 @@ function _subscribeToNotifications(memberId) {
   }
   document.getElementById('app').style.visibility = '';
   initTransactionsState();
-  loadMember().then(() => updateNotificationBadge());
+  loadMember().then(() => {
+    updateNotificationBadge();
+    const memberId = localStorage.getItem('member_id');
+    if (memberId) _subscribeToNotifications(memberId);
+    else console.warn('Realtime: member_id absent après loadMember');
+  });
   loadCommunity();
   loadHomeData();
-  const memberId = localStorage.getItem('member_id');
-  if (memberId) _subscribeToNotifications(memberId);
   // /v route: index.html?v=1&action=return&id=xxx
   if (new URLSearchParams(window.location.search).has('v')) handleValidation();
 })();
