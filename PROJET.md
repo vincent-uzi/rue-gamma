@@ -1,3 +1,16 @@
+# VISION FLO
+
+## Contre quoi on se bat
+'Les objets dorment, les voisins s'ignorent'
+
+## Hypothèse produit
+La mise à disposition d'outils numériques simples peut favoriser un premier pas entre voisins — pas résoudre la solitude urbaine, mais créer une occasion.
+
+## Ce qu'on teste
+Est-ce que partager ses objets peut être le prétexte à une interaction de voisinage qui n'aurait pas eu lieu autrement ?
+
+---
+
 # ÉTAT DES FONCTIONNALITÉS
 
 Dernière mise à jour : 19 mai 2026 22:30
@@ -1761,6 +1774,11 @@ iPhone validations :
 - ONBOARD-01 : Tunnel ajout objet (BLOQUANT test rue)
 - CH-03 : Notifications badge (BLOQUANT test rue)
 
+### 📊 TRACKING (à planifier)
+Chantier défini, pas priorisé pour le test rue.
+Voir section TRACKING plus bas pour le détail.
+Option A recommandée : requêtes SQL manuelles sur Supabase après 1 semaine de test.
+
 ### MÉTRIQUES SESSION
 
 - Durée : ~7h (14h → 21h)
@@ -2423,6 +2441,7 @@ function _navigateTo(key) {
 - [ ] Bouteilles à la mer : règles affichage + suppression + durée de vie à définir
 - [ ] Transactions : revue complète du design d'information
 - [ ] Sécurité : audit complet policies RLS Supabase
+- [ ] Home : encart moteur de recherche — remplacer 'Trouver' par 'Emprunter'
 
 ### MÉTRIQUES SESSION
 - Commits : 10+
