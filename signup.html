@@ -169,7 +169,19 @@
     let inviteCode = null;
 
     window.onload = function() {
-      // Début direct à l'étape 0 — pas de vérification localStorage au chargement
+      const params = new URLSearchParams(window.location.search);
+      const skipCode = params.get('skip_code') === 'true';
+      const existingCode = localStorage.getItem('invite_code');
+      const existingCommunityId = localStorage.getItem('community_id');
+      const existingCommunityName = localStorage.getItem('community_name');
+
+      if (skipCode && existingCode && existingCommunityId) {
+        inviteCode = existingCode;
+        signupData.communityId = existingCommunityId;
+        signupData.communityName = existingCommunityName;
+        goToStep(1);
+        document.getElementById('nav-progress').textContent = 'Inscription 2/4';
+      }
     };
 
     async function validateInviteCode() {
