@@ -3418,7 +3418,7 @@ async function loadMember() {
   if (nameEl) nameEl.textContent = firstName + ' ' + lastName;
   const addrEl = document.getElementById('profile-address');
   if (addrEl) addrEl.innerHTML = resolved.phone
-    ? (resolved.address || '') + ' - <strong>' + resolved.phone + '</strong>'
+    ? (resolved.address || '') + '<br><strong>' + resolved.phone + '</strong>'
     : (resolved.address || '');
   const captionEl = document.querySelector('.header-caption');
   if (captionEl) captionEl.textContent = 'Bonjour ' + firstName;
