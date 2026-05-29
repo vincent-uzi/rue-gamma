@@ -3384,7 +3384,7 @@ async function loadMember() {
   // 2. Member row
   const { data: member, error: memberError } = await db
     .from('members')
-    .select('id, first_name, last_name, address, gender')
+    .select('id, first_name, last_name, address, phone, gender')
     .eq('id', uid)
     .maybeSingle();
   console.log('[loadMember] member by id:', member, memberError);
@@ -3395,7 +3395,7 @@ async function loadMember() {
     // Fallback: cherche par email (anciens comptes sans auth.id)
     const { data: byEmail, error: emailError } = await db
       .from('members')
-      .select('id, first_name, last_name, address, gender')
+      .select('id, first_name, last_name, address, phone, gender')
       .eq('email', session.user.email)
       .maybeSingle();
     console.log('[loadMember] member by email:', byEmail, emailError);
@@ -3417,7 +3417,9 @@ async function loadMember() {
   const nameEl = document.getElementById('profile-name');
   if (nameEl) nameEl.textContent = firstName + ' ' + lastName;
   const addrEl = document.getElementById('profile-address');
-  if (addrEl) addrEl.textContent = resolved.address || '';
+  if (addrEl) addrEl.textContent = resolved.phone
+    ? (resolved.address || '') + ' - ' + resolved.phone
+    : (resolved.address || '');
   const captionEl = document.querySelector('.header-caption');
   if (captionEl) captionEl.textContent = 'Bonjour ' + firstName;
   const greetingEl = document.getElementById('home-greeting');
