@@ -2921,6 +2921,12 @@ const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { persistSession: true },
 })
 
+function formatCO2(value) {
+  if (!value || value === 0) return '0';
+  if (value >= 100) return Math.round(value).toString();
+  return value.toFixed(1).replace('.', ',');
+}
+
 // ── Items data (fallback statique) ────────────────────────────
 const ITEMS = [];
 
@@ -3077,7 +3083,7 @@ async function _loadHomeCO2(startOfMonth) {
     .filter(l => l.item?.community_id === COMMUNITY_ID)
     .reduce((s, l) => s + (parseFloat(l.item?.co2_saved_kg) || 0), 0);
   const el = document.getElementById('home-co2-month');
-  if (el) el.textContent = total > 0 ? total.toFixed(1).replace('.', ',') : '0';
+  if (el) el.textContent = total > 0 ? formatCO2(total) : '0';
 }
 
 // ── Bouteilles à la mer (Home) ────────────────────────────────
@@ -4108,7 +4114,7 @@ function _renderLoanRow(list, loan, role) {
 
 function _renderProfileItemCard(list, item) {
   const co2 = item.co2_saved_kg != null
-    ? Number(item.co2_saved_kg).toFixed(1).replace('.', ',')
+    ? formatCO2(Number(item.co2_saved_kg))
     : '8,2';
 
   const el = document.createElement('div');
@@ -4328,7 +4334,7 @@ function renderObjects(items) {
         owner_id: row.owner_id,
         name:     row.name,
         state:    row.status,
-        co2:      c != null ? Number(c).toFixed(1).replace('.', ',') : '8,2',
+        co2:      c != null ? formatCO2(Number(c)) : '8,2',
         who:      row.owner?.first_name || '',
       });
     });
@@ -4549,7 +4555,7 @@ async function _doSearch(q) {
       owner_id: row.owner_id,
       name:     row.name,
       state:    row.status,
-      co2:      c != null ? Number(c).toFixed(1).replace('.', ',') : '8,2',
+      co2:      c != null ? formatCO2(Number(c)) : '8,2',
       who:      row.owner?.first_name || '',
     });
   });
@@ -4586,7 +4592,7 @@ function _loanToTx(loan, userId) {
   const borrowerName = isOwner ? (loan.borrower?.first_name || '—') : 'Vous';
   const co2Raw       = loan.item?.co2_saved_kg || 0;
   const co2          = typeof co2Raw === 'number'
-    ? co2Raw.toFixed(1).replace('.', ',')
+    ? formatCO2(co2Raw)
     : String(co2Raw);
   return {
     id:          loan.id,
@@ -4623,7 +4629,7 @@ function _buildStepsFromLoan(loan, userId) {
     ? (loan.borrower?.first_name || 'votre voisin')
     : (loan.owner?.first_name   || 'votre voisin');
   const co2Raw = loan.item?.co2_saved_kg;
-  const co2    = co2Raw != null ? Number(co2Raw).toFixed(1).replace('.', ',') : '—';
+  const co2    = co2Raw != null ? formatCO2(Number(co2Raw)) : '—';
 
   // Declined: special 2-step display
   if (loan.status === 'declined') {
@@ -5666,7 +5672,7 @@ async function showThread(id) {
   const isOwner  = loan.owner_id === userId;
   const other    = isOwner ? loan.borrower : loan.owner;
   const co2Raw   = loan.item?.co2_saved_kg || 0;
-  const co2      = typeof co2Raw === 'number' ? co2Raw.toFixed(1).replace('.', ',') : co2Raw;
+  const co2      = typeof co2Raw === 'number' ? formatCO2(co2Raw) : co2Raw;
   const fromName = isOwner ? 'Vous' : (loan.owner?.first_name || '—');
   const toName   = isOwner ? (loan.borrower?.first_name || '—') : 'Vous';
 
@@ -6232,7 +6238,7 @@ async function loadItemDetail(itemId) {
     owner_id: data.owner_id,
     name:     data.name,
     state:    data.status,
-    co2:      data.co2_saved_kg != null ? Number(data.co2_saved_kg).toFixed(1).replace('.', ',') : '8,2',
+    co2:      data.co2_saved_kg != null ? formatCO2(Number(data.co2_saved_kg)) : '8,2',
     desc:     data.description || '',
     who:      data.owner?.first_name || '',
     no:       '',
@@ -6243,7 +6249,7 @@ async function loadItemDetail(itemId) {
 
   const c = data.co2_saved_kg;
   document.getElementById('item-detail-co2').textContent =
-    '−' + (c != null ? Number(c).toFixed(1).replace('.', ',') : '8,2') + ' kg CO₂';
+    '−' + (c != null ? formatCO2(Number(c)) : '8,2') + ' kg CO₂';
 
   const owner = data.owner || {};
   const firstName = owner.first_name || '';
@@ -6644,7 +6650,7 @@ async function undoDelete() {
     owner_id: restore.owner_id,
     name:     restore.name,
     state:    'available',
-    co2:      c != null ? Number(c).toFixed(1).replace('.', ',') : '8,2',
+    co2:      c != null ? formatCO2(Number(c)) : '8,2',
     who:      _me || '',
     no:       '',
   };
