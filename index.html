@@ -2759,9 +2759,10 @@
 <div id="contact-popin" role="dialog" aria-modal="true" aria-labelledby="contact-popin-title">
   <h2 id="contact-popin-title" class="t-title2" style="text-align:center;margin-bottom:8px;">À vous de jouer !</h2>
   <p class="t-callout" style="color:var(--text-muted);text-align:center;margin-bottom:24px;">Convenez d’un rendez-vous</p>
-  <div style="background:var(--surface-alt);border-radius:14px;padding:16px;">
-    <div id="contact-popin-name" class="t-headline" style="color:var(--text);margin-bottom:6px;">Votre voisin</div>
-    <div id="contact-popin-address" class="t-callout" style="color:var(--text-muted);margin-top:2px;"></div>
+  <div style="background:#F5F5F5;border-radius:12px;padding:16px;">
+    <p id="contact-popin-name" style="font-size:16px;font-weight:600;color:#333;margin:0 0 4px 0;">Votre voisin</p>
+    <p id="contact-popin-address" style="font-size:14px;color:#666;margin:0 0 4px 0;"></p>
+    <p id="contact-popin-phone" style="font-size:15px;font-weight:600;color:#333;margin:0;"></p>
   </div>
   <button onclick="hideContactPopin()" style="margin-top:24px;width:100%;background:var(--accent);color:var(--accent-ink);padding:14px 20px;border-radius:12px;border:none;font-family:var(--font);font-size:16px;font-weight:600;cursor:pointer;-webkit-appearance:none;transition:opacity .15s;">Fermer</button>
 </div>
@@ -4712,7 +4713,7 @@ function _buildStepsFromLoan(loan, userId) {
 }
 
 // ── Supabase select snippet (shared) ─────────────────────────
-const _LOAN_SELECT = `id,item_id,borrower_id,owner_id,status,requested_at,accepted_at,declined_at,handed_at,returned_at,item:items!item_id(name,co2_saved_kg),owner:members!owner_id(first_name,last_name,address),borrower:members!borrower_id(first_name,last_name,address)`;
+const _LOAN_SELECT = `id,item_id,borrower_id,owner_id,status,requested_at,accepted_at,declined_at,handed_at,returned_at,item:items!item_id(name,co2_saved_kg),owner:members!owner_id(first_name,last_name,address,phone),borrower:members!borrower_id(first_name,last_name,address,phone)`;
 
 // ── Archived pagination state ─────────────────────────────────
 let _archivedOffset  = 0;
@@ -5685,6 +5686,7 @@ async function showThread(id) {
   window._currentLoanContact = {
     name:    ((other?.first_name || '') + ' ' + (other?.last_name || '')).trim(),
     address: other?.address || '',
+    phone:   other?.phone || '',
   };
 
   timeline.innerHTML = '';
@@ -5711,9 +5713,11 @@ function hideThread() {
 function showContactPopin() {
   const c = window._currentLoanContact;
   const nameEl = document.getElementById('contact-popin-name');
-  const addrEl = document.getElementById('contact-popin-address');
-  if (nameEl) nameEl.textContent = c ? (c.name || 'Votre voisin') : 'Votre voisin';
-  if (addrEl) addrEl.textContent = c ? (c.address || '') : '';
+  const addrEl  = document.getElementById('contact-popin-address');
+  const phoneEl = document.getElementById('contact-popin-phone');
+  if (nameEl)  nameEl.textContent  = c ? (c.name || 'Votre voisin') : 'Votre voisin';
+  if (addrEl)  addrEl.textContent  = c ? (c.address || '') : '';
+  if (phoneEl) { phoneEl.textContent = c?.phone || ''; phoneEl.style.display = c?.phone ? '' : 'none'; }
   const panel    = document.getElementById('contact-popin');
   const backdrop = document.getElementById('contact-backdrop');
   backdrop.style.display = 'block';
