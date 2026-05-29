@@ -167,15 +167,14 @@
     showNextPhrase();
     const phraseInterval = setInterval(showNextPhrase, 800);
 
-    // Durée minimale splash : 3 secondes
-    // Puis redirect vers index.html
-    setTimeout(() => {
-      clearInterval(phraseInterval);
-      document.body.classList.add('fade-out');
-      setTimeout(() => {
-        window.location.href = 'index.html';
-      }, 500);
-    }, 3500);
+    // Redirect désactivé — splash figé
+    // setTimeout(() => {
+    //   clearInterval(phraseInterval);
+    //   document.body.classList.add('fade-out');
+    //   setTimeout(() => {
+    //     window.location.href = 'index.html';
+    //   }, 500);
+    // }, 3500);
   </script>
 
 </body>
