@@ -7167,6 +7167,18 @@ function deleteItem() {
     if (_objectsLoaded) renderObjects(_allObjects);
     _updateProfileObjectCount();
     console.log('[deleteItem] Undo — item restored');
+    setTimeout(() => {
+      const restoredCard = document.querySelector(`[data-item-id="${item.id}"]`);
+      if (restoredCard) {
+        restoredCard.style.opacity = '0';
+        restoredCard.style.border = '1.5px solid #F39C12';
+        restoredCard.style.transition = 'opacity 0.4s ease, border-color 1.5s ease';
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          restoredCard.style.opacity = '1';
+          setTimeout(() => { restoredCard.style.borderColor = '#EAF5EA'; }, 1500);
+        }));
+      }
+    }, 400);
   };
 }
 
