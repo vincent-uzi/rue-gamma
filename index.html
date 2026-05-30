@@ -3068,8 +3068,13 @@ async function loadHomeData() {
   _loadBottleNotifEncart(userId);
 
   // Bouteilles à la mer
-  const dismissed = JSON.parse(localStorage.getItem('dismissed_bottles') || '[]');
-  const bottles = (searchReqRes.data || []).filter(r => !dismissed.includes(r.id));
+  const memberId = localStorage.getItem('member_id');
+  const { data: dismissals } = await db
+    .from('bottle_dismissals')
+    .select('search_request_id')
+    .eq('member_id', memberId);
+  const dismissedIds = dismissals?.map(d => d.search_request_id) || [];
+  const bottles = (searchReqRes.data || []).filter(r => !dismissedIds.includes(r.id));
   _initBottles(bottles, userId);
 }
 
@@ -3246,17 +3251,14 @@ function _attachCarouselScroll() {
   };
 }
 
-function _dismissBottle(id) {
-  console.log('[DEBUG] _dismissBottle called, id:', id);
-  const dismissed = JSON.parse(localStorage.getItem('dismissed_bottles') || '[]');
-  if (!dismissed.includes(id)) dismissed.push(id);
-  localStorage.setItem('dismissed_bottles', JSON.stringify(dismissed));
-  console.log('[DEBUG] localStorage updated');
-
+async function _dismissBottle(id) {
+  const memberId = localStorage.getItem('member_id');
   _homeBottles = _homeBottles.filter(b => b.id !== id);
-  console.log('[DEBUG] _homeBottles filtered, length:', _homeBottles.length);
-  console.log('[DEBUG] Skipping _renderCarousel');
-  // _renderCarousel(localStorage.getItem('member_id'));
+  try {
+    await db.from('bottle_dismissals').insert({ member_id: memberId, search_request_id: id });
+  } catch (error) {
+    console.error('Erreur dismiss bottle:', error);
+  }
 }
 
 function _answerBottle(id, itemName) {
