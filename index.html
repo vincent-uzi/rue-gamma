@@ -6236,7 +6236,7 @@ async function _openMyBottles() {
             <p style="font-size:15px;font-weight:600;color:#1F9D55;margin:0 0 4px 0;">${bottle.item_name || 'Objet recherché'}</p>
             <p style="font-size:13px;color:#999;margin:0;">${daysText}</p>
           </div>
-          <button onclick="_deleteBottle('${bottle.id}')" style="background:none;border:none;cursor:pointer;padding:4px;color:#999;display:flex;align-items:center;flex-shrink:0;">
+          <button onclick="_deleteBottle('${bottle.id}', '${(bottle.item_name || 'cette recherche').replace(/'/g, "\\'")}')" style="background:none;border:none;cursor:pointer;padding:4px;color:#999;display:flex;align-items:center;flex-shrink:0;">
             <svg width="20" height="22" viewBox="0 0 22 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M 3 6 L 19 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
               <path d="M 8 6 L 8 4 Q 8 2.5 9.5 2.5 L 12.5 2.5 Q 14 2.5 14 4 L 14 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
@@ -6301,12 +6301,12 @@ async function _toggleBottleResponses(btn, bottleId) {
   }
 }
 
-async function _deleteBottle(id) {
+async function _deleteBottle(id, itemName) {
   try {
     await db.from('search_requests').update({ status: 'closed' }).eq('id', id);
     _openMyBottles();
     _loadProfileBottles();
-    _showUndoToast('Bouteille supprimée', async () => {
+    _showUndoToast('Votre recherche "' + (itemName || 'cette recherche') + '" est supprimée', async () => {
       await db.from('search_requests').update({ status: 'open' }).eq('id', id);
       _openMyBottles();
       _loadProfileBottles();
