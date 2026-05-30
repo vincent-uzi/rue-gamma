@@ -7160,16 +7160,21 @@ function deleteItem() {
   }, 5000);
 
   // Undo
-  document.getElementById('btn-undo-delete').onclick = () => {
+  document.getElementById('btn-undo-delete').onclick = async () => {
     clearTimeout(deleteTimeout);
     toast.remove();
+    await db.from('items').update({ status: item.status || 'available' }).eq('id', item.id);
     if (idx !== -1) _allObjects.splice(idx, 0, item);
     if (_objectsLoaded) renderObjects(_allObjects);
-    _updateProfileObjectCount();
     console.log('[deleteItem] Undo — item restored');
-    setTimeout(() => {
+    await loadProfileTabs();
+    _updateProfileObjectCount();
+    let attempts = 0;
+    const tryHighlight = setInterval(() => {
       const restoredCard = document.querySelector(`[data-item-id="${item.id}"]`);
+      attempts++;
       if (restoredCard) {
+        clearInterval(tryHighlight);
         restoredCard.style.opacity = '0';
         restoredCard.style.border = '1.5px solid #F39C12';
         restoredCard.style.transition = 'opacity 0.4s ease, border-color 1.5s ease';
@@ -7178,7 +7183,8 @@ function deleteItem() {
           setTimeout(() => { restoredCard.style.borderColor = '#EAF5EA'; }, 1500);
         }));
       }
-    }, 400);
+      if (attempts > 10) clearInterval(tryHighlight);
+    }, 100);
   };
 }
 
