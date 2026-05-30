@@ -2232,19 +2232,6 @@
       </div>
     </section>
 
-    <!-- ── 4. CTA Dynamique ───────────────────────────────── -->
-    <!-- Version A : pas de bouteille -->
-    <div class="home-cta-card" id="card-add-object">
-      <div style="flex:1;min-width:0;">
-        <h3 class="home-cta-title">Délivrez un nouvel objet !</h3>
-        <p class="home-cta-sub">Vous partagez <span id="home-user-count" class="home-cta-accent">…</span>, continuez !</p>
-      </div>
-      <button class="btn-add-round" onclick="_navigateTo(‘add’)" aria-label="Ajouter un objet">
-        <svg width="28" height="28" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-          <path d="M9 3v12M3 9h12" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
-        </svg>
-      </button>
-    </div>
 
     <!-- Section bouteilles (CAS 1 : CTA / CAS 2 : carrousel) -->
     <div id="card-bottle-request" style="display:none;">
@@ -3078,8 +3065,6 @@ async function loadHomeData() {
   // Objets user → CTA texte
   const n = userObjRes.count ?? 0;
   _userItemsCount = n;
-  const userCountEl = document.getElementById('home-user-count');
-  if (userCountEl) userCountEl.textContent = n + ' objet' + (n !== 1 ? 's' : '');
 
   // Modérateur → pill G.O
   if (modRes.data) {
@@ -3090,8 +3075,6 @@ async function loadHomeData() {
     }
   }
 
-  // Encart notifs bouteilles reçues
-  _loadBottleNotifEncart(userId);
 
   // Bouteilles à la mer
   const memberId = localStorage.getItem('member_id');
@@ -3127,10 +3110,7 @@ function _initBottles(bottles, userId) {
   _homeBottles = otherBottles;
   _homeBottleIdx = 0;
 
-  const cardAdd = document.getElementById('card-add-object');
   const cardBottle = document.getElementById('card-bottle-request');
-
-  if (cardAdd) cardAdd.style.display = 'none';
   if (cardBottle) cardBottle.style.display = 'block';
 
   _renderCarousel(userId);
@@ -3322,82 +3302,6 @@ function _answerBottle(id, itemName) {
 }
 
 
-async function _loadBottleNotifEncart(userId) {
-  if (!userId) return;
-  document.getElementById('bottle-notif-encart')?.remove();
-
-  // 1. Notifs non lues
-  const { data: notifs } = await db.from('notifications')
-    .select('id').eq('user_id', userId).eq('type', 'bottle_response').eq('read', false);
-  if (!notifs?.length) return;
-
-  // 2. Dernière réponse à une bouteille de cet user
-  const { data: srRows } = await db.from('search_requests')
-    .select('id').eq('requester_id', userId).in('status', ['notified', 'open'])
-    .order('created_at', { ascending: false }).limit(5);
-  const srIds = (srRows || []).map(r => r.id);
-
-  let responderName = '', responseItemName = '', responseItemId = null;
-  if (srIds.length) {
-    const { data: resp } = await db.from('search_request_responses')
-      .select('item_id, responder_id')
-      .in('search_request_id', srIds)
-      .order('created_at', { ascending: false }).limit(1).single();
-    console.log('[_loadBottleNotifEncart] resp:', resp);
-    if (resp) {
-      responseItemId = resp.item_id;
-      const [itemRes, memberRes] = await Promise.all([
-        db.from('items').select('name').eq('id', resp.item_id).single(),
-        db.from('members').select('first_name').eq('id', resp.responder_id).single(),
-      ]);
-      responseItemName = itemRes.data?.name || '';
-      responderName    = memberRes.data?.first_name || '';
-      console.log('[_loadBottleNotifEncart]', { responseItemId, responseItemName, responderName });
-    }
-  }
-
-  const notifIds = notifs.map(n => n.id);
-  const encart = document.createElement('div');
-  encart.id = 'bottle-notif-encart';
-  encart.style.cssText = 'background:#ffeaa7;border-radius:8px;padding:16px 20px;margin:0 0 16px 0;position:relative;';
-
-  const bodyText = responderName && responseItemName
-    ? `${responderName} a déclaré avoir ${responseItemName}`
-    : `${notifs.length} membre${notifs.length > 1 ? 's ont' : ' a'} déclaré avoir l'objet que vous recherchiez`;
-  const ctaText  = responseItemId ? 'Voir ce produit →' : 'Voir ces objets →';
-
-  encart.innerHTML = `
-    <button id="close-bottle-encart" style="position:absolute;top:10px;right:12px;background:none;border:none;font-size:20px;cursor:pointer;color:#555;">×</button>
-    <p style="font-size:14px;font-weight:600;color:#1F9D55;margin:0 0 4px;">Votre bouteille à la mer a été reçue !</p>
-    <p style="font-size:14px;color:#666;margin:0 0 8px;">${bodyText}</p>
-    <a id="view-bottle-cta" style="font-size:14px;color:#1F9D55;text-decoration:underline;cursor:pointer;">${ctaText}</a>`;
-
-  const metricsSection = document.querySelector('#panel-home .home-metrics');
-  if (metricsSection) metricsSection.parentNode.insertBefore(encart, metricsSection);
-
-  async function _markRead() {
-    await db.from('notifications').update({ read: true }).in('id', notifIds);
-    encart.remove();
-    // Ne pas appeler updateNotificationBadge() — cette fonction concerne bottle_response, pas les transactions
-    updateProfileBadge();
-  }
-
-  document.getElementById('close-bottle-encart').onclick = _markRead;
-
-  document.getElementById('view-bottle-cta').onclick = async () => {
-    if (responseItemId) {
-      await loadItemDetail(responseItemId);
-    } else {
-      _navigateTo('objects');
-      if (responseItemName) {
-        setTimeout(() => {
-          const inp = document.getElementById('objSearchInput');
-          if (inp) { inp.value = responseItemName; filterObjects(inp); }
-        }, 150);
-      }
-    }
-  };
-}
 
 async function loadCommunity() {
   const [commRes, countRes] = await Promise.all([
@@ -4080,21 +3984,6 @@ async function renderTransactionPush() {
   // Priority sort (lower = first); loans already in chronological order from DB
   banners.sort((a, b) => a.priority - b.priority);
 
-  // Onboarding: only when no transaction banners
-  if (!banners.length) {
-    const ago15 = new Date(Date.now() - 15 * 86400000).toISOString();
-    const { count } = await db.from('items')
-      .select('id', { count: 'exact', head: true })
-      .eq('owner_id', userId)
-      .gte('created_at', ago15);
-    if ((count || 0) < 3) {
-      banners.push({
-        loan: null, type: 'onboarding_create',
-        message: _generatePushMsg('onboarding_create', {}, 'ob-' + userId),
-        priority: 7,
-      });
-    }
-  }
 
   slider.innerHTML = '';
   if (dotsEl) dotsEl.innerHTML = '';
