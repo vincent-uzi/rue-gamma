@@ -6220,9 +6220,19 @@ async function _openMyBottles() {
       .in('status', ['open', 'notified']);
     if (error || !data) return;
     data.sort((a, b) => {
-      const aResponses = (a.search_request_responses || []).length;
-      const bResponses = (b.search_request_responses || []).length;
-      return bResponses - aResponses;
+      const aResponses = a.search_request_responses || [];
+      const bResponses = b.search_request_responses || [];
+      const aHasNew = aResponses.some(r => !r.viewed_at);
+      const bHasNew = bResponses.some(r => !r.viewed_at);
+      if (aHasNew && !bHasNew) return -1;
+      if (!aHasNew && bHasNew) return 1;
+      const aDate = aResponses.length > 0
+        ? Math.max(...aResponses.map(r => new Date(r.created_at).getTime()))
+        : new Date(a.created_at).getTime();
+      const bDate = bResponses.length > 0
+        ? Math.max(...bResponses.map(r => new Date(r.created_at).getTime()))
+        : new Date(b.created_at).getTime();
+      return bDate - aDate;
     });
     const list = document.getElementById('my-bottles-list');
     list.innerHTML = '';
