@@ -6170,7 +6170,7 @@ async function _loadProfileBottles() {
   try {
     const { data, error } = await db
       .from('search_requests')
-      .select('*, search_request_responses(id, item:items(id, name, co2_saved_kg, owner:members!owner_id(first_name, last_name)))')
+      .select('*, search_request_responses(id, viewed_at, created_at, item:items(id, name, status, co2_saved_kg, owner:members!owner_id(first_name, last_name)))')
       .eq('requester_id', memberId)
       .eq('status', 'open');
     const line = document.getElementById('profile-bottles-line');
@@ -6188,7 +6188,7 @@ async function _openMyBottles() {
   try {
     const { data, error } = await db
       .from('search_requests')
-      .select('*, search_request_responses(id, item:items(id, name, co2_saved_kg, owner:members!owner_id(first_name, last_name)))')
+      .select('*, search_request_responses(id, viewed_at, created_at, item:items(id, name, status, co2_saved_kg, owner:members!owner_id(first_name, last_name)))')
       .eq('requester_id', memberId)
       .eq('status', 'open');
     if (error || !data) return;
@@ -6200,7 +6200,8 @@ async function _openMyBottles() {
     const list = document.getElementById('my-bottles-list');
     list.innerHTML = '';
     data.forEach(bottle => {
-      const responses = bottle.search_request_responses || [];
+      const responses = (bottle.search_request_responses || [])
+        .filter(r => r.item && r.item.status !== 'archived');
       const daysAgo = Math.floor((new Date() - new Date(bottle.created_at)) / 86400000);
       const daysText = daysAgo === 0 ? "Créée aujourd'hui" : daysAgo === 1 ? 'Créée hier' : 'Créée il y a ' + daysAgo + ' jours';
       const responsesHTML = responses.map(r => {
@@ -6305,8 +6306,42 @@ async function _deleteBottle(id) {
     await db.from('search_requests').update({ status: 'closed' }).eq('id', id);
     _openMyBottles();
     _loadProfileBottles();
-  } catch (err) {
-    console.error('Erreur suppression bouteille:', err);
+    _showUndoToast('Bouteille supprimée', async () => {
+      await db.from('search_requests').update({ status: 'open' }).eq('id', id);
+      _openMyBottles();
+      _loadProfileBottles();
+    });
+  } catch (error) {
+    console.error('Erreur suppression bouteille:', error);
+    showToast('Erreur lors de la suppression', 'error');
+  }
+}
+
+let _undoToastTimer = null;
+
+function _showUndoToast(message, onUndo) {
+  const existing = document.getElementById('undo-toast');
+  if (existing) existing.remove();
+  if (_undoToastTimer) clearTimeout(_undoToastTimer);
+  const toast = document.createElement('div');
+  toast.id = 'undo-toast';
+  toast.style.cssText = 'position:fixed; bottom:calc(80px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); background:#333; color:white; padding:12px 16px; border-radius:12px; display:flex; align-items:center; gap:16px; z-index:99999; font-size:14px; white-space:nowrap; box-shadow:0 4px 12px rgba(0,0,0,0.3);';
+  toast.innerHTML = `<span>${message}</span><button onclick="_undoDelete()" style="background:none; border:none; color:#1F9D55; font-size:14px; font-weight:700; cursor:pointer; padding:0;">Annuler</button>`;
+  window._undoCallback = onUndo;
+  document.body.appendChild(toast);
+  _undoToastTimer = setTimeout(() => {
+    toast.remove();
+    window._undoCallback = null;
+  }, 3000);
+}
+
+async function _undoDelete() {
+  const toast = document.getElementById('undo-toast');
+  if (toast) toast.remove();
+  if (_undoToastTimer) clearTimeout(_undoToastTimer);
+  if (window._undoCallback) {
+    await window._undoCallback();
+    window._undoCallback = null;
   }
 }
 
