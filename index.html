@@ -5164,8 +5164,7 @@ async function acceptRequest(loanId) {
 
 function showRequestToCommunityModal() {
   console.log('[showRequestToCommunityModal] appelée — query:', window._currentSearchQuery);
-  const q = window._currentSearchQuery;
-  if (!q) { console.warn('[showRequestToCommunityModal] _currentSearchQuery vide'); return; }
+  const q = window._currentSearchQuery || '';
   document.getElementById('search-request-item-name').value = q;
 
   // Rebrancher le listener proprement (clone pour éviter les doublons)
@@ -6310,7 +6309,7 @@ async function _openMyBottles() {
       const emptyBtn = document.createElement('button');
       emptyBtn.style.cssText = 'background:#1F9D55; color:white; border:none; border-radius:24px; padding:12px 24px; font-size:15px; font-weight:600; cursor:pointer;';
       emptyBtn.textContent = '+ Créer une alerte';
-      emptyBtn.addEventListener('click', () => { _closeMyBottles(); setTimeout(() => showRequestToCommunityModal(), 350); });
+      emptyBtn.addEventListener('click', () => { _closeMyBottles(); setTimeout(() => { window._currentSearchQuery = window._currentSearchQuery || ''; showRequestToCommunityModal(); }, 350); });
       emptyWrap.appendChild(emptyTxt);
       emptyWrap.appendChild(emptyBtn);
       list.appendChild(emptyWrap);
@@ -6402,7 +6401,7 @@ async function _openMyBottles() {
     const btn = document.createElement('button');
     btn.style.cssText = 'background:#1F9D55; color:white; border:none; border-radius:24px; padding:12px 24px; font-size:15px; font-weight:600; cursor:pointer;';
     btn.textContent = '+ Créer une alerte';
-    btn.addEventListener('click', () => { _closeMyBottles(); setTimeout(() => showRequestToCommunityModal(), 350); });
+    btn.addEventListener('click', () => { _closeMyBottles(); setTimeout(() => { window._currentSearchQuery = window._currentSearchQuery || ''; showRequestToCommunityModal(); }, 350); });
     createBtn.appendChild(btn);
     list.appendChild(createBtn);
 
