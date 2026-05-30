@@ -3486,8 +3486,16 @@ async function updateProfileBadge() {
   try {
     const { data } = await db.from('notifications').select('id')
       .eq('user_id', memberId).eq('type', 'bottle_response').eq('read', false);
+    const count = data?.length || 0;
     const badge = document.getElementById('tab-badge-profile');
-    if (badge) badge.style.display = (data?.length || 0) > 0 ? 'block' : 'none';
+    if (badge) {
+      if (count > 0) {
+        badge.textContent = count;
+        badge.style.display = 'flex';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
   } catch (error) {
     console.error('Erreur badge profil:', error);
   }
