@@ -4901,12 +4901,15 @@ async function updateTransactionStatus(loanId, frenchStatus) {
 
 function _animateCurrentStepOut(callback) {
   const currentDot = document.querySelector('.step-dot.current');
-  const stepCard   = currentDot?.parentElement?.querySelector('.step-card');
+  console.log('[_animateCurrentStepOut] currentDot:', currentDot);
+  const stepCard = currentDot?.parentElement?.querySelector('.step-card');
+  console.log('[_animateCurrentStepOut] stepCard:', stepCard);
   if (stepCard) {
     stepCard.style.transition = 'opacity 0.25s ease';
     stepCard.style.opacity    = '0';
     setTimeout(callback, 280);
   } else {
+    console.warn('[_animateCurrentStepOut] no step-card found — calling callback immediately');
     callback();
   }
 }
@@ -5715,7 +5718,7 @@ async function showThread(id) {
   const steps = _buildStepsFromLoan(loan, userId);
   const tx    = _findTx(id);
   if (tx) tx._extraSteps = []; // DB is source of truth — discard optimistic steps
-  steps.forEach(s => timeline.appendChild(_buildStepEl(s, false)));
+  steps.forEach((s, i) => timeline.appendChild(_buildStepEl(s, i === steps.length - 1)));
 }
 
 
