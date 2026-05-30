@@ -6386,6 +6386,10 @@ async function _openMyBottles() {
         </div>`;
       list.appendChild(bottleEl);
     });
+    const createBtn = document.createElement('div');
+    createBtn.style.cssText = 'text-align:center; padding:16px 0 8px;';
+    createBtn.innerHTML = '<button style="background:#1F9D55; color:white; border:none; border-radius:24px; padding:12px 24px; font-size:15px; font-weight:600; cursor:pointer;">+ Créer une alerte</button>';
+    list.appendChild(createBtn);
 
     const backdrop = document.getElementById('modal-my-bottles-backdrop');
     const modal    = document.getElementById('modal-my-bottles');
