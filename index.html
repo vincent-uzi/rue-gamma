@@ -6232,11 +6232,15 @@ async function _openMyBottles() {
         </div>`;
       list.appendChild(bottleEl);
     });
-    const modal = document.getElementById('modal-my-bottles');
-    modal.style.display = 'flex';
+    const backdrop = document.getElementById('modal-my-bottles-backdrop');
+    const modal    = document.getElementById('modal-my-bottles');
+    backdrop.style.display = 'block';
+    modal.style.display    = 'flex';
     document.body.style.overflow = 'hidden';
-    document.body.style.pointerEvents = 'none';
-    modal.style.pointerEvents = 'all';
+    requestAnimationFrame(() => {
+      backdrop.style.background  = 'rgba(0,0,0,0.4)';
+      modal.style.transform      = 'translateX(0)';
+    });
   } catch (err) {
     console.error('Erreur ouverture bouteilles:', err);
   }
@@ -6260,9 +6264,15 @@ async function _deleteBottle(id) {
 }
 
 function _closeMyBottles() {
-  document.getElementById('modal-my-bottles').style.display = 'none';
+  const backdrop = document.getElementById('modal-my-bottles-backdrop');
+  const modal    = document.getElementById('modal-my-bottles');
+  backdrop.style.background = 'rgba(0,0,0,0)';
+  modal.style.transform     = 'translateX(100%)';
   document.body.style.overflow = '';
-  document.body.style.pointerEvents = '';
+  setTimeout(() => {
+    backdrop.style.display = 'none';
+    modal.style.display    = 'none';
+  }, 300);
 }
 
 async function _copyEmail() {
@@ -7430,14 +7440,18 @@ async function _copyInviteLink() {
   </div>
 </div>
 
-<div id="modal-my-bottles" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:flex-end; justify-content:center;">
-  <div style="background:white; border-radius:24px 24px 0 0; padding:24px; width:100%; max-width:480px; max-height:80vh; overflow-y:auto; padding-bottom:calc(24px + env(safe-area-inset-bottom));">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-      <h2 style="font-size:18px; font-weight:700; color:#333; margin:0;">Mes bouteilles à la mer</h2>
-      <button onclick="_closeMyBottles()" style="background:none; border:none; font-size:24px; color:#888; cursor:pointer; line-height:1;">×</button>
-    </div>
-    <div id="my-bottles-list"></div>
+<div id="modal-my-bottles-backdrop" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0); z-index:390; transition:background 300ms;" onclick="_closeMyBottles()"></div>
+
+<div id="modal-my-bottles" style="display:none; position:fixed; top:0; right:0; bottom:0; width:min(430px, 100vw); background:var(--bg, white); z-index:400; transform:translateX(100%); transition:transform 300ms; overflow:hidden; flex-direction:column;">
+  <div style="display:flex; align-items:center; padding:16px 20px; border-bottom:1px solid #EAF5EA; flex-shrink:0; padding-top:calc(16px + env(safe-area-inset-top));">
+    <button onclick="_closeMyBottles()" style="background:none; border:none; cursor:pointer; padding:4px; margin-right:12px; color:#333; display:flex; align-items:center;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M 15 18 L 9 12 L 15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <h2 style="font-size:17px; font-weight:600; color:#333; flex:1; text-align:center; margin:0; margin-right:36px;">Mes bouteilles à la mer</h2>
   </div>
+  <div id="my-bottles-list" style="overflow-y:auto; flex:1; padding:20px; padding-bottom:calc(20px + env(safe-area-inset-bottom));"></div>
 </div>
 </body>
 </html>
