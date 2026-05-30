@@ -5233,8 +5233,10 @@ async function sendSearchRequest() {
     const exch = document.getElementById('panel-exchanges');
     if (exch && exch.style.display !== 'none') loadTransactions();
     // Rafraîchir modale bouteilles si ouverte + card profil
-    if (document.getElementById('modal-my-bottles').style.display !== 'none') _openMyBottles();
-    _loadProfileBottles();
+    setTimeout(() => {
+      if (document.getElementById('modal-my-bottles').style.display !== 'none') _openMyBottles(true);
+      _loadProfileBottles();
+    }, 400);
   } catch (e) {
     console.error('[sendSearchRequest] ERREUR:', e);
     showToast('Erreur lors de l\'envoi : ' + (e.message || e.code || 'inconnue'), 'error');
@@ -6292,7 +6294,7 @@ function _openBottleAlert() {
   if (typeof showRequestToCommunityModal === 'function') showRequestToCommunityModal();
 }
 
-async function _openMyBottles() {
+async function _openMyBottles(highlightFirst = false) {
   const memberId = localStorage.getItem('member_id');
   try {
     const { data, error } = await db
@@ -6407,6 +6409,19 @@ async function _openMyBottles() {
     btn.addEventListener('click', () => { showRequestToCommunityModal(); });
     createBtn.appendChild(btn);
     list.appendChild(createBtn);
+
+    if (highlightFirst) {
+      const firstCard = list.firstElementChild;
+      if (firstCard) {
+        firstCard.style.opacity = '0';
+        firstCard.style.border = '1.5px solid #F39C12';
+        firstCard.style.transition = 'opacity 0.4s ease, border-color 1.5s ease';
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          firstCard.style.opacity = '1';
+          setTimeout(() => { firstCard.style.borderColor = '#EAF5EA'; }, 1500);
+        }));
+      }
+    }
 
     const backdrop = document.getElementById('modal-my-bottles-backdrop');
     const modal    = document.getElementById('modal-my-bottles');
