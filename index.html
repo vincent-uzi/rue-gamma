@@ -2517,7 +2517,16 @@
     </div>
 
     <div id="profile-bottles-alert" style="display:none; margin:0 20px 12px; background:#FFEAA7; border-radius:12px; padding:16px 20px; cursor:pointer;" onclick="_openMyBottles()">
-      <p style="font-size:15px; font-weight:700; color:#1F9D55; margin-bottom:6px;">Vos bouteilles à la mer ont été reçues !</p>
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+        <svg width="18" height="13" viewBox="0 0 280 200" fill="none" xmlns="http://www.w3.org/2000/svg" style="color:#1F9D55; flex-shrink:0;">
+          <g transform="translate(140 110) rotate(-55)" stroke="currentColor" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+            <path d="M -14 -120 L -14 -106 C -14 -100, -22 -94, -28 -86 C -34 -76, -36 -64, -36 -50 L -36 30 C -36 42, -28 50, -14 50 L 14 50 C 28 50, 36 42, 36 30 L 36 -50 C 36 -64, 34 -76, 28 -86 C 22 -94, 14 -100, 14 -106 L 14 -120 Z"/>
+            <rect x="-18" y="-138" width="36" height="20" rx="2.5" fill="currentColor"/>
+          </g>
+          <path d="M 4 118 C 32 108, 60 128, 88 118 C 116 108, 144 128, 172 118 C 200 108, 228 128, 256 118 C 268 114, 276 118, 278 118" stroke="currentColor" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+        </svg>
+        <p style="font-size:15px; font-weight:700; color:#1F9D55; margin:0;">Vos bouteilles à la mer ont été reçues !</p>
+      </div>
       <p id="profile-bottles-alert-count" style="font-size:14px; color:#555; margin-bottom:12px;"></p>
       <p style="font-size:14px; color:#1F9D55; text-decoration:underline; font-weight:400;">Consulter vos alertes →</p>
     </div>
