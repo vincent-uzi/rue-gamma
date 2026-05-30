@@ -2316,7 +2316,8 @@
       <span class="tab-label">Transactions</span>
     </div>
 
-    <div class="tab-item" data-tab="profile" role="tab" aria-selected="false" tabindex="0">
+    <div class="tab-item" data-tab="profile" role="tab" aria-selected="false" tabindex="0" style="position:relative;">
+      <span class="tab-badge" id="tab-badge-profile" style="display:none; position:absolute; top:4px; right:4px; width:8px; height:8px; background:#F39C12; border-radius:50%;"></span>
       <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden="true">
         <circle cx="9" cy="6" r="3" stroke="currentColor" stroke-width="1.6"/>
         <path d="M3 16c0-3 2.7-5 6-5s6 2 6 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
@@ -3477,6 +3478,33 @@ async function signOut() {
   window.location.replace('login.html');
 }
 
+async function updateProfileBadge() {
+  const memberId = localStorage.getItem('member_id');
+  if (!memberId) return;
+  try {
+    const { data } = await db.from('notifications').select('id')
+      .eq('user_id', memberId).eq('type', 'bottle_response').eq('read', false);
+    const badge = document.getElementById('tab-badge-profile');
+    if (badge) badge.style.display = (data?.length || 0) > 0 ? 'block' : 'none';
+  } catch (error) {
+    console.error('Erreur badge profil:', error);
+  }
+}
+
+async function markBottleNotifsRead() {
+  const memberId = localStorage.getItem('member_id');
+  if (!memberId) return;
+  try {
+    await db.from('notifications').update({ read: true })
+      .eq('user_id', memberId).eq('type', 'bottle_response').eq('read', false);
+    const badge = document.getElementById('tab-badge-profile');
+    if (badge) badge.style.display = 'none';
+    _loadProfileBottles();
+  } catch (error) {
+    console.error('Erreur mark bottle notifs read:', error);
+  }
+}
+
 function _subscribeToNotifications(memberId) {
   console.log('Realtime souscrit pour:', memberId);
   db.channel('notifications-' + memberId)
@@ -3490,7 +3518,9 @@ function _subscribeToNotifications(memberId) {
       },
       (payload) => {
         console.log('Nouvelle notification:', payload.new.type);
-        if (['loan_request', 'loan_accepted', 'loan_declined'].includes(payload.new.type)) {
+        if (payload.new.type === 'bottle_response') {
+          updateProfileBadge();
+        } else if (['loan_request', 'loan_accepted', 'loan_declined'].includes(payload.new.type)) {
           updateNotificationBadge();
         }
       }
@@ -3510,6 +3540,7 @@ function _subscribeToNotifications(memberId) {
   initTransactionsState();
   loadMember().then(() => {
     updateNotificationBadge();
+    updateProfileBadge();
     const memberId = localStorage.getItem('member_id');
     if (memberId) _subscribeToNotifications(memberId);
     else console.warn('Realtime: member_id absent après loadMember');
@@ -3540,7 +3571,7 @@ function _navigateTo(key) {
 
   if (key === 'objects')        showObjects();
   else if (key === 'exchanges') { showPanel('panel-exchanges'); loadTransactions(); markNotificationsAsRead(); }
-  else if (key === 'profile')   { showPanel('panel-profile'); loadMember().then(() => loadProfileTabs()); }
+  else if (key === 'profile')   { showPanel('panel-profile'); loadMember().then(() => { loadProfileTabs(); markBottleNotifsRead(); }); }
   // 'home': all panels closed, home visible
 
   _setActiveTab(key);
