@@ -2271,7 +2271,7 @@
       <div class="home-contact-go">
         <p style="font-size:18px;font-weight:bold;color:#333;line-height:1.3;margin:0 0 8px 0;">Une question ?</p>
         <p class="contact-sub">Contactez le G.O de votre communauté</p>
-        <div id="pill-go" class="contact-pill" role="button" tabindex="0" onclick="contactGO()">Vincent</div>
+        <div id="pill-go" class="contact-pill" role="button" tabindex="0" onclick="_openContactGO()">Vincent</div>
       </div>
     </div>
 
@@ -6121,15 +6121,33 @@ function handleValidation() {
 }
 
 // ── Share ─────────────────────────────────────────────────────
-function contactGO() {
-  const pill = document.getElementById('pill-go');
-  const phone = pill?.dataset?.phone;
-  if (phone) {
-    window.location.href = 'tel:' + phone;
-  } else {
-    // Fallback : mailto si pas de numéro
-    window.location.href = 'mailto:';
+async function _openContactGO() {
+  try {
+    const { data, error } = await db
+      .from('members')
+      .select('first_name, last_name, address, email')
+      .eq('role', 'admin')
+      .single();
+    if (error || !data) { console.error('Admin non trouvé:', error); return; }
+    document.getElementById('go-name').textContent    = data.first_name + ' ' + data.last_name;
+    document.getElementById('go-address').textContent = data.address || '';
+    const emailEl = document.getElementById('go-email');
+    emailEl.textContent = data.email;
+    emailEl.href        = 'mailto:' + data.email;
+    const modal = document.getElementById('modal-contact-go');
+    modal.style.display          = 'flex';
+    document.body.style.overflow      = 'hidden';
+    document.body.style.pointerEvents = 'none';
+    modal.style.pointerEvents         = 'all';
+  } catch (err) {
+    console.error('Erreur contact GO:', err);
   }
+}
+
+function _closeContactGO() {
+  document.getElementById('modal-contact-go').style.display = 'none';
+  document.body.style.overflow      = '';
+  document.body.style.pointerEvents = '';
 }
 
 async function shareFLO() {
@@ -7246,6 +7264,19 @@ async function _copyInviteLink() {
 
   </div><!-- /inner -->
 
+</div>
+
+<div id="modal-contact-go" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:flex-end; justify-content:center; padding-bottom:env(safe-area-inset-bottom);">
+  <div style="background:white; border-radius:24px 24px 0 0; padding:32px 24px; width:100%; max-width:480px;">
+    <h2 style="font-size:20px; font-weight:700; color:#333; margin:0 0 8px 0;">Contactez le GO</h2>
+    <p style="font-size:14px; color:#666; margin:0 0 24px 0;">Une question ? Besoin de précisions ?</p>
+    <div style="background:#F5F5F5; border-radius:12px; padding:16px; margin-bottom:24px;">
+      <p id="go-name" style="font-size:16px; font-weight:600; color:#333; margin:0 0 4px 0;"></p>
+      <p id="go-address" style="font-size:14px; color:#666; margin:0 0 8px 0;"></p>
+      <a id="go-email" href="#" style="font-size:15px; font-weight:600; color:#1F9D55; text-decoration:none;"></a>
+    </div>
+    <button onclick="_closeContactGO()" style="width:100%; padding:16px; background:#1F9D55; color:white; border:none; border-radius:24px; font-size:16px; font-weight:600; cursor:pointer;">Fermer</button>
+  </div>
 </div>
 </body>
 </html>
