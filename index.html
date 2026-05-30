@@ -6309,7 +6309,7 @@ async function _openMyBottles() {
       const emptyBtn = document.createElement('button');
       emptyBtn.style.cssText = 'background:#1F9D55; color:white; border:none; border-radius:24px; padding:12px 24px; font-size:15px; font-weight:600; cursor:pointer;';
       emptyBtn.textContent = '+ Créer une alerte';
-      emptyBtn.addEventListener('click', () => { _closeMyBottles(); setTimeout(() => { window._currentSearchQuery = window._currentSearchQuery || ''; showRequestToCommunityModal(); }, 350); });
+      emptyBtn.addEventListener('click', () => { showRequestToCommunityModal(); });
       emptyWrap.appendChild(emptyTxt);
       emptyWrap.appendChild(emptyBtn);
       list.appendChild(emptyWrap);
@@ -6401,7 +6401,7 @@ async function _openMyBottles() {
     const btn = document.createElement('button');
     btn.style.cssText = 'background:#1F9D55; color:white; border:none; border-radius:24px; padding:12px 24px; font-size:15px; font-weight:600; cursor:pointer;';
     btn.textContent = '+ Créer une alerte';
-    btn.addEventListener('click', () => { _closeMyBottles(); setTimeout(() => { window._currentSearchQuery = window._currentSearchQuery || ''; showRequestToCommunityModal(); }, 350); });
+    btn.addEventListener('click', () => { showRequestToCommunityModal(); });
     createBtn.appendChild(btn);
     list.appendChild(createBtn);
 
