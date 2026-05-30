@@ -2474,3 +2474,42 @@ function highlightNewCard(card) {
 ```
 
 Appelé avec un délai de 400ms après le refresh de la liste pour laisser le temps au DOM de se mettre à jour.
+
+### Disparition card (fadeOutCard)
+Pattern inverse de highlightNewCard. Utilisé pour supprimer une card de liste avec animation.
+Séquence : bordure orange → fade out → collapse hauteur → remove DOM.
+
+```javascript
+function fadeOutCard(card, onComplete) {
+  const height = card.offsetHeight;
+  
+  // Étape 1 : bordure orange (300ms)
+  card.style.transition = 'border-color 0.3s ease';
+  card.style.border = '1.5px solid #F39C12';
+  
+  setTimeout(() => {
+    // Étape 2 : fade out (400ms)
+    card.style.transition = 'opacity 0.4s ease';
+    card.style.opacity = '0';
+    
+    setTimeout(() => {
+      // Étape 3 : collapse hauteur (300ms)
+      card.style.transition = 'max-height 0.3s ease, margin-bottom 0.3s ease, padding 0.3s ease';
+      card.style.overflow = 'hidden';
+      card.style.maxHeight = height + 'px';
+      
+      requestAnimationFrame(() => {
+        card.style.maxHeight = '0px';
+        card.style.marginBottom = '0px';
+        card.style.paddingTop = '0px';
+        card.style.paddingBottom = '0px';
+        
+        setTimeout(() => {
+          card.remove();
+          if (onComplete) onComplete();
+        }, 300);
+      });
+    }, 400);
+  }, 300);
+}
+```
