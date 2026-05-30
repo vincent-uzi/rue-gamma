@@ -6192,12 +6192,17 @@ async function _openMyBottles() {
       .eq('requester_id', memberId)
       .eq('status', 'open');
     if (error || !data) return;
+    data.sort((a, b) => {
+      const aResponses = (a.search_request_responses || []).length;
+      const bResponses = (b.search_request_responses || []).length;
+      return bResponses - aResponses;
+    });
     const list = document.getElementById('my-bottles-list');
     list.innerHTML = '';
     data.forEach(bottle => {
       const responses = bottle.search_request_responses || [];
       const daysAgo = Math.floor((new Date() - new Date(bottle.created_at)) / 86400000);
-      const daysText = daysAgo === 0 ? "Aujourd'hui" : daysAgo === 1 ? 'Hier' : 'Il y a ' + daysAgo + ' jours';
+      const daysText = daysAgo === 0 ? "Créée aujourd'hui" : daysAgo === 1 ? 'Créée hier' : 'Créée il y a ' + daysAgo + ' jours';
       const responsesHTML = responses.map(r => {
         const item = r.item; if (!item) return '';
         const owner = item.owner;
@@ -6214,6 +6219,10 @@ async function _openMyBottles() {
           <span style="color:#CCC;font-size:18px;">›</span>
         </div>`;
       }).join('');
+      const lastViewed = bottle.responses_last_viewed_at ? new Date(bottle.responses_last_viewed_at) : null;
+      const newResponses = responses.filter(r => !lastViewed || new Date(r.created_at) > lastViewed).length;
+      const hasNew = newResponses > 0;
+      const responseCount = responses.length;
       const bottleEl = document.createElement('div');
       bottleEl.style.cssText = 'background:white;border-radius:12px;padding:16px;margin-bottom:12px;';
       bottleEl.innerHTML = `
@@ -6224,11 +6233,13 @@ async function _openMyBottles() {
           </div>
           <button onclick="_deleteBottle('${bottle.id}')" style="background:none;border:none;cursor:pointer;padding:4px;color:#999;font-size:18px;flex-shrink:0;">🗑️</button>
         </div>
-        <button onclick="_toggleBottleResponses(this)" style="margin-top:12px;background:none;border:none;cursor:pointer;font-size:13px;color:#1F9D55;font-weight:600;padding:0;display:flex;align-items:center;gap:4px;">
-          ${responses.length} réponse${responses.length > 1 ? 's' : ''} <span style="font-size:10px;">▼</span>
+        <button onclick="_toggleBottleResponses(this, '${bottle.id}')" style="margin-top:12px;background:none;border:none;cursor:pointer;font-size:13px;color:#1F9D55;font-weight:600;padding:0;display:flex;align-items:center;gap:8px;">
+          ${responseCount} réponse${responseCount > 1 ? 's' : ''}
+          ${hasNew ? `<span style="background:#1F9D55;color:white;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;">${newResponses} nouvelle${newResponses > 1 ? 's' : ''}</span>` : ''}
+          <span style="font-size:10px;">▼</span>
         </button>
         <div class="bottle-responses" style="display:none;">
-          ${responses.length > 0 ? responsesHTML : '<p style="font-size:13px;color:#999;margin-top:8px;">Aucune réponse pour le moment</p>'}
+          ${responseCount > 0 ? responsesHTML : '<p style="font-size:13px;color:#999;margin-top:8px;">Aucune réponse pour le moment</p>'}
         </div>`;
       list.appendChild(bottleEl);
     });
@@ -6246,11 +6257,22 @@ async function _openMyBottles() {
   }
 }
 
-function _toggleBottleResponses(btn) {
+async function _toggleBottleResponses(btn, bottleId) {
   const responsesDiv = btn.nextElementSibling;
   const isHidden = responsesDiv.style.display === 'none';
   responsesDiv.style.display = isHidden ? 'block' : 'none';
-  btn.querySelector('span').textContent = isHidden ? '▲' : '▼';
+  btn.querySelector('span:last-child').textContent = isHidden ? '▲' : '▼';
+  if (isHidden && bottleId) {
+    try {
+      await db.from('search_requests')
+        .update({ responses_last_viewed_at: new Date().toISOString() })
+        .eq('id', bottleId);
+      const newLabel = btn.querySelector('span[style*="background:#1F9D55"]');
+      if (newLabel) newLabel.remove();
+    } catch (error) {
+      console.error('Erreur update last viewed:', error);
+    }
+  }
 }
 
 async function _deleteBottle(id) {
