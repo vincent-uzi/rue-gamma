@@ -6172,7 +6172,7 @@ async function _loadProfileBottles() {
       .from('search_requests')
       .select('*, search_request_responses(id, viewed_at, created_at, item:items(id, name, status, co2_saved_kg, owner:members!owner_id(first_name, last_name)))')
       .eq('requester_id', memberId)
-      .eq('status', 'open');
+      .in('status', ['open', 'notified']);
     const line = document.getElementById('profile-bottles-line');
     if (error || !data || data.length === 0) { if (line) line.style.display = 'none'; return; }
     const count = data.length;
@@ -6190,7 +6190,7 @@ async function _openMyBottles() {
       .from('search_requests')
       .select('*, search_request_responses(id, viewed_at, created_at, item:items(id, name, status, co2_saved_kg, owner:members!owner_id(first_name, last_name)))')
       .eq('requester_id', memberId)
-      .eq('status', 'open');
+      .in('status', ['open', 'notified']);
     if (error || !data) return;
     data.sort((a, b) => {
       const aResponses = (a.search_request_responses || []).length;
