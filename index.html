@@ -2516,6 +2516,23 @@
       </div>
     </div>
 
+    <div id="profile-bottles-alert" style="display:none; margin:0 20px 12px; background:#FFEAA7; border:1px solid #F5DC8E; border-radius:12px; padding:16px; cursor:pointer;" onclick="_openMyBottles()">
+      <div style="display:flex; align-items:flex-start; gap:10px;">
+        <svg width="22" height="16" viewBox="0 0 280 200" fill="none" xmlns="http://www.w3.org/2000/svg" style="color:#1F9D55; flex-shrink:0; margin-top:2px;">
+          <g transform="translate(140 110) rotate(-55)" stroke="currentColor" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+            <path d="M -14 -120 L -14 -106 C -14 -100, -22 -94, -28 -86 C -34 -76, -36 -64, -36 -50 L -36 30 C -36 42, -28 50, -14 50 L 14 50 C 28 50, 36 42, 36 30 L 36 -50 C 36 -64, 34 -76, 28 -86 C 22 -94, 14 -100, 14 -106 L 14 -120 Z"/>
+            <rect x="-18" y="-138" width="36" height="20" rx="2.5" fill="currentColor"/>
+          </g>
+          <path d="M 4 118 C 32 108, 60 128, 88 118 C 116 108, 144 128, 172 118 C 200 108, 228 128, 256 118 C 268 114, 276 118, 278 118" stroke="currentColor" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+        </svg>
+        <div style="flex:1;">
+          <p style="font-size:15px; font-weight:700; color:#1F9D55; margin:0 0 4px 0;">Vos bouteilles à la mer ont été reçues !</p>
+          <p id="profile-bottles-alert-count" style="font-size:14px; color:#666; margin:0 0 12px 0;"></p>
+          <p style="font-size:14px; color:#1F9D55; font-weight:600; text-decoration:underline; margin:0;">Consulter vos alertes →</p>
+        </div>
+      </div>
+    </div>
+
     <!-- Tab cards -->
     <div style="display:flex;gap:8px;padding:16px 16px 12px;">
       <button onclick="switchProfileTab('objets')" id="tab-objets" class="profile-tab active">
@@ -6173,11 +6190,32 @@ async function _loadProfileBottles() {
       .select('*, search_request_responses(id, viewed_at, created_at, item:items(id, name, status, co2_saved_kg, owner:members!owner_id(first_name, last_name)))')
       .eq('requester_id', memberId)
       .in('status', ['open', 'notified']);
-    const line = document.getElementById('profile-bottles-line');
-    if (error || !data || data.length === 0) { if (line) line.style.display = 'none'; return; }
+    const line  = document.getElementById('profile-bottles-line');
+    const alert = document.getElementById('profile-bottles-alert');
+    if (error || !data || data.length === 0) {
+      if (line)  line.style.display  = 'none';
+      if (alert) alert.style.display = 'none';
+      return;
+    }
     const count = data.length;
     document.getElementById('profile-bottles-count').textContent = count + ' bouteille' + (count > 1 ? 's' : '') + ' à la mer active' + (count > 1 ? 's' : '');
-    if (line) line.style.display = 'block';
+
+    const { data: newResponses } = await db
+      .from('search_request_responses')
+      .select('id')
+      .in('search_request_id', data.map(b => b.id))
+      .is('viewed_at', null)
+      .not('item_id', 'is', null);
+
+    const newResponseCount = newResponses?.length || 0;
+    if (newResponseCount > 0) {
+      document.getElementById('profile-bottles-alert-count').textContent = newResponseCount + ' objet' + (newResponseCount > 1 ? 's' : '') + ' pourrai' + (newResponseCount > 1 ? 'ent' : 't') + ' vous intéresser';
+      if (alert) alert.style.display = 'block';
+      if (line)  line.style.display  = 'none';
+    } else {
+      if (alert) alert.style.display = 'none';
+      if (line)  line.style.display  = 'block';
+    }
   } catch (err) {
     console.error('Erreur chargement bouteilles profil:', err);
   }
