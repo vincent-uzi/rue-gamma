@@ -6306,7 +6306,7 @@ async function _deleteBottle(id, itemName) {
     await db.from('search_requests').update({ status: 'closed' }).eq('id', id);
     _openMyBottles();
     _loadProfileBottles();
-    _showUndoToast('Votre recherche "' + (itemName || 'cette recherche') + '" est supprimée', async () => {
+    _showUndoToast('Votre recherche "' + (itemName || 'cette recherche') + '"', async () => {
       await db.from('search_requests').update({ status: 'open' }).eq('id', id);
       _openMyBottles();
       _loadProfileBottles();
@@ -6325,8 +6325,8 @@ function _showUndoToast(message, onUndo) {
   if (_undoToastTimer) clearTimeout(_undoToastTimer);
   const toast = document.createElement('div');
   toast.id = 'undo-toast';
-  toast.style.cssText = 'position:fixed; bottom:calc(80px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); background:#333; color:white; padding:12px 16px; border-radius:12px; display:flex; align-items:center; gap:16px; z-index:99999; font-size:14px; white-space:nowrap; box-shadow:0 4px 12px rgba(0,0,0,0.3);';
-  toast.innerHTML = `<span>${message}</span><button onclick="_undoDelete()" style="background:none; border:none; color:#1F9D55; font-size:14px; font-weight:700; cursor:pointer; padding:0;">Annuler</button>`;
+  toast.style.cssText = 'position:fixed; bottom:calc(80px + env(safe-area-inset-bottom)); left:16px; right:16px; background:#333; color:white; padding:12px 16px; border-radius:12px; display:flex; align-items:center; justify-content:space-between; z-index:99999; box-shadow:0 4px 12px rgba(0,0,0,0.3);';
+  toast.innerHTML = `<div style="font-size:14px; line-height:1.4; flex:1; margin-right:16px;"><span style="font-weight:600;">${message}</span><br><span style="opacity:0.8; font-size:13px;">est supprimée</span></div><button onclick="_undoDelete()" style="background:none; border:none; color:#1F9D55; font-size:14px; font-weight:700; cursor:pointer; padding:0; white-space:nowrap; flex-shrink:0;">Annuler</button>`;
   window._undoCallback = onUndo;
   document.body.appendChild(toast);
   _undoToastTimer = setTimeout(() => {
