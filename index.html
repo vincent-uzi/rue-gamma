@@ -5232,6 +5232,9 @@ async function sendSearchRequest() {
     // Rafraîchir onglet Demandes si ouvert
     const exch = document.getElementById('panel-exchanges');
     if (exch && exch.style.display !== 'none') loadTransactions();
+    // Rafraîchir modale bouteilles si ouverte + card profil
+    if (document.getElementById('modal-my-bottles').style.display !== 'none') _openMyBottles();
+    _loadProfileBottles();
   } catch (e) {
     console.error('[sendSearchRequest] ERREUR:', e);
     showToast('Erreur lors de l\'envoi : ' + (e.message || e.code || 'inconnue'), 'error');
