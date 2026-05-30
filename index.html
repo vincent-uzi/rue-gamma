@@ -3291,6 +3291,23 @@ function _attachCarouselScroll() {
 async function _dismissBottle(id) {
   const memberId = localStorage.getItem('member_id');
   _homeBottles = _homeBottles.filter(b => b.id !== id);
+
+  if (_homeBottles.length === 0) {
+    const carousel  = document.getElementById('bottle-carousel');
+    const dots      = document.getElementById('bottle-dots');
+    const shareCard = document.getElementById('share-cta-card');
+    const sc        = document.getElementById('share-count');
+    if (carousel)  carousel.style.display  = 'none';
+    if (dots)      dots.style.display      = 'none';
+    if (shareCard) {
+      if (sc) sc.textContent = _userItemsCount;
+      shareCard.style.opacity    = '0';
+      shareCard.style.transition = 'opacity 0.4s ease';
+      shareCard.style.display    = 'flex';
+      requestAnimationFrame(() => requestAnimationFrame(() => { shareCard.style.opacity = '1'; }));
+    }
+  }
+
   try {
     await db.from('bottle_dismissals').insert({ member_id: memberId, search_request_id: id });
   } catch (error) {
