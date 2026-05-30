@@ -6378,18 +6378,32 @@ async function _toggleBottleResponses(btn, bottleId) {
 }
 
 async function _deleteBottle(id, itemName) {
-  try {
-    await db.from('search_requests').update({ status: 'closed' }).eq('id', id);
-    _openMyBottles();
-    _loadProfileBottles();
-    _showUndoToast('Votre recherche "' + (itemName || 'cette recherche') + '"', async () => {
-      await db.from('search_requests').update({ status: 'open' }).eq('id', id);
-      _openMyBottles();
-      _loadProfileBottles();
+  const cards = document.querySelectorAll('#my-bottles-list > div');
+  let targetCard = null;
+  cards.forEach(card => { if (card.innerHTML.includes(id)) targetCard = card; });
+
+  if (targetCard) {
+    fadeOutCard(targetCard, async () => {
+      try {
+        await db.from('search_requests').update({ status: 'closed' }).eq('id', id);
+        _loadProfileBottles();
+        _showUndoToast('Votre recherche "' + (itemName || 'cette recherche') + '"', async () => {
+          await db.from('search_requests').update({ status: 'open' }).eq('id', id);
+          _loadProfileBottles();
+          _openMyBottles();
+        });
+      } catch (error) {
+        console.error('Erreur suppression bouteille:', error);
+        showToast('Erreur lors de la suppression', 'error');
+      }
     });
-  } catch (error) {
-    console.error('Erreur suppression bouteille:', error);
-    showToast('Erreur lors de la suppression', 'error');
+  } else {
+    try {
+      await db.from('search_requests').update({ status: 'closed' }).eq('id', id);
+      _loadProfileBottles();
+    } catch (error) {
+      console.error('Erreur suppression bouteille:', error);
+    }
   }
 }
 
