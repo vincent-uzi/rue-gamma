@@ -6302,7 +6302,7 @@ async function _openMyBottles() {
     const list = document.getElementById('my-bottles-list');
     list.innerHTML = '';
     if (!data || data.length === 0) {
-      list.innerHTML = `<div style="text-align:center; padding:40px 20px; color:#999;"><p style="font-size:15px; margin-bottom:24px;">Aucune alerte bouteille à la mer activée</p><button onclick="return false;" style="background:#1F9D55; color:white; border:none; border-radius:24px; padding:12px 24px; font-size:15px; font-weight:600; cursor:pointer;">+ Créer une alerte</button></div>`;
+      list.innerHTML = `<div style="text-align:center; padding:40px 20px; color:#999;"><p style="font-size:15px; margin-bottom:24px;">Aucune alerte bouteille à la mer activée</p><button onclick="_closeMyBottles(); showRequestToCommunityModal();" style="background:#1F9D55; color:white; border:none; border-radius:24px; padding:12px 24px; font-size:15px; font-weight:600; cursor:pointer;">+ Créer une alerte</button></div>`;
       const backdrop = document.getElementById('modal-my-bottles-backdrop');
       const modal    = document.getElementById('modal-my-bottles');
       backdrop.style.display = 'block';
@@ -6388,7 +6388,7 @@ async function _openMyBottles() {
     });
     const createBtn = document.createElement('div');
     createBtn.style.cssText = 'text-align:center; padding:16px 0 8px;';
-    createBtn.innerHTML = '<button style="background:#1F9D55; color:white; border:none; border-radius:24px; padding:12px 24px; font-size:15px; font-weight:600; cursor:pointer;">+ Créer une alerte</button>';
+    createBtn.innerHTML = '<button onclick="_closeMyBottles(); showRequestToCommunityModal();" style="background:#1F9D55; color:white; border:none; border-radius:24px; padding:12px 24px; font-size:15px; font-weight:600; cursor:pointer;">+ Créer une alerte</button>';
     list.appendChild(createBtn);
 
     const backdrop = document.getElementById('modal-my-bottles-backdrop');
