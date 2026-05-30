@@ -3146,9 +3146,12 @@ function _renderCarousel(userId) {
     carousel.style.display = 'none';
     document.getElementById('bottle-dots').style.display = 'none';
     if (shareCard) {
-      shareCard.style.display = 'block';
       const sc = document.getElementById('share-count');
       if (sc) sc.textContent = _userItemsCount;
+      shareCard.style.opacity = '0';
+      shareCard.style.transition = 'opacity 0.4s ease';
+      shareCard.style.display = 'flex';
+      requestAnimationFrame(() => { shareCard.style.opacity = '1'; });
     }
     return;
   }
@@ -3218,23 +3221,31 @@ function _renderCarousel(userId) {
         const carouselEl = document.getElementById('bottle-carousel');
         const idx = Array.from(carouselEl.querySelectorAll('.bottle-card')).indexOf(cardEl);
 
-        // cardEl.style.transition = 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s ease';
-        // cardEl.style.transform = 'translateY(30px)';
-        // cardEl.style.opacity = '0';
-        console.log('[DEBUG] About to hide card');
-        cardEl.style.display = 'none';
+        cardEl.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+        cardEl.style.transform = 'translateX(-100%)';
+        cardEl.style.opacity = '0';
 
         setTimeout(() => {
+          cardEl.style.display = 'none';
           _dismissBottle(sr.id);
           if (_homeBottles.length > 0) {
             const c = document.getElementById('bottle-carousel');
             const newIdx = Math.min(idx, _homeBottles.length - 1);
             const newCards = c && c.querySelectorAll('.bottle-card');
-            if (newCards && newCards[newIdx]) {
-              newCards[newIdx].scrollIntoView({ behavior: 'smooth', inline: 'start' });
+            const next = newCards && newCards[newIdx];
+            if (next) {
+              next.style.transition = 'none';
+              next.style.transform = 'translateX(30px)';
+              next.style.opacity = '0';
+              requestAnimationFrame(() => {
+                next.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+                next.style.transform = 'translateX(0)';
+                next.style.opacity = '1';
+              });
+              next.scrollIntoView({ behavior: 'smooth', inline: 'start' });
             }
           }
-        }, 800);
+        }, 300);
       });
 
       actions.appendChild(btnYes);
