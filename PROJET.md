@@ -2513,3 +2513,72 @@ function fadeOutCard(card, onComplete) {
   }, 300);
 }
 ```
+
+---
+
+## SESSION 30 MAI 2026 — BOUTEILLES À LA MER + ANIMATIONS + NOTIFICATIONS
+
+### RÉALISATIONS PRINCIPALES
+
+#### 1. SYSTÈME BOUTEILLES À LA MER COMPLET
+- Modale profil : tri réponses non vues en premier + rétrochronologique
+- Labels 'Nouvelles' en orange sur réponses non consultées
+- viewed_at tracké en DB (search_request_responses)
+- responses_last_viewed_at tracké en DB (search_requests)
+- Filtrage items archived dans les réponses
+- Dismissals persistés en DB (bottle_dismissals) au lieu de localStorage
+- État vide : message + bouton 'Créer une alerte'
+- Bouton 'Créer une alerte' en bas de liste (ouvre modale Demander à la communauté)
+- Refresh liste après création alerte + highlightNewCard
+
+#### 2. NOTIFICATIONS BOUTEILLES
+- Badge Profil (orange → rouge, style identique badge Transactions)
+- Realtime : bottle_response → updateProfileBadge()
+- markBottleNotifsRead() à l'ouverture du Profil
+- Card jaune profil : singulier/pluriel (Votre/Vos bouteilles)
+- Suppression encarts obsolètes Home (banner bouteille + Délivrez un objet)
+- _markRead() appelle updateProfileBadge() au lieu de updateNotificationBadge()
+
+#### 3. ANIMATIONS UI
+- fadeOutCard() : bordure orange → fade out → collapse hauteur → remove DOM
+- highlightNewCard() : fade in + bordure orange → vert en 1.5s
+- Carousel Home : slide dismiss + fade in encart Prêtez plus
+- Thread transaction : _animateCurrentStepOut() + fadeInUp nouvelles steps
+- Suppression objet profil : fadeOutCard + undo avec highlightNewCard polling DOM
+- Suppression alerte bouteille : fadeOutCard + undo
+- Encart bouteille Home : fadeOutCard après réponse
+
+#### 4. POPIN SUPPRESSION BOUTEILLE APRÈS EMPRUNT
+- _checkAndOfferBottleDeletion() : match partiel nom objet/bouteille
+- Bottom sheet Garder/Supprimer
+- Suppression avec fadeOutCard + toast annulable
+
+#### 5. FIXES DIVERS
+- Badge Transactions : source unique, ne se remet plus à 0 par erreur
+- Flow invitation : skip étape code sur signup si déjà validé sur invite.html
+- Téléphone affiché sur profil + popin contact
+- CO₂ > 100 kg sans décimales
+- 'Trouver' → 'Empruntez' dans moteur de recherche
+- Popin contact GO (admin) : nom/adresse/email cliquable + copier
+- Card profil bouteilles toujours visible (même si 0 alertes)
+
+### PATTERNS UI DOCUMENTÉS
+- fadeOutCard() : suppression card avec animation
+- highlightNewCard() : apparition card avec animation
+- Les deux sont documentés dans PROJET.md section PATTERNS UI
+
+### BUGS RESTANTS
+- [ ] Splash screen : débugger redirect + flow login → splash → index
+- [ ] Transactions : animations fade in/out pas visibles (debug en cours)
+- [ ] Perceuse de Vincent marquée comme prêtée chez Jean-Pierre sans loan visible
+- [ ] Audit RLS Supabase
+- [ ] Tests devices
+- [ ] Mot de passe oublié
+- [ ] Tracking : requêtes SQL post-test
+- [ ] Restructuration PROJET.md (trop volumineux)
+
+### MÉTRIQUES SESSION
+- Commits : 40+
+- Patterns UI : 2 documentés
+- Tables DB créées : bottle_dismissals
+- Colonnes ajoutées : viewed_at, responses_last_viewed_at, role
