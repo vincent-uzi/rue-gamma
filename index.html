@@ -3682,6 +3682,25 @@ async function submitForm() {
       console.log('[Submit] window._searchRequestId:', srId);
       _notifySearchRequester(srId);
       _dismissBottle(srId);
+      const bottleCard = document.querySelector('[data-id="' + srId + '"]');
+      if (bottleCard) {
+        fadeOutCard(bottleCard, () => {
+          _homeBottles = _homeBottles.filter(b => b.id !== srId);
+          if (_homeBottles.length === 0) {
+            const carousel = document.getElementById('bottle-carousel');
+            const dots     = document.getElementById('bottle-dots');
+            if (carousel) carousel.style.display = 'none';
+            if (dots)     dots.style.display     = 'none';
+            const shareCta = document.getElementById('share-cta-card');
+            if (shareCta) {
+              shareCta.style.opacity    = '0';
+              shareCta.style.display    = 'flex';
+              shareCta.style.transition = 'opacity 0.4s ease';
+              requestAnimationFrame(() => { shareCta.style.opacity = '1'; });
+            }
+          }
+        });
+      }
     } catch (e) { console.warn('[submitForm] search_request_responses:', e); }
   }
 
@@ -6556,6 +6575,28 @@ function _closeBottleDeletionOffer() {
   document.getElementById('modal-bottle-delete-offer')?.remove();
   document.body.style.overflow = '';
   document.body.style.pointerEvents = '';
+}
+
+function fadeOutCard(card, onComplete) {
+  const height = card.offsetHeight;
+  card.style.transition = 'border-color 0.3s ease';
+  card.style.border = '1.5px solid #F39C12';
+  setTimeout(() => {
+    card.style.transition = 'opacity 0.4s ease';
+    card.style.opacity = '0';
+    setTimeout(() => {
+      card.style.transition = 'max-height 0.3s ease, margin-bottom 0.3s ease, padding 0.3s ease';
+      card.style.overflow = 'hidden';
+      card.style.maxHeight = height + 'px';
+      requestAnimationFrame(() => {
+        card.style.maxHeight = '0px';
+        card.style.marginBottom = '0px';
+        card.style.paddingTop = '0px';
+        card.style.paddingBottom = '0px';
+        setTimeout(() => { card.remove(); if (onComplete) onComplete(); }, 300);
+      });
+    }, 400);
+  }, 300);
 }
 
 async function _confirmBottleDeletion(id, itemName) {
