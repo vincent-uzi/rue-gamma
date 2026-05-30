@@ -6518,8 +6518,22 @@ async function borrowItem() {
 // ── Item Detail Panel ─────────────────────────────────────────
 let _detailItem = null;
 
+async function _markResponseViewed(itemId) {
+  const memberId = localStorage.getItem('member_id');
+  if (!memberId || !itemId) return;
+  try {
+    await db.from('search_request_responses')
+      .update({ viewed_at: new Date().toISOString() })
+      .eq('item_id', itemId)
+      .is('viewed_at', null);
+  } catch (error) {
+    console.error('Erreur mark viewed:', error);
+  }
+}
+
 async function loadItemDetail(itemId) {
   document.body.classList.remove('is-owner');
+  _markResponseViewed(itemId);
   const userId = localStorage.getItem('member_id');
 
   const { data, error } = await db.from('items')
@@ -7001,6 +7015,7 @@ async function borrowItemFromDetail() {
 
   const userId = localStorage.getItem('member_id');
   if (!userId) { showToast('Connexion requise', 'error'); return; }
+  _markResponseViewed(item.id);
 
   if (item.owner_id === userId) {
     showToast("C'est votre propre objet", 'error');
