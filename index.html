@@ -2918,7 +2918,7 @@
       Tous les membres seront notifiés et pourront déclarer leur objet.
     </div>
     <div style="display:flex;gap:12px;">
-      <button onclick="hideRequestToCommunityModal()" style="flex:1;padding:12px 20px;background:white;color:#333;border:1px solid #D0D0D0;border-radius:24px;font-size:16px;font-weight:600;cursor:pointer;">Non, désolé</button>
+      <button onclick="hideRequestToCommunityModal()" style="flex:1;padding:12px 20px;background:white;color:#333;border:1px solid #D0D0D0;border-radius:24px;font-size:16px;font-weight:600;cursor:pointer;">Annuler</button>
       <button id="search-request-send-btn" style="flex:1;padding:12px 20px;background:#1F9D55;color:white;border:none;border-radius:24px;font-size:16px;font-weight:600;cursor:pointer;">Envoyer</button>
     </div>
   </div>
@@ -6250,12 +6250,14 @@ async function _loadProfileBottles() {
       .in('status', ['open', 'notified']);
     const line  = document.getElementById('profile-bottles-line');
     const alert = document.getElementById('profile-bottles-alert');
-    if (error || !data || data.length === 0) {
-      if (line)  line.style.display  = 'none';
+    if (error) return;
+    const count = data?.length || 0;
+    if (count === 0) {
+      document.getElementById('profile-bottles-count').textContent = 'Aucune alerte activée';
+      if (line)  line.style.display  = 'block';
       if (alert) alert.style.display = 'none';
       return;
     }
-    const count = data.length;
     document.getElementById('profile-bottles-count').textContent = count + ' bouteille' + (count > 1 ? 's' : '') + ' à la mer active' + (count > 1 ? 's' : '');
 
     const { data: newResponses } = await db
@@ -6283,6 +6285,11 @@ async function _loadProfileBottles() {
   }
 }
 
+function _openBottleAlert() {
+  _closeMyBottles();
+  if (typeof showRequestToCommunityModal === 'function') showRequestToCommunityModal();
+}
+
 async function _openMyBottles() {
   const memberId = localStorage.getItem('member_id');
   try {
@@ -6291,7 +6298,22 @@ async function _openMyBottles() {
       .select('*, search_request_responses(id, viewed_at, created_at, item:items(id, name, status, co2_saved_kg, owner:members!owner_id(first_name, last_name)))')
       .eq('requester_id', memberId)
       .in('status', ['open', 'notified']);
-    if (error || !data) return;
+    if (error) return;
+    const list = document.getElementById('my-bottles-list');
+    list.innerHTML = '';
+    if (!data || data.length === 0) {
+      list.innerHTML = `<div style="text-align:center; padding:40px 20px; color:#999;"><p style="font-size:15px; margin-bottom:24px;">Aucune alerte bouteille à la mer activée</p><button onclick="_openBottleAlert()" style="background:#1F9D55; color:white; border:none; border-radius:24px; padding:12px 24px; font-size:15px; font-weight:600; cursor:pointer;">+ Créer une alerte</button></div>`;
+      const backdrop = document.getElementById('modal-my-bottles-backdrop');
+      const modal    = document.getElementById('modal-my-bottles');
+      backdrop.style.display = 'block';
+      modal.style.display    = 'flex';
+      document.body.style.overflow = 'hidden';
+      requestAnimationFrame(() => {
+        backdrop.style.background = 'rgba(0,0,0,0.4)';
+        modal.style.transform     = 'translateX(0)';
+      });
+      return;
+    }
     data.sort((a, b) => {
       const aResponses = a.search_request_responses || [];
       const bResponses = b.search_request_responses || [];
@@ -6307,8 +6329,6 @@ async function _openMyBottles() {
         : new Date(b.created_at).getTime();
       return bDate - aDate;
     });
-    const list = document.getElementById('my-bottles-list');
-    list.innerHTML = '';
     data.forEach(bottle => {
       const responses = (bottle.search_request_responses || [])
         .filter(r => r.item && r.item.status !== 'archived');
@@ -6366,6 +6386,10 @@ async function _openMyBottles() {
         </div>`;
       list.appendChild(bottleEl);
     });
+    const createBtn = document.createElement('div');
+    createBtn.style.cssText = 'text-align:center; padding:16px 0 8px;';
+    createBtn.innerHTML = '<button onclick="_openBottleAlert()" style="background:white; color:#1F9D55; border:2px solid #1F9D55; border-radius:24px; padding:12px 24px; font-size:15px; font-weight:600; cursor:pointer;">+ Créer une alerte</button>';
+    list.appendChild(createBtn);
     const backdrop = document.getElementById('modal-my-bottles-backdrop');
     const modal    = document.getElementById('modal-my-bottles');
     backdrop.style.display = 'block';
