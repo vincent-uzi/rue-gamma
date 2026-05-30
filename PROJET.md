@@ -2447,3 +2447,30 @@ function _navigateTo(key) {
 - Commits : 10+
 - Fichiers créés : splash.html, icons/ (5 fichiers)
 - Fichiers modifiés : index.html, login.html, invite.html, signup.html, onboarding.html
+
+---
+
+## 🎨 PATTERNS UI
+
+### Apparition nouvelle card (highlight new item)
+Utilisé quand une nouvelle card apparaît dans une liste suite à une action utilisateur.
+
+```javascript
+function highlightNewCard(card) {
+  // Fade in + bordure orange temporaire
+  card.style.opacity = '0';
+  card.style.border = '1.5px solid #F39C12';
+  card.style.transition = 'opacity 0.4s ease, border-color 1.5s ease';
+  
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      card.style.opacity = '1';
+      setTimeout(() => {
+        card.style.borderColor = '#EAF5EA'; // retour bordure normale
+      }, 1500);
+    });
+  });
+}
+```
+
+Appelé avec un délai de 400ms après le refresh de la liste pour laisser le temps au DOM de se mettre à jour.

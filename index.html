@@ -3378,7 +3378,8 @@ async function _loadBottleNotifEncart(userId) {
   async function _markRead() {
     await db.from('notifications').update({ read: true }).in('id', notifIds);
     encart.remove();
-    updateNotificationBadge();
+    // Ne pas appeler updateNotificationBadge() — cette fonction concerne bottle_response, pas les transactions
+    updateProfileBadge();
   }
 
   document.getElementById('close-bottle-encart').onclick = _markRead;
