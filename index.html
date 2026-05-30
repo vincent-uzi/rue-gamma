@@ -6559,13 +6559,33 @@ function _closeBottleDeletionOffer() {
 }
 
 async function _confirmBottleDeletion(id, itemName) {
-  try {
-    await db.from('search_requests').update({ status: 'closed' }).eq('id', id);
-    _closeBottleDeletionOffer();
-    _loadProfileBottles();
-    showToast('Alerte supprimée', 'success');
-  } catch (error) {
-    console.error('Erreur suppression bouteille:', error);
+  const cards = document.querySelectorAll('#my-bottles-list > div');
+  let targetCard = null;
+  cards.forEach(card => { if (card.innerHTML.includes(itemName)) targetCard = card; });
+
+  const doDelete = async () => {
+    try {
+      await db.from('search_requests').update({ status: 'closed' }).eq('id', id);
+      _closeBottleDeletionOffer();
+      _loadProfileBottles();
+      _showUndoToast('Alerte "' + itemName + '"', async () => {
+        await db.from('search_requests').update({ status: 'open' }).eq('id', id);
+        _loadProfileBottles();
+      });
+    } catch (error) {
+      console.error('Erreur suppression bouteille:', error);
+    }
+  };
+
+  if (targetCard) {
+    targetCard.style.transition = 'border-color 0.3s ease, opacity 0.5s ease';
+    targetCard.style.border = '1.5px solid #F39C12';
+    setTimeout(() => {
+      targetCard.style.opacity = '0';
+      setTimeout(doDelete, 500);
+    }, 300);
+  } else {
+    await doDelete();
   }
 }
 
