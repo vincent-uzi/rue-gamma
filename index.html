@@ -6239,6 +6239,10 @@ async function _loadProfileBottles() {
 
     const newResponseCount = newResponses?.length || 0;
     if (newResponseCount > 0) {
+      const titre = newResponseCount === 1
+        ? 'Votre bouteille à la mer a été reçue !'
+        : 'Vos bouteilles à la mer ont été reçues !';
+      document.querySelector('#profile-bottles-alert p:first-child').textContent = titre;
       document.getElementById('profile-bottles-alert-count').textContent = newResponseCount + ' objet' + (newResponseCount > 1 ? 's' : '') + ' pourrai' + (newResponseCount > 1 ? 'ent' : 't') + ' vous intéresser';
       if (alert) alert.style.display = 'block';
       if (line)  line.style.display  = 'none';
