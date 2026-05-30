@@ -6235,7 +6235,15 @@ async function _openMyBottles() {
             <p style="font-size:15px;font-weight:600;color:#1F9D55;margin:0 0 4px 0;">${bottle.item_name || 'Objet recherché'}</p>
             <p style="font-size:13px;color:#999;margin:0;">${daysText}</p>
           </div>
-          <button onclick="_deleteBottle('${bottle.id}')" style="background:none;border:none;cursor:pointer;padding:4px;color:#999;font-size:18px;flex-shrink:0;">🗑️</button>
+          <button onclick="_deleteBottle('${bottle.id}')" style="background:none;border:none;cursor:pointer;padding:4px;color:#999;display:flex;align-items:center;flex-shrink:0;">
+            <svg width="20" height="22" viewBox="0 0 22 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M 3 6 L 19 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M 8 6 L 8 4 Q 8 2.5 9.5 2.5 L 12.5 2.5 Q 14 2.5 14 4 L 14 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              <path d="M 5 6 L 6 20 Q 6 21.5 7.5 21.5 L 14.5 21.5 Q 16 21.5 16 20 L 17 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              <path d="M 9 10 L 9 17.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M 13 10 L 13 17.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </button>
         </div>
         <button onclick="_toggleBottleResponses(this, '${bottle.id}')" style="margin-top:12px;background:none;border:none;cursor:pointer;font-size:13px;color:#1F9D55;font-weight:600;padding:0;display:flex;align-items:center;gap:8px;">
           ${responseCount} réponse${responseCount > 1 ? 's' : ''}
