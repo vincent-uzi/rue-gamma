@@ -4899,6 +4899,18 @@ async function updateTransactionStatus(loanId, frenchStatus) {
 }
 
 
+function _animateCurrentStepOut(callback) {
+  const currentDot = document.querySelector('.step-dot.current');
+  const stepCard   = currentDot?.parentElement?.querySelector('.step-card');
+  if (stepCard) {
+    stepCard.style.transition = 'opacity 0.25s ease';
+    stepCard.style.opacity    = '0';
+    setTimeout(callback, 280);
+  } else {
+    callback();
+  }
+}
+
 function addThreadStep(loanId, stepData) {
   const tx = _findTx(loanId);
   if (!tx) return;
@@ -5065,7 +5077,9 @@ async function acceptRequest(loanId) {
   } catch (e) { console.warn('[acceptRequest] push_message:', e); }
 
   // Rebuild thread from DB so the pending step disappears and accepted state renders correctly
-  if (window._transactionsState?.currentThread === loanId) showThread(loanId);
+  if (window._transactionsState?.currentThread === loanId) {
+    _animateCurrentStepOut(() => showThread(loanId));
+  }
   showToast('✓ Demande acceptée', 'success');
 }
 
@@ -6097,7 +6111,9 @@ function confirmManualValidation() {
     await updateTransactionStatus(loanId, newStatus);
     const { data: loan } = await db.from('loans').select('item_id').eq('id', loanId).maybeSingle();
     if (loan) await db.from('items').update({ status: itemStatus }).eq('id', loan.item_id);
-    if (window._transactionsState?.currentThread === loanId) showThread(loanId);
+    if (window._transactionsState?.currentThread === loanId) {
+      _animateCurrentStepOut(() => showThread(loanId));
+    }
     showToast(action === 'hand' ? '✓ Remise validée' : '✓ Retour validé', 'success');
   }, 350);
 }
