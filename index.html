@@ -2499,6 +2499,20 @@
       </div>
     </div>
 
+    <!-- Bouteilles à la mer -->
+    <div id="profile-bottles-line" style="display:none; padding:12px 20px; cursor:pointer; border-top:1px solid #EAF5EA;" onclick="_openMyBottles()">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <svg width="22" height="16" viewBox="0 0 280 200" fill="none" xmlns="http://www.w3.org/2000/svg" style="color:#1F9D55; flex-shrink:0;">
+          <g transform="translate(140 110) rotate(-55)" stroke="currentColor" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+            <path d="M -14 -120 L -14 -106 C -14 -100, -22 -94, -28 -86 C -34 -76, -36 -64, -36 -50 L -36 30 C -36 42, -28 50, -14 50 L 14 50 C 28 50, 36 42, 36 30 L 36 -50 C 36 -64, 34 -76, 28 -86 C 22 -94, 14 -100, 14 -106 L 14 -120 Z"/>
+            <rect x="-18" y="-138" width="36" height="20" rx="2.5" fill="currentColor"/>
+          </g>
+          <path d="M 4 118 C 32 108, 60 128, 88 118 C 116 108, 144 128, 172 118 C 200 108, 228 128, 256 118 C 268 114, 276 118, 278 118" stroke="currentColor" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+        </svg>
+        <span id="profile-bottles-count" style="font-size:14px; color:#1F9D55; font-weight:600;"></span>
+      </div>
+    </div>
+
     <!-- Tab cards -->
     <div style="display:flex;gap:8px;padding:16px 16px 12px;">
       <button onclick="switchProfileTab('objets')" id="tab-objets" class="profile-tab active">
@@ -4160,6 +4174,7 @@ async function loadProfileTabs() {
   const memberId = localStorage.getItem('member_id');
   console.log('[loadProfileTabs] User:', memberId);
   if (!memberId) { console.warn('[loadProfileTabs] member_id absent — skip'); return; }
+  _loadProfileBottles();
 
   const [itemsRes, lentRes, borrowedRes] = await Promise.all([
     db.from('items').select('id, name, status, co2_saved_kg').eq('owner_id', memberId).neq('status', 'archived'),
@@ -6146,6 +6161,107 @@ async function _openContactGO() {
   }
 }
 
+async function _loadProfileBottles() {
+  const memberId = localStorage.getItem('member_id');
+  if (!memberId) return;
+  try {
+    const { data, error } = await db
+      .from('search_requests')
+      .select('*, search_request_responses(id, item:items(id, name, co2_saved_kg, owner:members!owner_id(first_name, last_name)))')
+      .eq('requester_id', memberId)
+      .eq('status', 'open');
+    const line = document.getElementById('profile-bottles-line');
+    if (error || !data || data.length === 0) { if (line) line.style.display = 'none'; return; }
+    const count = data.length;
+    document.getElementById('profile-bottles-count').textContent = count + ' bouteille' + (count > 1 ? 's' : '') + ' à la mer active' + (count > 1 ? 's' : '');
+    if (line) line.style.display = 'block';
+  } catch (err) {
+    console.error('Erreur chargement bouteilles profil:', err);
+  }
+}
+
+async function _openMyBottles() {
+  const memberId = localStorage.getItem('member_id');
+  try {
+    const { data, error } = await db
+      .from('search_requests')
+      .select('*, search_request_responses(id, item:items(id, name, co2_saved_kg, owner:members!owner_id(first_name, last_name)))')
+      .eq('requester_id', memberId)
+      .eq('status', 'open');
+    if (error || !data) return;
+    const list = document.getElementById('my-bottles-list');
+    list.innerHTML = '';
+    data.forEach(bottle => {
+      const responses = bottle.search_request_responses || [];
+      const daysAgo = Math.floor((new Date() - new Date(bottle.created_at)) / 86400000);
+      const daysText = daysAgo === 0 ? "Aujourd'hui" : daysAgo === 1 ? 'Hier' : 'Il y a ' + daysAgo + ' jours';
+      const responsesHTML = responses.map(r => {
+        const item = r.item; if (!item) return '';
+        const owner = item.owner;
+        const ownerName = owner ? owner.first_name + ' ' + owner.last_name : 'Voisin';
+        const co2 = item.co2_saved_kg ? formatCO2(Number(item.co2_saved_kg)) : '';
+        return `<div style="background:white;border:1px solid #EAF5EA;border-radius:12px;padding:12px 16px;margin-top:8px;display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <p style="font-size:14px;font-weight:500;color:#333;margin:0 0 4px 0;">${item.name}</p>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <span style="background:#1F9D55;color:white;padding:2px 8px;border-radius:20px;font-size:12px;font-weight:600;">${ownerName}</span>
+              ${co2 ? `<span style="background:#EAF5EA;color:#1F9D55;padding:2px 8px;border-radius:20px;font-size:12px;">🍃 -${co2} kg</span>` : ''}
+            </div>
+          </div>
+          <span style="color:#CCC;font-size:18px;">›</span>
+        </div>`;
+      }).join('');
+      const bottleEl = document.createElement('div');
+      bottleEl.style.cssText = 'background:#F5F5F5;border-radius:12px;padding:16px;margin-bottom:12px;';
+      bottleEl.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div style="flex:1;">
+            <p style="font-size:15px;font-weight:600;color:#333;margin:0 0 4px 0;">${bottle.item_name || 'Objet recherché'}</p>
+            <p style="font-size:13px;color:#999;margin:0;">${daysText}</p>
+          </div>
+          <button onclick="_deleteBottle('${bottle.id}')" style="background:none;border:none;cursor:pointer;padding:4px;color:#999;font-size:18px;flex-shrink:0;">🗑️</button>
+        </div>
+        <button onclick="_toggleBottleResponses(this)" style="margin-top:12px;background:none;border:none;cursor:pointer;font-size:13px;color:#1F9D55;font-weight:600;padding:0;display:flex;align-items:center;gap:4px;">
+          ${responses.length} réponse${responses.length > 1 ? 's' : ''} <span style="font-size:10px;">▼</span>
+        </button>
+        <div class="bottle-responses" style="display:none;">
+          ${responses.length > 0 ? responsesHTML : '<p style="font-size:13px;color:#999;margin-top:8px;">Aucune réponse pour le moment</p>'}
+        </div>`;
+      list.appendChild(bottleEl);
+    });
+    const modal = document.getElementById('modal-my-bottles');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    document.body.style.pointerEvents = 'none';
+    modal.style.pointerEvents = 'all';
+  } catch (err) {
+    console.error('Erreur ouverture bouteilles:', err);
+  }
+}
+
+function _toggleBottleResponses(btn) {
+  const responsesDiv = btn.nextElementSibling;
+  const isHidden = responsesDiv.style.display === 'none';
+  responsesDiv.style.display = isHidden ? 'block' : 'none';
+  btn.querySelector('span').textContent = isHidden ? '▲' : '▼';
+}
+
+async function _deleteBottle(id) {
+  try {
+    await db.from('search_requests').update({ status: 'closed' }).eq('id', id);
+    _openMyBottles();
+    _loadProfileBottles();
+  } catch (err) {
+    console.error('Erreur suppression bouteille:', err);
+  }
+}
+
+function _closeMyBottles() {
+  document.getElementById('modal-my-bottles').style.display = 'none';
+  document.body.style.overflow = '';
+  document.body.style.pointerEvents = '';
+}
+
 async function _copyEmail() {
   const email = document.getElementById('go-email').textContent;
   try {
@@ -7308,6 +7424,16 @@ async function _copyInviteLink() {
       </div>
     </div>
     <button onclick="_closeContactGO()" style="width:100%; padding:16px; background:#1F9D55; color:white; border:none; border-radius:24px; font-size:16px; font-weight:600; cursor:pointer;">Fermer</button>
+  </div>
+</div>
+
+<div id="modal-my-bottles" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:flex-end; justify-content:center;">
+  <div style="background:white; border-radius:24px 24px 0 0; padding:24px; width:100%; max-width:480px; max-height:80vh; overflow-y:auto; padding-bottom:calc(24px + env(safe-area-inset-bottom));">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+      <h2 style="font-size:18px; font-weight:700; color:#333; margin:0;">Mes bouteilles à la mer</h2>
+      <button onclick="_closeMyBottles()" style="background:none; border:none; font-size:24px; color:#888; cursor:pointer; line-height:1;">×</button>
+    </div>
+    <div id="my-bottles-list"></div>
   </div>
 </div>
 </body>
