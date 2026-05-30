@@ -7118,13 +7118,19 @@ function _showDeleteConfirmModal() {
   });
 }
 
+function _updateProfileObjectCount() {
+  const remaining = document.querySelectorAll('#profile-tab-objets [data-item-id]');
+  const countEl   = document.getElementById('tab-objets-count');
+  if (countEl) countEl.textContent = remaining.length;
+}
+
 function deleteItem() {
   const item = _detailItem || window._detailItem;
   if (!item?.id) return;
 
-  // Optimistic UI — masquer immédiatement
+  // Optimistic UI — animer la disparition
   const itemCard = document.querySelector(`[data-item-id="${item.id}"]`);
-  if (itemCard) itemCard.style.display = 'none';
+  if (itemCard) fadeOutCard(itemCard, () => { _updateProfileObjectCount(); });
   const idx = _allObjects.findIndex(o => o.id === item.id);
   if (idx !== -1) _allObjects.splice(idx, 1);
   hideItemDetail();
@@ -7157,9 +7163,9 @@ function deleteItem() {
   document.getElementById('btn-undo-delete').onclick = () => {
     clearTimeout(deleteTimeout);
     toast.remove();
-    if (itemCard) itemCard.style.display = '';
     if (idx !== -1) _allObjects.splice(idx, 0, item);
     if (_objectsLoaded) renderObjects(_allObjects);
+    _updateProfileObjectCount();
     console.log('[deleteItem] Undo — item restored');
   };
 }
