@@ -6578,11 +6578,18 @@ async function _confirmBottleDeletion(id, itemName) {
   };
 
   if (targetCard) {
-    targetCard.style.transition = 'border-color 0.3s ease, opacity 0.5s ease';
+    targetCard.style.maxHeight = targetCard.offsetHeight + 'px';
+    targetCard.style.overflow = 'hidden';
+    targetCard.style.transition = 'border-color 0.3s ease, opacity 0.5s ease, max-height 0.3s ease, margin 0.3s ease, padding 0.3s ease';
     targetCard.style.border = '1.5px solid #F39C12';
     setTimeout(() => {
       targetCard.style.opacity = '0';
-      setTimeout(doDelete, 500);
+      setTimeout(() => {
+        targetCard.style.maxHeight = '0';
+        targetCard.style.marginBottom = '0';
+        targetCard.style.padding = '0';
+        setTimeout(() => { targetCard.remove(); doDelete(); }, 300);
+      }, 500);
     }, 300);
   } else {
     await doDelete();
