@@ -2,10 +2,20 @@
 
 ---
 
-## Session 31 mai 2026 — Restructuration documentation
+## Session 31 mai 2026 — Design System FLO
 
-- Archivage PROJET.md → PROJET.md.old
-- Création structure documentaire : PRODUCT_VISION, MVP_TEST_PLAN, ROADMAP, STATUS, DEVLOG, PATTERNS
+### Réalisations
+- Restructuration documentation : PROJET.md éclaté en 6 fichiers (PRODUCT_VISION, MVP_TEST_PLAN, ROADMAP, STATUS, DEVLOG, PATTERNS) + archive PROJET.md.old
+- Dossier 0_produit/ créé pour toute la documentation
+- patterns.html : design system visuel complet (boutons, cards, labels, modales, animations, icônes, snowflakes)
+- icons.js : bibliothèque SVG centralisée (26 icônes, 4 catégories)
+- Audit snowflakes : 10 composants non mutualisés identifiés + fixes proposés
+- PATTERNS.md mis à jour avec référence patterns.html et icons.js
+
+### Impact
+- Tokens réduits : 89 Ko → ~19 Ko total documentation
+- Référentiel unique composants entre Vincent et Claude
+- Clic sur icône dans patterns.html = copie le code
 
 ---
 

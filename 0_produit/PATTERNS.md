@@ -86,3 +86,25 @@ Ce fichier contient :
 - Border-radius boutons : 24px (pill)
 - Padding card : 16px
 - Gap liste : 12px
+
+---
+
+## Icônes — icons.js
+
+Bibliothèque SVG centralisée à la racine du projet.
+26 icônes en 4 catégories : Navigation, Actions, États, FLO Specific.
+
+Usage :
+```javascript
+element.innerHTML = FLO_ICONS.trash({ size: 20, color: '#999' });
+element.innerHTML = FLO_ICONS.bottle({ size: 22, color: '#1F9D55' });
+```
+
+Catégories :
+- Navigation : home, grid, plus, transactions, profile
+- Actions : chevronRight, chevronLeft, back, close, search, trash, copy, check, link, dots, refresh, userPlus, qrScan
+- États : eyeOpen, eyeClosed, info, camera
+- FLO Specific : bottle, leaf, phone
+
+Visualisation interactive : https://rue-gamma.vercel.app/patterns.html#icones
+Clic sur une icône = copie le code d'usage dans le presse-papier.
