@@ -69,3 +69,9 @@ Dernière mise à jour : 31 mai 2026
 | Notifications realtime | ✅ |
 | Mot de passe oublié | ❌ |
 | Back-office admin | ❌ |
+
+## Design System
+
+- **patterns.html** : référentiel visuel complet — https://rue-gamma.vercel.app/patterns.html
+- 15 composants documentés (boutons, cards, labels, modales, animations)
+- 10 snowflakes identifiés à rationaliser en Phase 2
