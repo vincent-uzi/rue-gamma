@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang='fr'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <title>FLO · Design System</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background:#FBFDFB; color:#333; }
+
+    .ds-header { background:#1F9D55; color:white; padding:32px 40px; }
+    .ds-header h1 { font-size:28px; font-weight:700; margin-bottom:4px; }
+    .ds-header p { font-size:14px; opacity:0.8; }
+
+    .ds-nav { background:white; border-bottom:1px solid #EAF5EA; padding:0 40px; display:flex; gap:0; position:sticky; top:0; z-index:100; overflow-x:auto; }
+    .ds-nav a { padding:16px 20px; font-size:14px; font-weight:600; color:#666; text-decoration:none; border-bottom:3px solid transparent; white-space:nowrap; }
+    .ds-nav a:hover, .ds-nav a.active { color:#1F9D55; border-bottom-color:#1F9D55; }
+
+    .ds-content { max-width:900px; margin:0 auto; padding:40px; }
+
+    .ds-section { margin-bottom:60px; }
+    .ds-section-title { font-size:20px; font-weight:700; color:#333; margin-bottom:24px; padding-bottom:12px; border-bottom:2px solid #EAF5EA; }
+
+    .ds-component { background:white; border:1px solid #EAF5EA; border-radius:12px; padding:24px; margin-bottom:20px; }
+    .ds-component-name { font-size:13px; font-weight:700; color:#1F9D55; font-family:monospace; margin-bottom:16px; }
+    .ds-preview { background:#F5F5F5; border-radius:8px; padding:20px; margin-bottom:16px; display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+    .ds-usage { font-size:12px; color:#666; margin-bottom:12px; }
+    .ds-usage strong { color:#333; }
+    .ds-usage ul { list-style:none; margin-top:4px; }
+    .ds-usage ul li::before { content:'· '; color:#1F9D55; }
+    .ds-code { background:#F8F8F8; border:1px solid #E5E5E5; border-radius:6px; padding:12px; font-family:monospace; font-size:11px; color:#555; overflow-x:auto; white-space:pre; }
+
+    .ds-snowflake { background:#FFF8F0; border:1px solid #F39C12; border-radius:12px; padding:20px; margin-bottom:16px; }
+    .ds-snowflake-header { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+    .ds-snowflake-name { font-size:13px; font-weight:700; color:#F39C12; font-family:monospace; }
+    .ds-snowflake-impact { font-size:11px; padding:2px 8px; border-radius:20px; font-weight:600; }
+    .ds-snowflake-impact.high { background:#FECACA; color:#991B1B; }
+    .ds-snowflake-impact.medium { background:#FEF3C7; color:#92400E; }
+    .ds-snowflake-impact.low { background:#F3F4F6; color:#6B7280; }
+    .ds-snowflake-desc { font-size:13px; color:#666; margin-bottom:6px; }
+    .ds-snowflake-fix { font-size:12px; color:#1F9D55; font-family:monospace; }
+
+    /* Preview components */
+    .btn-primary { background:#1F9D55; color:white; border:none; border-radius:24px; padding:12px 24px; font-size:15px; font-weight:600; cursor:pointer; font-family:inherit; }
+    .btn-secondary { background:white; color:#1F9D55; border:2px solid #1F9D55; border-radius:24px; padding:11px 24px; font-size:15px; font-weight:600; cursor:pointer; font-family:inherit; }
+    .btn-ghost { background:white; color:#333; border:1px solid #E5E5E5; border-radius:24px; padding:12px 24px; font-size:15px; font-weight:600; cursor:pointer; font-family:inherit; }
+    .card { background:white; border:1px solid #EAF5EA; border-radius:12px; padding:16px; }
+    .card-muted { background:#F5F5F5; border-radius:12px; padding:16px; }
+    .card-alert { background:#FFEAA7; border-radius:12px; padding:16px; }
+    .card-empty { background:white; border:1.5px dashed #CCC; border-radius:12px; padding:20px; text-align:center; color:#999; }
+    .badge-owner { background:#1F9D55; color:white; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600; }
+    .badge-member { background:#EAF5EA; color:#1F9D55; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600; }
+    .badge-co2 { background:#EAF5EA; color:#1F9D55; padding:3px 10px; border-radius:20px; font-size:12px; }
+    .badge-new { background:#F39C12; color:white; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:600; }
+    .tab-badge { background:#EF4444; color:white; border-radius:9999px; min-width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; padding:0 4px; }
+  </style>
+</head>
+<body>
+
+<div class='ds-header'>
+  <h1>FLO · Design System</h1>
+  <p>Référentiel composants — dernière mise à jour 31 mai 2026</p>
+</div>
+
+<nav class='ds-nav'>
+  <a href='#boutons' class='active'>Boutons</a>
+  <a href='#cards'>Cards</a>
+  <a href='#labels'>Labels</a>
+  <a href='#modales'>Modales</a>
+  <a href='#animations'>Animations</a>
+  <a href='#snowflakes'>❄️ Snowflakes</a>
+</nav>
+
+<div class='ds-content'>
+
+  <!-- ── BOUTONS ────────────────────────────────────────────── -->
+  <div class='ds-section' id='boutons'>
+    <h2 class='ds-section-title'>Boutons</h2>
+
+    <div class='ds-component'>
+      <div class='ds-component-name'>.btn-primary</div>
+      <div class='ds-preview'>
+        <button class='btn-primary'>Valider</button>
+        <button class='btn-primary'>Accéder à la communauté</button>
+      </div>
+      <div class='ds-usage'><strong>Usage :</strong><ul>
+        <li>signup.html — boutons Continuer / Créer mon compte</li>
+        <li>onboarding.html — bouton Accéder à la communauté</li>
+        <li>Modale ajout objet — bouton Mettre à disposition</li>
+        <li>Transactions — bouton Accepter / Valider échange</li>
+        <li>Home — bouton Envoyer (bouteille à la mer)</li>
+      </ul></div>
+      <div class='ds-code'>background:#1F9D55; color:white; border:none; border-radius:24px; padding:12px 24px; font-size:15px; font-weight:600; cursor:pointer;</div>
+    </div>
+
+    <div class='ds-component'>
+      <div class='ds-component-name'>.btn-secondary</div>
+      <div class='ds-preview'>
+        <button class='btn-secondary'>← Retour</button>
+        <button class='btn-secondary'>Annuler</button>
+      </div>
+      <div class='ds-usage'><strong>Usage :</strong><ul>
+        <li>signup.html — boutons Retour entre étapes</li>
+        <li>Modales — bouton Annuler / Fermer outline</li>
+        <li>Bouteilles à la mer — bouton Garder</li>
+      </ul></div>
+      <div class='ds-code'>background:white; color:#1F9D55; border:2px solid #1F9D55; border-radius:24px; padding:11px 24px; font-size:15px; font-weight:600; cursor:pointer;</div>
+    </div>
+
+    <div class='ds-component'>
+      <div class='ds-component-name'>.btn-ghost</div>
+      <div class='ds-preview'>
+        <button class='btn-ghost'>Non, désolé</button>
+        <button class='btn-ghost'>Fermer</button>
+      </div>
+      <div class='ds-usage'><strong>Usage :</strong><ul>
+        <li>Modales — actions secondaires neutres</li>
+        <li>Bouteilles à la mer — bouton Non, désolé</li>
+      </ul></div>
+      <div class='ds-code'>background:white; color:#333; border:1px solid #E5E5E5; border-radius:24px; padding:12px 24px; font-size:15px; font-weight:600; cursor:pointer;</div>
+    </div>
+
+    <div class='ds-component'>
+      <div class='ds-component-name'>.btn-icon-round</div>
+      <div class='ds-preview'>
+        <button style='width:44px;height:44px;background:#1F9D55;color:white;border:none;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:24px;'>+</button>
+      </div>
+      <div class='ds-usage'><strong>Usage :</strong><ul>
+        <li>onboarding.html — bouton + sur slots vides</li>
+        <li>Home — bouton ajout flottant</li>
+      </ul></div>
+      <div class='ds-code'>width:44px; height:44px; background:#1F9D55; color:white; border:none; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;</div>
+    </div>
+
+    <div class='ds-component'>
+      <div class='ds-component-name'>.btn-icon-close</div>
+      <div class='ds-preview'>
+        <button style='background:none;border:none;font-size:24px;color:#888;cursor:pointer;padding:4px;'>×</button>
+      </div>
+      <div class='ds-usage'><strong>Usage :</strong><ul>
+        <li>Toutes les modales — bouton fermeture ×</li>
+      </ul></div>
+      <div class='ds-code'>background:none; border:none; font-size:24px; color:#888; cursor:pointer; padding:4px;</div>
+    </div>
+  </div>
+
+  <!-- ── CARDS ────────────────────────────────────────────── -->
+  <div class='ds-section' id='cards'>
+    <h2 class='ds-section-title'>Cards</h2>
+
+    <div class='ds-component'>
+      <div class='ds-component-name'>.card</div>
+      <div class='ds-preview'>
+        <div class='card' style='width:100%;max-width:300px;'>
+          <p style='font-size:14px;color:#333;'>Contenu de la card standard</p>
+        </div>
+      </div>
+      <div class='ds-usage'><strong>Usage :</strong><ul>
+        <li>Home — encarts informatifs</li>
+        <li>Profil — sections paramètres</li>
+        <li>signup.html — étapes formulaire</li>
+        <li>onboarding.html — slots objets</li>
+      </ul></div>
+      <div class='ds-code'>background:white; border:1px solid #EAF5EA; border-radius:12px; padding:16px;</div>
+    </div>
+
+    <div class='ds-component'>
+      <div class='ds-component-name'>.card-object (template)</div>
+      <div class='ds-preview'>
+        <div style='background:white;border:1px solid #EAF5EA;border-radius:12px;padding:16px;width:100%;max-width:340px;display:flex;align-items:center;justify-content:space-between;'>
+          <div style='flex:1;'>
+            <p style='font-size:15px;font-weight:500;color:#333;margin-bottom:8px;'>Perceuse Bosch GSR 12V</p>
+            <div style='display:flex;gap:8px;align-items:center;'>
+              <span class='badge-owner'>Vous</span>
+              <span class='badge-co2'>🍃 –50 kg</span>
+            </div>
+          </div>
+          <span style='color:#CCC;font-size:20px;'>›</span>
+        </div>
+      </div>
+      <div class='ds-usage'><strong>Usage :</strong><ul>
+        <li>Objets — liste browse</li>
+        <li>Profil — onglets Objets / Prêtés / Empruntés</li>
+        <li>onboarding.html — slots remplis</li>
+        <li>Bouteilles à la mer — réponses</li>
+      </ul></div>
+      <div class='ds-code'>Ligne 1 : nom objet (15px, weight:500)
+Ligne 2 : badge-owner + badge-co2
+Chevron › à droite (color:#CCC, font-size:20px)</div>
+    </div>
+
+    <div class='ds-component'>
+      <div class='ds-component-name'>.card-muted</div>
+      <div class='ds-preview'>
+        <div class='card-muted' style='width:100%;max-width:300px;'>
+          <p style='font-size:14px;color:#666;'>Contenu secondaire</p>
+        </div>
+      </div>
+      <div class='ds-usage'><strong>Usage :</strong><ul>
+        <li>Popin contact — fond informations membre</li>
+        <li>Modales — zones de détail</li>
+      </ul></div>
+      <div class='ds-code'>background:#F5F5F5; border-radius:12px; padding:16px;</div>
+    </div>
+
+    <div class='ds-component'>
+      <div class='ds-component-name'>.card-alert</div>
+      <div class='ds-preview'>
+        <div class='card-alert' style='width:100%;max-width:340px;'>
+          <p style='font-size:14px;font-weight:700;color:#1F9D55;margin-bottom:4px;'>Votre bouteille à la mer a été reçue !</p>
+          <p style='font-size:14px;color:#555;margin-bottom:8px;'>1 objet pourrait vous intéresser</p>
+          <p style='font-size:14px;color:#1F9D55;text-decoration:underline;margin:0;'>Consulter vos alertes →</p>
+        </div>
+      </div>
+      <div class='ds-usage'><strong>Usage :</strong><ul>
+        <li>Profil — card alerte bouteilles (#profile-bottles-alert)</li>
+        <li>login.html — card Première visite</li>
+      </ul></div>
+      <div class='ds-code'>background:#FFEAA7; border-radius:12px; padding:16px 20px;</div>
+    </div>
+
+    <div class='ds-component'>
+      <div class='ds-component-name'>.card-empty</div>
+      <div class='ds-preview'>
+        <div class='card-empty' style='width:100%;max-width:300px;'>
+          <p style='font-size:14px;'>Aucun objet disponible</p>
+        </div>
+      </div>
+      <div class='ds-usage'><strong>Usage :</strong><ul>
+        <li>Objets — état zéro résultat</li>
+        <li>onboarding.html — slots vides avant ajout</li>
+      </ul></div>
+      <div class='ds-code'>background:white; border:1.5px dashed #CCC; border-radius:12px; padding:20px; text-align:center; color:#999;</div>
+    </div>
+  </div>
+
+  <!-- ── LABELS ────────────────────────────────────────────── -->
+  <div class='ds-section' id='labels'>
+    <h2 class='ds-section-title'>Labels & badges</h2>
+
+    <div class='ds-component'>
+      <div class='ds-component-name'>.badge-owner</div>
+      <div class='ds-preview'>
+        <span class='badge-owner'>Vous</span>
+      </div>
+      <div class='ds-usage'><strong>Usage :</strong><ul><li>Cards objets — propriétaire = utilisateur connecté</li></ul></div>
+      <div class='ds-code'>background:#1F9D55; color:white; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;</div>
+    </div>
+
+    <div class='ds-component'>
+      <div class='ds-component-name'>.badge-member</div>
+      <div class='ds-preview'>
+        <span class='badge-member'>Jean-Pierre</span>
+      </div>
+      <div class='ds-usage'><strong>Usage :</strong><ul><li>Cards objets — autre membre de la communauté</li></ul></div>
+      <div class='ds-code'>background:#EAF5EA; color:#1F9D55; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;</div>
+    </div>
+
+    <div class='ds-component'>
+      <div class='ds-component-name'>.badge-co2</div>
+      <div class='ds-preview'>
+        <span class='badge-co2'>🍃 –50 kg</span>
+        <span class='badge-co2'>🍃 –513 kg</span>
+      </div>
+      <div class='ds-usage'><strong>Usage :</strong><ul>
+        <li>Cards objets — économie CO₂ estimée</li>
+        <li>Fiche objet — encart impact</li>
+        <li>Règle : &lt;100 kg → 1 décimale, ≥100 kg → sans décimale</li>
+      </ul></div>
+      <div class='ds-code'>background:#EAF5EA; color:#1F9D55; padding:3px 10px; border-radius:20px; font-size:12px;</div>
+    </div>
+
+    <div class='ds-component'>
+      <div class='ds-component-name'>.badge-new</div>
+      <div class='ds-preview'>
+        <span class='badge-new'>2 nouvelles</span>
+        <span class='badge-new'>1 nouvelle</span>
+      </div>
+      <div class='ds-usage'><strong>Usage :</strong><ul><li>Bouteilles à la mer — réponses non consultées (viewed_at IS NULL)</li></ul></div>
+      <div class='ds-code'>background:#F39C12; color:white; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:600;</div>
+    </div>
+
+    <div class='ds-component'>
+      <div class='ds-component-name'>.tab-badge</div>
+      <div class='ds-preview'>
+        <span class='tab-badge'>3</span>
+        <span class='tab-badge'>1</span>
+      </div>
+      <div class='ds-usage'><strong>Usage :</strong><ul>
+        <li>Tab-bar Transactions — demandes non lues</li>
+        <li>Tab-bar Profil — bouteilles à la mer reçues</li>
+      </ul></div>
+      <div class='ds-code'>position:absolute; top:-4px; right:-6px; background:#EF4444; color:white;
+border-radius:9999px; min-width:18px; height:18px; font-size:10px; font-weight:700;</div>
+    </div>
+
+    <div class='ds-component'>
+      <div class='ds-component-name'>.avatar-initiales</div>
+      <div class='ds-preview'>
+        <div style='width:44px;height:44px;border-radius:50%;background:#1F9D55;color:white;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;'>VM</div>
+        <div style='width:32px;height:32px;border-radius:50%;background:#EAF5EA;color:#1F9D55;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;'>JP</div>
+      </div>
+      <div class='ds-usage'><strong>Usage :</strong><ul>
+        <li>Profil — avatar utilisateur (44px, vert plein)</li>
+        <li>Liste membres — avatar compact (32px, vert clair)</li>
+      </ul></div>
+      <div class='ds-code'>Grand (44px) : background:#1F9D55; color:white
+Compact (32px) : background:#EAF5EA; color:#1F9D55
+border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700;</div>
+    </div>
+  </div>
+
+  <!-- ── MODALES ───────────────────────────────────────────── -->
+  <div class='ds-section' id='modales'>
+    <h2 class='ds-section-title'>Modales & overlays</h2>
+
+    <div class='ds-component'>
+      <div class='ds-component-name'>bottom-sheet</div>
+      <div class='ds-preview' style='background:#E5E5E5;padding:0;overflow:hidden;border-radius:8px;min-height:120px;position:relative;'>
+        <div style='position:absolute;bottom:0;left:0;right:0;background:white;border-radius:24px 24px 0 0;padding:24px;'>
+          <p style='font-size:15px;font-weight:600;color:#333;margin-bottom:8px;'>Titre de la modale</p>
+          <p style='font-size:14px;color:#666;'>Contenu de la bottom sheet</p>
+        </div>
+      </div>
+      <div class='ds-usage'><strong>Usage :</strong><ul>
+        <li>Popin contact — coordonnées membre</li>
+        <li>Bouteilles à la mer — proposition suppression</li>
+        <li>Modale ajout objet</li>
+      </ul></div>
+      <div class='ds-code'>border-radius:24px 24px 0 0; padding:32px 24px;
+padding-bottom:calc(32px + env(safe-area-inset-bottom));
+position:fixed; bottom:0; left:0; right:0;</div>
+    </div>
+
+    <div class='ds-component'>
+      <div class='ds-component-name'>slide-right (thread, bouteilles)</div>
+      <div class='ds-preview' style='background:#E5E5E5;padding:0;overflow:hidden;border-radius:8px;min-height:80px;position:relative;'>
+        <div style='position:absolute;top:0;right:0;bottom:0;width:70%;background:white;border-left:1px solid #EAF5EA;padding:16px;'>
+          <p style='font-size:13px;font-weight:600;color:#333;'>Panel détail</p>
+          <p style='font-size:12px;color:#999;'>Slide depuis la droite</p>
+        </div>
+      </div>
+      <div class='ds-usage'><strong>Usage :</strong><ul>
+        <li>Thread transaction — détail prêt</li>
+        <li>Modale bouteilles à la mer — liste alertes</li>
+        <li>Backdrop séparé z-index:390, panel z-index:400</li>
+      </ul></div>
+      <div class='ds-code'>position:fixed; top:0; right:0; bottom:0; width:min(430px,100vw);
+transform:translateX(100%); transition:transform 300ms;
+z-index:400;</div>
+    </div>
+
+    <div class='ds-component'>
+      <div class='ds-component-name'>toast-undo</div>
+      <div class='ds-preview'>
+        <div style='background:#333;color:white;padding:12px 16px;border-radius:12px;display:flex;align-items:center;justify-content:space-between;width:100%;max-width:380px;'>
+          <div style='font-size:14px;line-height:1.4;flex:1;margin-right:16px;'>
+            <span style='font-weight:600;'>Votre recherche "Perceuse"</span><br>
+            <span style='opacity:0.8;font-size:13px;'>est supprimée</span>
+          </div>
+          <button style='background:none;border:none;color:#1F9D55;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;'>Annuler</button>
+        </div>
+      </div>
+      <div class='ds-usage'><strong>Usage :</strong><ul>
+        <li>Suppression objet profil (deleteItem)</li>
+        <li>Suppression bouteille à la mer (_showUndoToast)</li>
+        <li>3s avant expiration automatique</li>
+      </ul></div>
+      <div class='ds-code'>position:fixed; bottom:calc(80px + env(safe-area-inset-bottom));
+left:16px; right:16px; background:#333; color:white;
+border-radius:12px; z-index:99999;
+display:flex; align-items:center; justify-content:space-between;</div>
+    </div>
+  </div>
+
+  <!-- ── ANIMATIONS ────────────────────────────────────────── -->
+  <div class='ds-section' id='animations'>
+    <h2 class='ds-section-title'>Animations</h2>
+
+    <div class='ds-component'>
+      <div class='ds-component-name'>highlightNewCard(card)</div>
+      <div class='ds-preview'>
+        <div style='background:white;border:1.5px solid #F39C12;border-radius:12px;padding:16px;max-width:300px;'>
+          <p style='font-size:13px;color:#666;'>Nouvelle card — bordure orange → verte en 1.5s</p>
+        </div>
+      </div>
+      <div class='ds-usage'><strong>Usage :</strong><ul>
+        <li>Après création alerte bouteille dans la modale profil</li>
+        <li>Après undo suppression objet profil</li>
+        <li>Appeler 400ms après refresh DOM (polling DOM possible)</li>
+      </ul></div>
+      <div class='ds-code'>card.style.opacity = '0';
+card.style.border = '1.5px solid #F39C12';
+card.style.transition = 'opacity 0.4s ease, border-color 1.5s ease';
+requestAnimationFrame(() => requestAnimationFrame(() => {
+  card.style.opacity = '1';
+  setTimeout(() => { card.style.borderColor = '#EAF5EA'; }, 1500);
+}));</div>
+    </div>
+
+    <div class='ds-component'>
+      <div class='ds-component-name'>fadeOutCard(card, onComplete)</div>
+      <div class='ds-preview'>
+        <div style='background:white;border:1.5px solid #F39C12;border-radius:12px;padding:16px;max-width:300px;opacity:0.4;'>
+          <p style='font-size:13px;color:#666;'>Card en cours de suppression…</p>
+        </div>
+      </div>
+      <div class='ds-usage'><strong>Usage :</strong><ul>
+        <li>Suppression objet profil (deleteItem)</li>
+        <li>Suppression alerte bouteille (_deleteBottle, _confirmBottleDeletion)</li>
+        <li>Dismiss bouteille carousel Home après réponse positive</li>
+      </ul></div>
+      <div class='ds-code'>Séquence :
+1. border → #F39C12 (300ms)
+2. opacity → 0     (400ms)
+3. maxHeight → 0 + marginBottom → 0 + padding → 0 (300ms)
+4. card.remove() + onComplete()</div>
+    </div>
+
+    <div class='ds-component'>
+      <div class='ds-component-name'>fadeInUp (step transaction)</div>
+      <div class='ds-preview'>
+        <div style='animation:fadeInUp 400ms ease-out both;background:white;border:1px solid #EAF5EA;border-radius:12px;padding:16px;max-width:300px;'>
+          <p style='font-size:13px;color:#666;'>Nouvelle étape — entre depuis le bas</p>
+        </div>
+      </div>
+      <div class='ds-usage'><strong>Usage :</strong><ul>
+        <li>_buildStepEl(step, animate=true) — dernière step au rebuild thread</li>
+        <li>addThreadStep() — nouvelle step optimiste</li>
+      </ul></div>
+      <div class='ds-code'>@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+stepEl.style.animation = 'fadeInUp 400ms ease-out both';</div>
+    </div>
+  </div>
+
+  <!-- ── SNOWFLAKES ────────────────────────────────────────── -->
+  <div class='ds-section' id='snowflakes'>
+    <h2 class='ds-section-title'>❄️ Snowflakes — composants non mutualisés</h2>
+    <p style='font-size:14px;color:#666;margin-bottom:24px;'>Composants inline uniques ou quasi-dupliqués qui mériteraient d'être rationalisés en Phase 2.</p>
+
+    <div class='ds-snowflake'>
+      <div class='ds-snowflake-header'>
+        <span class='ds-snowflake-name'>#1 — Deux verts incohérents</span>
+        <span class='ds-snowflake-impact high'>Impact H</span>
+      </div>
+      <div class='ds-snowflake-desc'>#1F9D55 utilisé 73× ET #00A651 quelques fois — incohérence visuelle subtile mais réelle.</div>
+      <div class='ds-snowflake-fix'>→ Fix : --brand-green: #1F9D55 en CSS variable</div>
+    </div>
+
+    <div class='ds-snowflake'>
+      <div class='ds-snowflake-header'>
+        <span class='ds-snowflake-name'>#2 — 6 façons d'ouvrir une modale</span>
+        <span class='ds-snowflake-impact high'>Impact H</span>
+      </div>
+      <div class='ds-snowflake-desc'>body.overflow + pointerEvents gérés différemment à chaque modale — source de bugs (boutons non cliquables après fermeture).</div>
+      <div class='ds-snowflake-fix'>→ Fix : _setModalOpen(true/false) centralisé</div>
+    </div>
+
+    <div class='ds-snowflake'>
+      <div class='ds-snowflake-header'>
+        <span class='ds-snowflake-name'>#3 — Modal open pattern dupliqué ×4</span>
+        <span class='ds-snowflake-impact high'>Impact H</span>
+      </div>
+      <div class='ds-snowflake-desc'>backdrop.display + rAF double répété 4 fois avec légères variations — ~100 lignes dupliquées.</div>
+      <div class='ds-snowflake-fix'>→ Fix : _openModal(backdropId, panelId) générique</div>
+    </div>
+
+    <div class='ds-snowflake'>
+      <div class='ds-snowflake-header'>
+        <span class='ds-snowflake-name'>#4 — Data attributes incohérents</span>
+        <span class='ds-snowflake-impact medium'>Impact M</span>
+      </div>
+      <div class='ds-snowflake-desc'>data-tab, data-id, data-tx, data-item-id, data-loan-id mélangés sans convention stable.</div>
+      <div class='ds-snowflake-fix'>→ Fix : standardiser sur data-item-id / data-loan-id</div>
+    </div>
+
+    <div class='ds-snowflake'>
+      <div class='ds-snowflake-header'>
+        <span class='ds-snowflake-name'>#5 — Z-index fragmentés</span>
+        <span class='ds-snowflake-impact medium'>Impact M</span>
+      </div>
+      <div class='ds-snowflake-desc'>10, 200, 300, 390, 400, 490, 9999, 10000, 99999 sans échelle lisible.</div>
+      <div class='ds-snowflake-fix'>→ Fix : --z-panel:400, --z-modal:9999, --z-toast:99999</div>
+    </div>
+
+    <div class='ds-snowflake'>
+      <div class='ds-snowflake-header'>
+        <span class='ds-snowflake-name'>#6 — Transitions incohérentes</span>
+        <span class='ds-snowflake-impact medium'>Impact M</span>
+      </div>
+      <div class='ds-snowflake-desc'>0.12s, 0.15s, 0.22s, 300ms mélangés sans justification — parfois en secondes, parfois en ms.</div>
+      <div class='ds-snowflake-fix'>→ Fix : --anim-fast:150ms, --anim-normal:300ms</div>
+    </div>
+
+    <div class='ds-snowflake'>
+      <div class='ds-snowflake-header'>
+        <span class='ds-snowflake-name'>#7 — btn-primary inline ×16</span>
+        <span class='ds-snowflake-impact medium'>Impact M</span>
+      </div>
+      <div class='ds-snowflake-desc'>Même cssText bouton vert recopié 16 fois — impossible à modifier globalement, ~400 lignes dupliquées.</div>
+      <div class='ds-snowflake-fix'>→ Fix : classe .btn-primary en CSS global</div>
+    </div>
+
+    <div class='ds-snowflake'>
+      <div class='ds-snowflake-header'>
+        <span class='ds-snowflake-name'>#8 — Timeouts sans justification</span>
+        <span class='ds-snowflake-impact medium'>Impact M</span>
+      </div>
+      <div class='ds-snowflake-desc'>40ms, 50ms, 80ms, 280ms, 300ms, 350ms mélangés arbitrairement — maintenance difficile.</div>
+      <div class='ds-snowflake-fix'>→ Fix : DELAY_FOCUS=80, DELAY_ANIM=300 comme constantes nommées</div>
+    </div>
+
+    <div class='ds-snowflake'>
+      <div class='ds-snowflake-header'>
+        <span class='ds-snowflake-name'>#9 — Point orange .badge-dot inline ×5</span>
+        <span class='ds-snowflake-impact low'>Impact L</span>
+      </div>
+      <div class='ds-snowflake-desc'>width:8px;height:8px;background:#F39C12;border-radius:50% recopié 5 fois dans le code JS.</div>
+      <div class='ds-snowflake-fix'>→ Fix : classe .badge-dot ou constante DOT_HTML</div>
+    </div>
+
+    <div class='ds-snowflake'>
+      <div class='ds-snowflake-header'>
+        <span class='ds-snowflake-name'>#10 — fontSize hardcodée sans échelle</span>
+        <span class='ds-snowflake-impact low'>Impact L</span>
+      </div>
+      <div class='ds-snowflake-desc'>12/13/14/15/16/18/20px inline sans système de taille défini — cohérence fragile.</div>
+      <div class='ds-snowflake-fix'>→ Fix : --text-xs:12px, --text-sm:13px, --text-base:15px, --text-lg:18px</div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  const sections = document.querySelectorAll('.ds-section');
+  const navLinks = document.querySelectorAll('.ds-nav a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
+    navLinks.forEach(a => {
+      a.classList.remove('active');
+      if (a.getAttribute('href') === '#' + current) a.classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>
