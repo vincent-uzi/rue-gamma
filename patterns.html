@@ -68,6 +68,7 @@
   <a href='#labels'>Labels</a>
   <a href='#modales'>Modales</a>
   <a href='#animations'>Animations</a>
+  <a href='#icones'>Icônes SVG</a>
   <a href='#snowflakes'>❄️ Snowflakes</a>
 </nav>
 
@@ -433,6 +434,273 @@ requestAnimationFrame(() => requestAnimationFrame(() => {
   to   { opacity: 1; transform: translateY(0); }
 }
 stepEl.style.animation = 'fadeInUp 400ms ease-out both';</div>
+    </div>
+  </div>
+
+  <!-- ── ICÔNES SVG ───────────────────────────────────────── -->
+  <div class='ds-section' id='icones'>
+    <h2 class='ds-section-title'>Icônes SVG</h2>
+    <p style='font-size:14px;color:#666;margin-bottom:24px;'>Toutes les icônes custom du projet. Toutes utilisent <code>stroke="currentColor"</code> sauf indication contraire. ⚠️ = doublons ou snowflake.</p>
+
+    <table style='width:100%;border-collapse:collapse;font-size:13px;'>
+      <thead>
+        <tr style='background:#EAF5EA;'>
+          <th style='text-align:left;padding:10px 12px;border-bottom:2px solid #EAF5EA;'>Aperçu</th>
+          <th style='text-align:left;padding:10px 12px;border-bottom:2px solid #EAF5EA;'>Nom</th>
+          <th style='text-align:left;padding:10px 12px;border-bottom:2px solid #EAF5EA;'>Fichier(s)</th>
+          <th style='text-align:left;padding:10px 12px;border-bottom:2px solid #EAF5EA;'>Contexte</th>
+          <th style='text-align:left;padding:10px 12px;border-bottom:2px solid #EAF5EA;'>Note</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <tr style='border-bottom:1px solid #F0F0F0;'>
+          <td style='padding:10px 12px;'>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" fill="#1F9D55"/></svg>
+          </td>
+          <td style='padding:10px 12px;font-family:monospace;font-weight:600;'>refresh</td>
+          <td style='padding:10px 12px;color:#666;'>index.html</td>
+          <td style='padding:10px 12px;color:#666;'>Bouton sync Home (header)</td>
+          <td style='padding:10px 12px;'>Rempli #1F9D55, pas stroke</td>
+        </tr>
+
+        <tr style='border-bottom:1px solid #F0F0F0;'>
+          <td style='padding:10px 12px;'>
+            <svg width="20" height="20" viewBox="0 0 24 22" fill="none"><circle cx="9" cy="6" r="3.2" stroke="#1F9D55" stroke-width="1.6" fill="none"/><path d="M 2.5 18.5 C 2.5 14.5, 5.5 12, 9 12 C 12.5 12, 15.5 14.5, 15.5 18.5" stroke="#1F9D55" stroke-width="1.6" stroke-linecap="round" fill="none"/><path d="M 19.5 6 L 19.5 12" stroke="#1F9D55" stroke-width="1.8" stroke-linecap="round"/><path d="M 16.5 9 L 22.5 9" stroke="#1F9D55" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </td>
+          <td style='padding:10px 12px;font-family:monospace;font-weight:600;'>user-plus</td>
+          <td style='padding:10px 12px;color:#666;'>index.html</td>
+          <td style='padding:10px 12px;color:#666;'>Bouton Inviter un voisin (header Home)</td>
+          <td style='padding:10px 12px;'>Couleur fixe #1F9D55</td>
+        </tr>
+
+        <tr style='border-bottom:1px solid #F0F0F0;'>
+          <td style='padding:10px 12px;'>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6.5" stroke="#666" stroke-width="1.6"/><line x1="14" y1="14" x2="18.5" y2="18.5" stroke="#666" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </td>
+          <td style='padding:10px 12px;font-family:monospace;font-weight:600;'>search (loupe)</td>
+          <td style='padding:10px 12px;color:#666;'>index.html</td>
+          <td style='padding:10px 12px;color:#666;'>Barre recherche Home, barre recherche active, filtres objets</td>
+          <td style='padding:10px 12px;color:#F39C12;'>⚠️ 4× identique dans le même fichier</td>
+        </tr>
+
+        <tr style='border-bottom:1px solid #F0F0F0;'>
+          <td style='padding:10px 12px;'>
+            <svg width="22" height="22" viewBox="0 0 18 18" fill="none"><path d="M2.5 8L9 2.5 15.5 8v6.5c0 .5-.4 1-1 1h-3v-4h-3v4h-3c-.5 0-1-.5-1-1V8z" stroke="#666" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          </td>
+          <td style='padding:10px 12px;font-family:monospace;font-weight:600;'>home (maison)</td>
+          <td style='padding:10px 12px;color:#666;'>index.html</td>
+          <td style='padding:10px 12px;color:#666;'>Tab-bar — onglet Accueil</td>
+          <td style='padding:10px 12px;'>currentColor</td>
+        </tr>
+
+        <tr style='border-bottom:1px solid #F0F0F0;'>
+          <td style='padding:10px 12px;'>
+            <svg width="22" height="22" viewBox="0 0 18 18" fill="none"><rect x="2" y="2" width="6" height="6" rx="1.5" stroke="#666" stroke-width="1.6"/><rect x="10" y="2" width="6" height="6" rx="1.5" stroke="#666" stroke-width="1.6"/><rect x="2" y="10" width="6" height="6" rx="1.5" stroke="#666" stroke-width="1.6"/><rect x="10" y="10" width="6" height="6" rx="1.5" stroke="#666" stroke-width="1.6"/></svg>
+          </td>
+          <td style='padding:10px 12px;font-family:monospace;font-weight:600;'>grid (grille)</td>
+          <td style='padding:10px 12px;color:#666;'>index.html</td>
+          <td style='padding:10px 12px;color:#666;'>Tab-bar — onglet Objets</td>
+          <td style='padding:10px 12px;'>currentColor</td>
+        </tr>
+
+        <tr style='border-bottom:1px solid #F0F0F0;'>
+          <td style='padding:10px 12px;'>
+            <svg width="22" height="22" viewBox="0 0 18 18" fill="none"><path d="M9 3v12M3 9h12" stroke="#666" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </td>
+          <td style='padding:10px 12px;font-family:monospace;font-weight:600;'>plus (croix)</td>
+          <td style='padding:10px 12px;color:#666;'>index.html</td>
+          <td style='padding:10px 12px;color:#666;'>Tab-bar — onglet Ajouter</td>
+          <td style='padding:10px 12px;'>currentColor</td>
+        </tr>
+
+        <tr style='border-bottom:1px solid #F0F0F0;'>
+          <td style='padding:10px 12px;'>
+            <svg width="22" height="22" viewBox="0 0 18 18" fill="none"><path d="M2 6h12M11 3l3 3-3 3" stroke="#666" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 12H4M7 9l-3 3 3 3" stroke="#666" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </td>
+          <td style='padding:10px 12px;font-family:monospace;font-weight:600;'>arrows-exchange</td>
+          <td style='padding:10px 12px;color:#666;'>index.html</td>
+          <td style='padding:10px 12px;color:#666;'>Tab-bar — onglet Transactions</td>
+          <td style='padding:10px 12px;'>currentColor</td>
+        </tr>
+
+        <tr style='border-bottom:1px solid #F0F0F0;'>
+          <td style='padding:10px 12px;'>
+            <svg width="22" height="22" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="6" r="3" stroke="#666" stroke-width="1.6"/><path d="M3 16c0-3 2.7-5 6-5s6 2 6 5" stroke="#666" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </td>
+          <td style='padding:10px 12px;font-family:monospace;font-weight:600;'>user (profil)</td>
+          <td style='padding:10px 12px;color:#666;'>index.html</td>
+          <td style='padding:10px 12px;color:#666;'>Tab-bar — onglet Profil</td>
+          <td style='padding:10px 12px;'>currentColor</td>
+        </tr>
+
+        <tr style='border-bottom:1px solid #F0F0F0;'>
+          <td style='padding:10px 12px;'>
+            <svg width="24" height="22" viewBox="0 0 20 18" fill="none"><path d="M6.4 3.2l.7-1.4c.3-.5.8-.8 1.4-.8h3c.6 0 1.1.3 1.4.8l.7 1.4h2.6c1.1 0 2 .9 2 2v8.4c0 1.1-.9 2-2 2H3.8c-1.1 0-2-.9-2-2V5.2c0-1.1.9-2 2-2h2.6z" stroke="#666" stroke-width="1.5" stroke-linejoin="round"/><circle cx="10" cy="9.6" r="3.2" stroke="#666" stroke-width="1.5"/><circle cx="15.5" cy="6" r="0.6" fill="#666"/></svg>
+          </td>
+          <td style='padding:10px 12px;font-family:monospace;font-weight:600;'>camera (appareil photo)</td>
+          <td style='padding:10px 12px;color:#666;'>index.html, onboarding.html</td>
+          <td style='padding:10px 12px;color:#666;'>Upload photo objet (modale ajout, onboarding)</td>
+          <td style='padding:10px 12px;color:#F39C12;'>⚠️ 2× identique dans 2 fichiers</td>
+        </tr>
+
+        <tr style='border-bottom:1px solid #F0F0F0;'>
+          <td style='padding:10px 12px;'>
+            <svg width="22" height="22" viewBox="0 0 18 18" fill="none"><path d="M15 2.5C9 2.5 3 6 3 12c0 1.5.5 2.8 1.3 3.7C5.2 16.6 6.7 15.5 8 14c2.5-3 5-5 7-7-1 4-3.5 7-6 9" stroke="#1F9D55" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </td>
+          <td style='padding:10px 12px;font-family:monospace;font-weight:600;'>leaf (feuille CO₂)</td>
+          <td style='padding:10px 12px;color:#666;'>index.html (_leafSvg)</td>
+          <td style='padding:10px 12px;color:#666;'>Badge CO₂ sur cards transactions, badge profil CO₂</td>
+          <td style='padding:10px 12px;color:#F39C12;'>⚠️ Aussi utilisé comme emoji 🍃 ailleurs</td>
+        </tr>
+
+        <tr style='border-bottom:1px solid #F0F0F0;'>
+          <td style='padding:10px 12px;'>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012-.5c.9.3 1.8.6 2.8.7A2 2 0 0122 16.9z" stroke="#666" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </td>
+          <td style='padding:10px 12px;font-family:monospace;font-weight:600;'>phone (téléphone)</td>
+          <td style='padding:10px 12px;color:#666;'>index.html (_phoneSvg)</td>
+          <td style='padding:10px 12px;color:#666;'>Popin contact transaction — lien appel</td>
+          <td style='padding:10px 12px;'>currentColor</td>
+        </tr>
+
+        <tr style='border-bottom:1px solid #F0F0F0;'>
+          <td style='padding:10px 12px;'>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 3l8 8M11 3l-8 8" stroke="#666" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </td>
+          <td style='padding:10px 12px;font-family:monospace;font-weight:600;'>close-x (fermer)</td>
+          <td style='padding:10px 12px;color:#666;'>index.html</td>
+          <td style='padding:10px 12px;color:#666;'>Fermeture panel recherche active</td>
+          <td style='padding:10px 12px;color:#F39C12;'>⚠️ Concurrent au × textuel dans d'autres modales</td>
+        </tr>
+
+        <tr style='border-bottom:1px solid #F0F0F0;'>
+          <td style='padding:10px 12px;'>
+            <svg width="16" height="16" viewBox="0 0 12 20" fill="none"><path d="M10 2L2 10l8 8" stroke="#666" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </td>
+          <td style='padding:10px 12px;font-family:monospace;font-weight:600;'>chevron-left (retour)</td>
+          <td style='padding:10px 12px;color:#666;'>index.html</td>
+          <td style='padding:10px 12px;color:#666;'>Bouton ← retour (thread, bouteilles, item-detail)</td>
+          <td style='padding:10px 12px;color:#F39C12;'>⚠️ 3× identique</td>
+        </tr>
+
+        <tr style='border-bottom:1px solid #F0F0F0;'>
+          <td style='padding:10px 12px;'>
+            <svg width="22" height="8" viewBox="0 0 22 6" fill="none"><circle cx="3" cy="3" r="2" fill="#666"/><circle cx="11" cy="3" r="2" fill="#666"/><circle cx="19" cy="3" r="2" fill="#666"/></svg>
+          </td>
+          <td style='padding:10px 12px;font-family:monospace;font-weight:600;'>dots-menu (⋯)</td>
+          <td style='padding:10px 12px;color:#666;'>index.html</td>
+          <td style='padding:10px 12px;color:#666;'>Bouton ⋯ menu contextuel (thread, fiche objet)</td>
+          <td style='padding:10px 12px;color:#F39C12;'>⚠️ 2× identique</td>
+        </tr>
+
+        <tr style='border-bottom:1px solid #F0F0F0;'>
+          <td style='padding:10px 12px;'>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="#666" stroke-width="1.8"/><rect x="14" y="3" width="7" height="7" rx="1.5" stroke="#666" stroke-width="1.8"/><rect x="3" y="14" width="7" height="7" rx="1.5" stroke="#666" stroke-width="1.8"/><path d="M14 17.5h7M17.5 14v7" stroke="#666" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </td>
+          <td style='padding:10px 12px;font-family:monospace;font-weight:600;'>qr-scan</td>
+          <td style='padding:10px 12px;color:#666;'>index.html</td>
+          <td style='padding:10px 12px;color:#666;'>Bouton scan QR validation échange</td>
+          <td style='padding:10px 12px;'>currentColor</td>
+        </tr>
+
+        <tr style='border-bottom:1px solid #F0F0F0;'>
+          <td style='padding:10px 12px;'>
+            <svg width="18" height="18" viewBox="0 0 14 14" fill="none"><path d="M2 7l4 4 6-6" stroke="#1F9D55" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </td>
+          <td style='padding:10px 12px;font-family:monospace;font-weight:600;'>check (validation)</td>
+          <td style='padding:10px 12px;color:#666;'>index.html</td>
+          <td style='padding:10px 12px;color:#666;'>Étape validée dans le thread transaction</td>
+          <td style='padding:10px 12px;'>Couleur fixe white ou #1F9D55</td>
+        </tr>
+
+        <tr style='border-bottom:1px solid #F0F0F0;'>
+          <td style='padding:10px 12px;'>
+            <svg width="22" height="18" viewBox="0 0 24 18" fill="none"><path d="M 1.5 9 C 4.5 3.5, 8 1.5, 12 1.5 C 16 1.5, 19.5 3.5, 22.5 9 C 19.5 14.5, 16 16.5, 12 16.5 C 8 16.5, 4.5 14.5, 1.5 9 Z" stroke="#666" stroke-width="1.6" stroke-linejoin="round" fill="none"/><circle cx="12" cy="9" r="3.2" stroke="#666" stroke-width="1.6" fill="none"/><circle cx="12" cy="9" r="1.2" fill="#666"/></svg>
+          </td>
+          <td style='padding:10px 12px;font-family:monospace;font-weight:600;'>eye (œil)</td>
+          <td style='padding:10px 12px;color:#666;'>signup.html</td>
+          <td style='padding:10px 12px;color:#666;'>Toggle visibilité mot de passe (2 champs)</td>
+          <td style='padding:10px 12px;color:#F39C12;'>⚠️ 2× en HTML + régénéré en JS</td>
+        </tr>
+
+        <tr style='border-bottom:1px solid #F0F0F0;'>
+          <td style='padding:10px 12px;'>
+            <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><path d="M 6 6 L 6 3 Q 6 2 7 2 L 18 2 Q 19 2 19 3 L 19 14 Q 19 15 18 15 L 15 15" stroke="#666" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="3" y="6" width="13" height="14" rx="2" stroke="#666" stroke-width="1.7" fill="none"/></svg>
+          </td>
+          <td style='padding:10px 12px;font-family:monospace;font-weight:600;'>copy (copier)</td>
+          <td style='padding:10px 12px;color:#666;'>index.html</td>
+          <td style='padding:10px 12px;color:#666;'>Copier téléphone (popin contact), copier email (modal GO)</td>
+          <td style='padding:10px 12px;color:#F39C12;'>⚠️ 2× identique — mutable en check vert après copie</td>
+        </tr>
+
+        <tr style='border-bottom:1px solid #F0F0F0;'>
+          <td style='padding:10px 12px;'>
+            <svg width="20" height="22" viewBox="0 0 22 24" fill="none"><path d="M 3 6 L 19 6" stroke="#666" stroke-width="1.8" stroke-linecap="round"/><path d="M 8 6 L 8 4 Q 8 2.5 9.5 2.5 L 12.5 2.5 Q 14 2.5 14 4 L 14 6" stroke="#666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M 5 6 L 6 20 Q 6 21.5 7.5 21.5 L 14.5 21.5 Q 16 21.5 16 20 L 17 6" stroke="#666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M 9 10 L 9 17.5" stroke="#666" stroke-width="1.5" stroke-linecap="round"/><path d="M 13 10 L 13 17.5" stroke="#666" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </td>
+          <td style='padding:10px 12px;font-family:monospace;font-weight:600;'>trash (poubelle)</td>
+          <td style='padding:10px 12px;color:#666;'>index.html</td>
+          <td style='padding:10px 12px;color:#666;'>Supprimer alerte bouteille dans la modale profil</td>
+          <td style='padding:10px 12px;'>currentColor (#999)</td>
+        </tr>
+
+        <tr style='border-bottom:1px solid #F0F0F0;'>
+          <td style='padding:10px 12px;'>
+            <svg width="22" height="16" viewBox="0 0 280 200" fill="none" style="color:#1F9D55;"><g transform="translate(140 110) rotate(-55)" stroke="currentColor" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M -14 -120 L -14 -106 C -14 -100, -22 -94, -28 -86 C -34 -76, -36 -64, -36 -50 L -36 30 C -36 42, -28 50, -14 50 L 14 50 C 28 50, 36 42, 36 30 L 36 -50 C 36 -64, 34 -76, 28 -86 C 22 -94, 14 -100, 14 -106 L 14 -120 Z"/><rect x="-18" y="-138" width="36" height="20" rx="2.5" fill="currentColor"/></g><path d="M 4 118 C 32 108, 60 128, 88 118 C 116 108, 144 128, 172 118 C 200 108, 228 128, 256 118 C 268 114, 276 118, 278 118" stroke="currentColor" stroke-width="5.5" stroke-linecap="round" fill="none"/></svg>
+          </td>
+          <td style='padding:10px 12px;font-family:monospace;font-weight:600;'>bottle (bouteille à la mer)</td>
+          <td style='padding:10px 12px;color:#666;'>index.html</td>
+          <td style='padding:10px 12px;color:#666;'>Card profil bouteilles, carousel Home, modal bouteilles</td>
+          <td style='padding:10px 12px;color:#F39C12;'>⚠️ Couleur #00A651 dans carousel (snowflake !)</td>
+        </tr>
+
+        <tr style='border-bottom:1px solid #F0F0F0;'>
+          <td style='padding:10px 12px;'>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M 10 4 L 13.5 0.5 Q 17 -3 20.5 0.5 Q 24 4 20.5 7.5 L 17 11" stroke="#666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M 14 20 L 10.5 23.5 Q 7 27 3.5 23.5 Q 0 20 3.5 16.5 L 7 13" stroke="#666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M 9 15 L 15 9" stroke="#666" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>
+          </td>
+          <td style='padding:10px 12px;font-family:monospace;font-weight:600;'>link (lien)</td>
+          <td style='padding:10px 12px;color:#666;'>index.html</td>
+          <td style='padding:10px 12px;color:#666;'>Bouton "Copier ce lien" dans modal invitation</td>
+          <td style='padding:10px 12px;'>currentColor</td>
+        </tr>
+
+        <tr style='border-bottom:1px solid #F0F0F0;'>
+          <td style='padding:10px 12px;'>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#666" stroke-width="1.8" fill="none"/><circle cx="12" cy="7.5" r="1.2" fill="#666"/><path d="M 12 11 L 12 17" stroke="#666" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>
+          </td>
+          <td style='padding:10px 12px;font-family:monospace;font-weight:600;'>info (cercle ℹ)</td>
+          <td style='padding:10px 12px;color:#666;'>index.html</td>
+          <td style='padding:10px 12px;color:#666;'>Info "Ce lien est valide 7 jours" dans modal invitation</td>
+          <td style='padding:10px 12px;'>currentColor</td>
+        </tr>
+
+        <tr>
+          <td style='padding:10px 12px;'>
+            <svg width="22" height="8" viewBox="0 0 8 14" fill="none"><path d="M1 1l6 6-6 6" stroke="#CCC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </td>
+          <td style='padding:10px 12px;font-family:monospace;font-weight:600;'>chevron-right (›)</td>
+          <td style='padding:10px 12px;color:#666;'>index.html</td>
+          <td style='padding:10px 12px;color:#666;'>Chevron navigation dans cards liste (objets, réponses bouteilles)</td>
+          <td style='padding:10px 12px;color:#F39C12;'>⚠️ 4× en JS innerHTML (à factoriser)</td>
+        </tr>
+
+      </tbody>
+    </table>
+
+    <div style='margin-top:24px;background:#FFF8F0;border:1px solid #F39C12;border-radius:12px;padding:16px;'>
+      <p style='font-size:13px;font-weight:700;color:#F39C12;margin-bottom:8px;'>⚠️ Emojis encore utilisés comme icônes</p>
+      <table style='width:100%;border-collapse:collapse;font-size:13px;'>
+        <tr style='border-bottom:1px solid #F5E0C0;'>
+          <td style='padding:8px;font-size:18px;'>🍃</td>
+          <td style='padding:8px;color:#666;'>index.html, onboarding.html</td>
+          <td style='padding:8px;color:#666;'>Badge CO₂ dans les pills — concurrent au SVG leaf</td>
+        </tr>
+        <tr>
+          <td style='padding:8px;font-size:18px;'>✓</td>
+          <td style='padding:8px;color:#666;'>index.html, signup.html, invite.html</td>
+          <td style='padding:8px;color:#666;'>Confirmations, force mot de passe, "✓ Code valide" — devrait être SVG check</td>
+        </tr>
+      </table>
     </div>
   </div>
 
