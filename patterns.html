@@ -144,6 +144,40 @@
       </ul></div>
       <div class='ds-code'>background:none; border:none; font-size:24px; color:#888; cursor:pointer; padding:4px;</div>
     </div>
+
+    <div class='ds-component'>
+      <div class='ds-component-name'>btn + icône (variantes)</div>
+      <div class='ds-preview'>
+        <button style='background:#1F9D55;color:white;border:none;border-radius:24px;padding:12px 20px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;font-family:inherit;'><span style='font-size:18px;'>+</span> Ajouter</button>
+        <button style='background:#1F9D55;color:white;border:none;border-radius:24px;padding:12px 20px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;font-family:inherit;'>Continuer <span>→</span></button>
+        <button style='background:white;color:#1F9D55;border:2px solid #1F9D55;border-radius:24px;padding:11px 20px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;font-family:inherit;'><span id='icon-share-ds'></span> Partager</button>
+        <button style='background:white;color:#333;border:1px solid #E5E5E5;border-radius:24px;padding:12px 20px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;font-family:inherit;'><span id='icon-copy-ds'></span> Copier</button>
+        <button style='width:44px;height:44px;background:#1F9D55;color:white;border:none;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;'>+</button>
+        <button style='width:44px;height:44px;background:none;color:#666;border:1px solid #E5E5E5;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;' id='icon-trash-ds'></button>
+        <button style='background:none;border:none;color:#888;font-size:24px;cursor:pointer;padding:4px;'>×</button>
+      </div>
+      <div class='ds-usage'><strong>Usage :</strong><ul>
+        <li>btn-primary + icône gauche : Ajouter, Inviter</li>
+        <li>btn-primary + icône droite : Continuer, Envoyer</li>
+        <li>btn-secondary + icône : Partager, Copier</li>
+        <li>btn-icon-round (44px vert) : onboarding slots, home ajouter</li>
+        <li>btn-icon-ghost (44px outline) : supprimer, actions secondaires</li>
+      </ul></div>
+    </div>
+
+    <div class='ds-component'>
+      <div class='ds-component-name'>btn-flo-specific</div>
+      <div class='ds-preview'>
+        <button style='background:#1F9D55;color:white;border:none;border-radius:24px;padding:14px 20px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:10px;font-family:inherit;'><span id='icon-copy-link-ds'></span> Copier ce lien</button>
+        <button style='background:none;border:none;color:#666;cursor:pointer;padding:4px 8px;display:flex;align-items:center;' id='icon-eye-ds'></button>
+        <button style='background:none;border:none;color:#666;cursor:pointer;padding:4px;display:flex;align-items:center;' id='icon-trash2-ds'></button>
+      </div>
+      <div class='ds-usage'><strong>Usage :</strong><ul>
+        <li>Copier ce lien : modal invitation</li>
+        <li>Toggle eye : signup.html champs password</li>
+        <li>Trash custom SVG : suppression bouteilles, objets</li>
+      </ul></div>
+    </div>
   </div>
 
   <!-- ── CARDS ────────────────────────────────────────────── -->
@@ -631,6 +665,17 @@ stepEl.style.animation = 'fadeInUp 400ms ease-out both';</div>
       };
       iconsGrid.appendChild(card);
     });
+  }
+
+  // Initialiser les icônes dans les previews boutons
+  if (typeof FLO_ICONS !== 'undefined') {
+    const el = (id, fn) => { const e = document.getElementById(id); if (e) e.innerHTML = fn; };
+    el('icon-share-ds',     FLO_ICONS.link({ size: 18, color: '#1F9D55' }));
+    el('icon-copy-ds',      FLO_ICONS.copy({ size: 18, color: '#333' }));
+    el('icon-trash-ds',     FLO_ICONS.trash({ size: 20, color: '#666' }));
+    el('icon-copy-link-ds', FLO_ICONS.copy({ size: 20, color: 'white' }));
+    el('icon-eye-ds',       FLO_ICONS.eyeOpen({ size: 22, color: '#666' }));
+    el('icon-trash2-ds',    FLO_ICONS.trash({ size: 20, color: '#666' }));
   }
 </script>
 
