@@ -571,6 +571,29 @@
       overflow: hidden;
     }
     .photo-area:active { background: var(--surface); border-color: var(--accent); }
+    .photo-area.loading { pointer-events: none; }
+    .photo-area.loading::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .photo-area.loading::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 24px; height: 24px;
+      margin: -12px 0 0 -12px;
+      border: 2.5px solid var(--accent);
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      z-index: 1;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
     .photo-area-label {
       font-size: 14px;
       font-weight: 500;
@@ -3607,15 +3630,46 @@ function toggleAvail() {
 
 // ── Photo ─────────────────────────────────────────────────────
 function openPhotoChoice() { document.getElementById('photoInput').click(); }
-function onPhotoSelected(input) {
+
+async function compressImage(file, maxPx = 1200, quality = 0.82) {
+  return new Promise(resolve => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
+      const w = Math.round(img.width * scale);
+      const h = Math.round(img.height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      canvas.toBlob(blob => resolve(blob || file), 'image/jpeg', quality);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+    img.src = url;
+  });
+}
+
+function _photoFilenameFromUrl(url) {
+  if (!url) return null;
+  const parts = url.split('/Items-photos/');
+  return parts[1] ? decodeURIComponent(parts[1].split('?')[0]) : null;
+}
+
+async function onPhotoSelected(input) {
   if (!input.files[0]) return;
   const area = document.getElementById('photoArea');
+  area.classList.add('loading');
+  area.innerHTML = '';
+  const blob = await compressImage(input.files[0]);
   const img = document.createElement('img');
-  img.src = URL.createObjectURL(input.files[0]);
+  img.src = URL.createObjectURL(blob);
   img.className = 'photo-preview';
   img.alt = "Photo de l'objet";
+  input._compressedBlob = blob;
   area.innerHTML = '';
   area.appendChild(img);
+  area.classList.remove('loading');
 }
 
 // ── Soumission formulaire ─────────────────────────────────────
@@ -3628,13 +3682,14 @@ async function submitForm() {
 
   // Upload photo if selected
   let photo_url = null;
-  const photoFile = document.getElementById('photoInput').files[0];
-  if (photoFile) {
-    const fileExt = photoFile.name.split('.').pop();
-    const fileName = `item-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+  const photoInput = document.getElementById('photoInput');
+  const photoBlob  = photoInput._compressedBlob || photoInput.files[0];
+  if (photoBlob) {
+    if (ctaBtn) ctaBtn.textContent = 'Upload photo…';
+    const fileName = `item-${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
     const { error: uploadError } = await db.storage
       .from('Items-photos')
-      .upload(fileName, photoFile);
+      .upload(fileName, photoBlob, { contentType: 'image/jpeg' });
     if (uploadError) {
       console.error('Upload photo error:', uploadError);
       showToast('Erreur upload photo', 'error');
@@ -3643,6 +3698,7 @@ async function submitForm() {
     }
     const { data: urlData } = db.storage.from('Items-photos').getPublicUrl(fileName);
     photo_url = urlData.publicUrl;
+    if (ctaBtn) ctaBtn.textContent = 'En cours…';
   }
 
   const { data: newItem, error } = await db
@@ -6942,10 +6998,18 @@ function _refreshEditPhotoUI(url) {
   }
 }
 
-function onEditPhotoSelected(input) {
+async function onEditPhotoSelected(input) {
   if (!input.files[0]) return;
   _editPhotoAction = 'upload';
-  _refreshEditPhotoUI(URL.createObjectURL(input.files[0]));
+  const preview = document.getElementById('edit-photo-preview');
+  const placeholder = document.getElementById('edit-photo-placeholder');
+  preview.style.display = 'none';
+  placeholder.style.display = 'flex';
+  placeholder.innerHTML = '<div style="width:22px;height:22px;border:2.5px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;"></div>';
+  const blob = await compressImage(input.files[0]);
+  input._compressedBlob = blob;
+  _refreshEditPhotoUI(URL.createObjectURL(blob));
+  placeholder.innerHTML = '📷';
 }
 
 function removeEditPhoto() {
@@ -6991,12 +7055,15 @@ async function saveItemDescription() {
   let newPhotoUrl = undefined; // undefined = no change
   if (_editPhotoAction === 'delete') {
     newPhotoUrl = null;
+    const oldFile = _photoFilenameFromUrl(_detailItem.photo_url);
+    if (oldFile) db.storage.from('Items-photos').remove([oldFile]);
   } else if (_editPhotoAction === 'upload') {
-    const file = document.getElementById('editPhotoInput').files[0];
-    if (file) {
-      const ext      = file.name.split('.').pop();
-      const fileName = `item-${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
-      const { error: uploadError } = await db.storage.from('Items-photos').upload(fileName, file);
+    const editInput = document.getElementById('editPhotoInput');
+    const blob = editInput._compressedBlob || editInput.files[0];
+    if (blob) {
+      saveBtn.textContent = 'Upload photo…';
+      const fileName = `item-${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
+      const { error: uploadError } = await db.storage.from('Items-photos').upload(fileName, blob, { contentType: 'image/jpeg' });
       if (uploadError) {
         showToast('Erreur upload photo', 'error');
         saveBtn.disabled = false;
@@ -7005,6 +7072,9 @@ async function saveItemDescription() {
       }
       const { data: urlData } = db.storage.from('Items-photos').getPublicUrl(fileName);
       newPhotoUrl = urlData.publicUrl;
+      const oldFile = _photoFilenameFromUrl(_detailItem.photo_url);
+      if (oldFile) db.storage.from('Items-photos').remove([oldFile]);
+      saveBtn.textContent = 'Enregistrement…';
     }
   }
 
