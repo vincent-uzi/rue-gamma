@@ -1981,7 +1981,7 @@
       aspect-ratio: 4/3; background: #F5F5F5;
       overflow: hidden;
     }
-    #item-detail-photo { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; }
+    #item-detail-photo { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
     #photo-lightbox {
       display: none;
       position: fixed; inset: 0; z-index: 9999;
@@ -2742,7 +2742,7 @@
   </div>
 
   <div class="item-photo-carousel">
-    <img id="item-detail-photo" src="" alt="Photo objet" style="display:none;" onclick="openPhotoLightbox(this.src)">
+    <img id="item-detail-photo" src="" alt="Photo objet" style="display:none;">
     <div class="item-photo-placeholder" id="item-detail-placeholder">&#128247;</div>
     <div class="photo-dots" id="photo-dots"></div>
 
@@ -6923,6 +6923,18 @@ function showItemDetail() {
   const panel = document.getElementById('panel-item-detail');
   panel.style.display = 'block';
   requestAnimationFrame(() => requestAnimationFrame(() => panel.classList.add('open')));
+  const photo = document.getElementById('item-detail-photo');
+  const carousel = photo.closest('.item-photo-carousel');
+  if (carousel && !carousel._lightboxBound) {
+    carousel._lightboxBound = true;
+    const handler = (e) => {
+      if (photo.style.display === 'none' || !photo.src) return;
+      e.preventDefault();
+      openPhotoLightbox(photo.src);
+    };
+    carousel.addEventListener('touchend', handler, { passive: false });
+    carousel.addEventListener('click', handler);
+  }
 }
 
 function hideItemDetail() {
