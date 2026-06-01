@@ -71,7 +71,7 @@
   <!-- Container -->
   <div class="container">
     <h1 class="header-title">Votre compte est créé !</h1>
-    <p class="header-desc">Pour rejoindre la communauté, partagez 3 objets</p>
+    <p class="header-desc">Partagez des objets pour rejoindre la communauté</p>
     <p class="header-subtitle">3 objets que l'on pourra vous emprunter</p>
 
     <div id="slot-1" style="background:white; border:1px solid #EAF5EA; border-radius:12px; padding:16px; margin-bottom:12px;">
@@ -113,9 +113,10 @@
 
   <!-- Bottom bar -->
   <div class="bottom-bar">
-    <button id="btn-finish" class="btn-primary" onclick="finishOnboarding()" disabled>
+    <button id="btn-finish" class="btn-primary" onclick="finishOnboarding()">
       Accéder à la communauté
     </button>
+    <p id="onboarding-hint" style="text-align:center; font-size:13px; color:#999; margin-top:8px;">Vous pourrez ajouter des objets depuis votre profil</p>
   </div>
 
   <!-- Modale ajout objet (copiée depuis index.html) -->
@@ -220,12 +221,11 @@
       const nextBtn = document.getElementById('btn-add-' + (slotNumber + 1));
       if (nextBtn) nextBtn.style.display = 'flex';
 
-      checkCompletion();
-    }
-
-    function checkCompletion() {
       const completed = Object.values(onboardingObjects).every(obj => obj !== null);
-      document.getElementById('btn-finish').disabled = !completed;
+      if (completed) {
+        const hint = document.getElementById('onboarding-hint');
+        if (hint) hint.style.display = 'none';
+      }
     }
 
     function finishOnboarding() {
