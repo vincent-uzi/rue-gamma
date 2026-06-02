@@ -3671,13 +3671,13 @@ async function compressImage(file, maxPx = 1200, quality = 0.82) {
     const url = URL.createObjectURL(file);
     img.onload = () => {
       URL.revokeObjectURL(url);
-      const scale = Math.min(1, maxPx / Math.max(img.naturalWidth || img.width, img.naturalHeight || img.height));
-      const w = Math.round((img.naturalWidth || img.width) * scale);
-      const h = Math.round((img.naturalHeight || img.height) * scale);
-      const canvas = document.createElement('canvas');
-      canvas.width = w; canvas.height = h;
-      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
       try {
+        const scale = Math.min(1, maxPx / Math.max(img.naturalWidth || img.width, img.naturalHeight || img.height));
+        const w = Math.round((img.naturalWidth || img.width) * scale);
+        const h = Math.round((img.naturalHeight || img.height) * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
         const dataUrl = canvas.toDataURL('image/jpeg', quality);
         resolve(_dataURLtoBlob(dataUrl));
       } catch(e) { resolve(file); }
