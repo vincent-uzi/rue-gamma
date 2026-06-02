@@ -283,7 +283,13 @@
           const canvas = document.createElement('canvas');
           canvas.width = w; canvas.height = h;
           canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-          canvas.toBlob(blob => resolve(blob || file), 'image/jpeg', quality);
+          canvas.toBlob(blob => {
+            if (blob) { resolve(blob); return; }
+            try {
+              const dataUrl = canvas.toDataURL('image/jpeg', quality);
+              fetch(dataUrl).then(r => r.blob()).then(resolve).catch(() => resolve(file));
+            } catch(e) { resolve(file); }
+          }, 'image/jpeg', quality);
         };
         img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
         img.src = url;
