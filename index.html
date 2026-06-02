@@ -7792,6 +7792,9 @@ async function _submitModalAdd() {
 }
 
 // ── Modal invite (éléments définis après balise script → DOMContentLoaded) ──
+// Réinitialise le flag splash quand l'app passe en arrière-plan (kill ou home)
+window.addEventListener('pagehide', () => sessionStorage.removeItem('flo_launched'));
+
 document.addEventListener('DOMContentLoaded', () => {
   const btnInvite = document.getElementById('btn-invite');
   if (btnInvite) btnInvite.addEventListener('click', _openInviteModal);
