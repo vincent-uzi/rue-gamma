@@ -3640,6 +3640,9 @@ function toggleAvail() {
   btn.setAttribute('aria-checked', String(!willBeOff));
 }
 
+let _addPhotoBlob = null;
+let _editPhotoBlob = null;
+
 // ── Lightbox photo ────────────────────────────────────────────
 function openPhotoLightbox(src) {
   const lb = document.getElementById('photo-lightbox');
@@ -3703,7 +3706,7 @@ async function onPhotoSelected(input) {
   img.src = URL.createObjectURL(blob);
   img.className = 'photo-preview';
   img.alt = "Photo de l'objet";
-  input._compressedBlob = blob;
+  _addPhotoBlob = blob;
   area.innerHTML = '';
   area.appendChild(img);
   area.classList.remove('loading');
@@ -3720,7 +3723,7 @@ async function submitForm() {
   // Upload photo if selected
   let photo_url = null;
   const photoInput = document.getElementById('photoInput');
-  const photoBlob  = photoInput._compressedBlob || photoInput.files[0];
+  const photoBlob  = _addPhotoBlob || photoInput.files[0];
   if (photoBlob) {
     if (ctaBtn) ctaBtn.textContent = 'Upload photo…';
     const fileName = `item-${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
@@ -3836,6 +3839,7 @@ function _resetAddForm() {
     <circle cx="15.5" cy="6" r="0.6" fill="currentColor"/>
   </svg><span class="photo-area-label">Ajouter une photo</span>`;
   document.getElementById('photoInput').value = '';
+  _addPhotoBlob = null;
   detectedCo2 = 30;
   detectedCategory = '';
   // Pré-remplir si provient d'un avis de recherche
@@ -7056,7 +7060,7 @@ async function onEditPhotoSelected(input) {
   placeholder.style.display = 'flex';
   placeholder.innerHTML = '<div style="width:22px;height:22px;border:2.5px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;"></div>';
   const blob = await compressImage(input.files[0]);
-  input._compressedBlob = blob;
+  _editPhotoBlob = blob;
   _refreshEditPhotoUI(URL.createObjectURL(blob));
   placeholder.innerHTML = '📷';
 }
@@ -7108,7 +7112,7 @@ async function saveItemDescription() {
     if (oldFile) db.storage.from('Items-photos').remove([oldFile]);
   } else if (_editPhotoAction === 'upload') {
     const editInput = document.getElementById('editPhotoInput');
-    const blob = editInput._compressedBlob || editInput.files[0];
+    const blob = _editPhotoBlob || editInput.files[0];
     if (blob) {
       saveBtn.textContent = 'Upload photo…';
       const fileName = `item-${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
