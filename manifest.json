@@ -2,6 +2,7 @@
   "name": "FLO - Front de Libération des Objets",
   "short_name": "FLO",
   "description": "Libérez vos objets, libérez la planète",
+  "start_url": "/splash.html",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#ffffff",

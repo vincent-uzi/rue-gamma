@@ -130,10 +130,16 @@
   </main>
 
   <script>
-    setTimeout(function(){
-      document.getElementById('stage').classList.add('out');
-      setTimeout(function(){ window.location.href = 'index.html'; }, 460);
-    }, 2700);
+    // Splash uniquement au lancement à froid (pas si session déjà active)
+    if (sessionStorage.getItem('flo_launched')) {
+      window.location.replace('index.html');
+    } else {
+      sessionStorage.setItem('flo_launched', '1');
+      setTimeout(function(){
+        document.getElementById('stage').classList.add('out');
+        setTimeout(function(){ window.location.replace('index.html'); }, 460);
+      }, 2700);
+    }
   </script>
 </body>
 </html>
