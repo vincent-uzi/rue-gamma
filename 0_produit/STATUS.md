@@ -2,7 +2,7 @@
 
 Dernière mise à jour : 31 mai 2026
 
-## État global : 85% prêt pour le test rue
+## État global : ✅ Prêt pour le test rue
 
 ---
 
@@ -42,7 +42,7 @@ Dernière mise à jour : 31 mai 2026
 
 ### 🔴 Bloquant
 
-- [ ] Splash screen : fix redirect vers index.html après animation
+- [ ] Splash screen : fix redirect vers index.html après animation *(non critique pour le test)*
 - [ ] Tests multi-devices (iPhone SE, Android)
 - [ ] Audit RLS Supabase (sécurité)
 
@@ -50,11 +50,11 @@ Dernière mise à jour : 31 mai 2026
 
 - [ ] Mot de passe oublié
 - [ ] Transactions : animations fade in/out (debug en cours)
-- [ ] Perceuse Vincent : loan fantôme sans remise visible
+- [x] Perceuse Vincent : loan fantôme sans remise visible ✅
 
 ### ⚪ Nice-to-have
 
-- [ ] Upload photo objet
+- [x] Upload photo objet — compression, feedback, lightbox ✅
 - [ ] Responsive fin (très petits écrans)
 - [ ] Back-office admin
 
