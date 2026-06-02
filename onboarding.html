@@ -395,11 +395,13 @@
 
       // Upload photo
       let photo_url = null;
-      if (_modalPhotoFile) {
+      const rawModalFile = document.getElementById('modal-photo-input').files[0] || _modalPhotoFile;
+      const compressedModalFile = rawModalFile ? await _compressImage(rawModalFile) : null;
+      if (compressedModalFile) {
         const fileName = `item-${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
         const { error: uploadError } = await db.storage
           .from('Items-photos')
-          .upload(fileName, _modalPhotoFile, { contentType: 'image/jpeg' });
+          .upload(fileName, compressedModalFile, { contentType: 'image/jpeg' });
         if (!uploadError) {
           const { data: urlData } = db.storage.from('Items-photos').getPublicUrl(fileName);
           photo_url = urlData.publicUrl;

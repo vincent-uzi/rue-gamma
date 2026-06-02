@@ -3724,7 +3724,8 @@ async function submitForm() {
   // Upload photo if selected
   let photo_url = null;
   const photoInput = document.getElementById('photoInput');
-  const photoBlob  = _addPhotoBlob || photoInput.files[0];
+  const rawFile = photoInput.files[0];
+  const photoBlob = rawFile ? await compressImage(rawFile) : null;
   if (photoBlob) {
     if (ctaBtn) ctaBtn.textContent = 'Upload photo…';
     const fileName = `item-${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
