@@ -7614,7 +7614,11 @@ document.head.appendChild(mLink);
     for (const id of overlays) {
       const el = document.getElementById(id);
       if (el && el.style.display !== 'none') {
-        return el.querySelector('.profile-scroll') || el.querySelector('[style*="overflow-y"]') || el;
+        return el.querySelector('.profile-scroll')
+          || el.querySelector('.obj-scroll')
+          || el.querySelector('.search-scroll')
+          || el.querySelector('[style*="overflow-y"]')
+          || el;
       }
     }
     return document.querySelector('#panel-home .scroll');
