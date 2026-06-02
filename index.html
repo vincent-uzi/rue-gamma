@@ -3697,11 +3697,12 @@ function _photoFilenameFromUrl(url) {
 }
 
 async function onPhotoSelected(input) {
-  if (!input.files[0]) return;
+  const file = input.files[0];
+  if (!file) return;
   const area = document.getElementById('photoArea');
   area.classList.add('loading');
   area.innerHTML = '';
-  const blob = await compressImage(input.files[0]);
+  const blob = await compressImage(file);
   const img = document.createElement('img');
   img.src = URL.createObjectURL(blob);
   img.className = 'photo-preview';

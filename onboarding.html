@@ -366,11 +366,12 @@
     }
 
     async function _onModalPhotoSelected(input) {
-      if (!input.files[0]) return;
+      const file = input.files[0];
+      if (!file) return;
       const btn = document.getElementById('btn-modal-photo');
       const previewImg = document.getElementById('modal-photo-preview-img');
       if (btn) btn.style.opacity = '0.5';
-      _modalPhotoFile = await _compressImage(input.files[0]);
+      _modalPhotoFile = await _compressImage(file);
       previewImg.src = URL.createObjectURL(_modalPhotoFile);
       document.getElementById('modal-photo-preview').style.display = 'block';
       if (btn) { btn.style.opacity = ''; btn.style.display = 'none'; }
