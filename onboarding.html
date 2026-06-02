@@ -271,25 +271,31 @@
       }
     }
 
+    function _dataURLtoBlob(dataUrl) {
+      const [header, data] = dataUrl.split(',');
+      const mime = header.match(/:(.*?);/)[1];
+      const binary = atob(data);
+      const arr = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) arr[i] = binary.charCodeAt(i);
+      return new Blob([arr], { type: mime });
+    }
+
     function _compressImage(file, maxPx = 1200, quality = 0.82) {
       return new Promise(resolve => {
         const img = new Image();
         const url = URL.createObjectURL(file);
         img.onload = () => {
           URL.revokeObjectURL(url);
-          const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
-          const w = Math.round(img.width * scale);
-          const h = Math.round(img.height * scale);
+          const scale = Math.min(1, maxPx / Math.max(img.naturalWidth || img.width, img.naturalHeight || img.height));
+          const w = Math.round((img.naturalWidth || img.width) * scale);
+          const h = Math.round((img.naturalHeight || img.height) * scale);
           const canvas = document.createElement('canvas');
           canvas.width = w; canvas.height = h;
           canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-          canvas.toBlob(blob => {
-            if (blob) { resolve(blob); return; }
-            try {
-              const dataUrl = canvas.toDataURL('image/jpeg', quality);
-              fetch(dataUrl).then(r => r.blob()).then(resolve).catch(() => resolve(file));
-            } catch(e) { resolve(file); }
-          }, 'image/jpeg', quality);
+          try {
+            const dataUrl = canvas.toDataURL('image/jpeg', quality);
+            resolve(_dataURLtoBlob(dataUrl));
+          } catch(e) { resolve(file); }
         };
         img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
         img.src = url;
