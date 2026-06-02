@@ -130,11 +130,12 @@
   </main>
 
   <script>
-    // Splash uniquement au lancement à froid (pas si session déjà active)
-    if (sessionStorage.getItem('flo_launched')) {
+    // Splash uniquement si dernière activité > 30s (lancement à froid)
+    var last = parseInt(localStorage.getItem('flo_active_at') || '0', 10);
+    var cold = (Date.now() - last) > 30000;
+    if (!cold) {
       window.location.replace('index.html');
     } else {
-      sessionStorage.setItem('flo_launched', '1');
       setTimeout(function(){
         document.getElementById('stage').classList.add('out');
         setTimeout(function(){ window.location.replace('index.html'); }, 460);

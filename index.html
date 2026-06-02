@@ -7792,8 +7792,9 @@ async function _submitModalAdd() {
 }
 
 // ── Modal invite (éléments définis après balise script → DOMContentLoaded) ──
-// Réinitialise le flag splash quand l'app passe en arrière-plan (kill ou home)
-window.addEventListener('pagehide', () => sessionStorage.removeItem('flo_launched'));
+// Met à jour le timestamp d'activité toutes les 5s pour détecter les lancements à froid
+localStorage.setItem('flo_active_at', Date.now());
+setInterval(() => localStorage.setItem('flo_active_at', Date.now()), 5000);
 
 document.addEventListener('DOMContentLoaded', () => {
   const btnInvite = document.getElementById('btn-invite');
