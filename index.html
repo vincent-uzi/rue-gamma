@@ -5119,6 +5119,10 @@ async function updateTransactionStatus(loanId, frenchStatus) {
     t => (t._dbStatus === 'pending' || t.status === 'En attente de validation') && t.from === 'Vous'
   ).length;
   updateTransactionsBadge(count);
+
+  // Refresh onglets prêtés/empruntés si le profil est visible
+  const profilePanel = document.getElementById('panel-profile');
+  if (profilePanel && profilePanel.style.display !== 'none') loadProfileTabs();
 }
 
 
