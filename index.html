@@ -3857,6 +3857,7 @@ async function submitForm() {
 
   const itemId = newItem?.id;
   const itemName = document.getElementById('nameInput').value;
+  _objectsLoaded = false;
   hidePanel('panel-add');
   _showAddSuccessToast(itemId, itemName);
 }
