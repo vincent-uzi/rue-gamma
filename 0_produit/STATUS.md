@@ -1,6 +1,6 @@
 # FLO — État technique
 
-Dernière mise à jour : 31 mai 2026
+Dernière mise à jour : 2 juin 2026
 
 ## État global : ✅ Prêt pour le test rue
 
@@ -15,7 +15,8 @@ Dernière mise à jour : 31 mai 2026
 | `invite.html` | Page invitation voisin | ✅ Stable |
 | `signup.html` | Inscription 4 étapes | ✅ Stable |
 | `onboarding.html` | Tunnel ajout 3 objets | ✅ Stable |
-| `splash.html` | Écran de démarrage | ⚠️ Redirect à fixer |
+| `splash.html` | Écran de démarrage | ✅ Redesign + lancement à froid |
+| `reset-password.html` | Réinitialisation mot de passe | ✅ Nouveau |
 
 ## Tables Supabase
 
@@ -42,19 +43,22 @@ Dernière mise à jour : 31 mai 2026
 
 ### 🔴 Bloquant
 
-- [ ] Splash screen : fix redirect vers index.html après animation *(non critique pour le test)*
 - [ ] Tests multi-devices (iPhone SE, Android)
 - [ ] Audit RLS Supabase (sécurité)
 
 ### 🟡 Important
 
-- [ ] Mot de passe oublié
-- [ ] Transactions : animations fade in/out (debug en cours)
+- [x] Mot de passe oublié — page reset-password.html ✅
+- [ ] Transactions : animations fade in/out
 - [x] Perceuse Vincent : loan fantôme sans remise visible ✅
 
 ### ⚪ Nice-to-have
 
 - [x] Upload photo objet — compression, feedback, lightbox ✅
+- [x] Correction rotation EXIF photos ✅
+- [x] Vue grille objets avec toggle liste/grille ✅
+- [x] Splash screen redesign (logo blanc, pictos animés, typo ui-rounded) ✅
+- [x] Pull-to-refresh : fix déclenchement intempestif ✅
 - [ ] Responsive fin (très petits écrans)
 - [ ] Back-office admin
 
@@ -67,7 +71,7 @@ Dernière mise à jour : 31 mai 2026
 | Recherche → demande → prêt complet | ✅ |
 | Bouteilles à la mer | ✅ |
 | Notifications realtime | ✅ |
-| Mot de passe oublié | ❌ |
+| Mot de passe oublié | ✅ |
 | Back-office admin | ❌ |
 
 ## Design System
@@ -75,3 +79,13 @@ Dernière mise à jour : 31 mai 2026
 - **patterns.html** : référentiel visuel complet — https://rue-gamma.vercel.app/patterns.html
 - 15 composants documentés (boutons, cards, labels, modales, animations)
 - 10 snowflakes identifiés à rationaliser en Phase 2
+- Typo titres : `ui-rounded` 800 (SF Pro Rounded sur iOS)
+- Logo : `logo-green.png` sur pages auth, `logo-white.png` sur splash
+
+## Scripts maintenance
+
+| Script | Rôle |
+|---|---|
+| `scripts/recompress-photos.mjs` | Recompresse les photos > 1 Mo dans le bucket |
+| `scripts/fix-rotation.mjs` | Corrige la rotation EXIF des photos existantes |
+| `scripts/delete-test-items.mjs` | Supprime les items de test par nom |
