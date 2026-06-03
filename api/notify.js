@@ -63,11 +63,9 @@ function buildHtml(type, recipient, loan) {
   <h1 style="margin:0 0 20px;font-size:20px;font-weight:700;color:#1A1A1C;line-height:1.3;">${title}</h1>
   <div style="font-size:15px;color:#3C3C43;line-height:1.6;">${body}</div>
 </td></tr>
-<tr><td style="padding:0 32px 32px;text-align:center;">
-  <a href="https://rue-gamma.vercel.app" style="display:inline-block;background:#1F9D55;color:#fff;text-decoration:none;font-size:15px;font-weight:600;padding:14px 32px;border-radius:24px;">Ouvrir FLO</a>
-</td></tr>
 <tr><td style="padding:16px 32px 24px;border-top:1px solid #F0F0EE;text-align:center;">
   <p style="margin:0;font-size:12px;color:#999;">Rue Charles-Saint-Venant · Lille</p>
+  <p style="margin:6px 0 0;font-size:12px;color:#bbb;">Ouvre l'app FLO depuis ton écran d'accueil</p>
 </td></tr>
 </table>
 </td></tr>
