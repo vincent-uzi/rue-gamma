@@ -5112,9 +5112,13 @@ async function updateTransactionStatus(loanId, frenchStatus) {
     }
   }
 
-  // Refresh list + badge
+  // Mémoriser le changement pour l'animation au retour du thread
+  window._txStateChanged = dbStatus;
+
+  // Refresh list + badge (seulement si pas de thread ouvert — sinon hideThread() s'en charge)
+  const threadOpen = !!window._transactionsState?.currentThread;
   const panel = document.getElementById('panel-exchanges');
-  if (panel && panel.style.display !== 'none') renderExchanges();
+  if (panel && panel.style.display !== 'none' && !threadOpen) renderExchanges();
   const count = s.active.filter(
     t => (t._dbStatus === 'pending' || t.status === 'En attente de validation') && t.from === 'Vous'
   ).length;
@@ -5986,6 +5990,15 @@ function hideThread() {
   setTimeout(() => {
     panel.style.display    = 'none';
     backdrop.style.display = 'none';
+
+    // Animer le refresh de la liste si une action a eu lieu dans le thread
+    const changedStatus = window._txStateChanged;
+    window._txStateChanged = null;
+    if (changedStatus) {
+      const isLast = changedStatus === 'returned' || changedStatus === 'declined';
+      if (isLast) _archivedVisible = true;
+      renderExchanges();
+    }
   }, 300);
 }
 
