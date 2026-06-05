@@ -5261,6 +5261,7 @@ function startQRPolling(loanId, action) {
         stopQRPolling();
         hideQRDisplay();
         await updateTransactionStatus(loanId, action === 'hand' ? 'Emprunté' : 'Restitué');
+        renderExchanges();
         if (window._transactionsState?.currentThread === loanId) showThread(loanId);
         showConfetti();
         showToast(action === 'hand' ? '✓ Remise validée' : '✓ Retour validé', 'success');
