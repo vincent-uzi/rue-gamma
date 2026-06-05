@@ -43,7 +43,7 @@ Dernière mise à jour : 2 juin 2026
 
 ### 🔴 Bloquant
 
-- [ ] Tests multi-devices (iPhone SE, Android)
+- [x] Tests multi-devices (iPhone SE, Android) ✅
 - [x] Audit RLS Supabase (sécurité) ✅
 
 ### 🟡 Important
