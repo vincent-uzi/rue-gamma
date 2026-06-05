@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FLO — Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent:      #1F9D55;
+      --accent-soft: #EAF5EA;
+      --text:        #1a1a1a;
+      --text-muted:  #666;
+      --text-dim:    #999;
+      --surface:     #fff;
+      --surface-alt: #F7F7F7;
+      --line:        #E5E5E5;
+      --font: -apple-system, 'SF Pro Text', 'Helvetica Neue', system-ui, sans-serif;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--surface-alt);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px 20px 48px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .header-title {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .header-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .refresh-btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+    .refresh-btn:active { opacity: .75; }
+
+    /* Période */
+    .period-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .period-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .period-input {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 7px 12px;
+      font-family: var(--font);
+      font-size: 13px;
+      color: var(--text);
+      background: var(--surface);
+      outline: none;
+      cursor: pointer;
+      transition: border-color .15s;
+    }
+
+    .period-input:focus { border-color: var(--accent); }
+
+    .period-reset {
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: 600;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: var(--font);
+      padding: 0;
+    }
+    .period-reset:active { opacity: .7; }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-dim);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin: 28px 0 12px;
+    }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+    .card {
+      background: var(--surface);
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      padding: 16px;
+    }
+
+    .card-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .card-value {
+      font-size: 36px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -1px;
+      color: var(--text);
+    }
+
+    .card-value.accent { color: var(--accent); }
+
+    .funnel-card {
+      background: var(--surface);
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      padding: 16px 20px;
+    }
+
+    .funnel-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .funnel-row:last-child { border-bottom: none; }
+
+    .funnel-label { font-size: 14px; color: var(--text); }
+    .funnel-value { font-size: 20px; font-weight: 700; color: var(--text); flex-shrink: 0; margin-left: 16px; }
+    .funnel-rate  { font-size: 12px; color: var(--accent); font-weight: 600; }
+
+    .bar-wrap {
+      height: 6px;
+      background: var(--line);
+      border-radius: 3px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 3px;
+      transition: width .6s ease;
+    }
+
+    .skeleton {
+      background: linear-gradient(90deg, var(--line) 25%, #eee 50%, var(--line) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.2s infinite;
+      border-radius: 6px;
+      height: 36px;
+      width: 60%;
+    }
+
+    @keyframes shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .last-updated {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 32px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="header-title">Dashboard FLO</div>
+    <div class="header-sub">Rue Charles-Saint-Venant</div>
+  </div>
+  <button class="refresh-btn" onclick="loadAll()">↻ Actualiser</button>
+</header>
+
+<!-- Sélecteur de période -->
+<div class="period-bar">
+  <span class="period-label">Du</span>
+  <input type="date" class="period-input" id="date-from" onchange="loadAll()">
+  <span class="period-label">au</span>
+  <input type="date" class="period-input" id="date-to" onchange="loadAll()">
+  <button class="period-reset" onclick="resetDates()">Tout afficher</button>
+</div>
+
+<!-- Communauté — toujours all-time -->
+<div class="section-title">Communauté</div>
+<div class="grid">
+  <div class="card">
+    <div class="card-label">Membres inscrits</div>
+    <div class="card-value" id="val-members"><div class="skeleton"></div></div>
+  </div>
+  <div class="card">
+    <div class="card-label">Objets partagés</div>
+    <div class="card-value accent" id="val-items"><div class="skeleton"></div></div>
+  </div>
+</div>
+
+<!-- Invitations -->
+<div class="section-title">Invitations</div>
+<div class="funnel-card">
+  <div class="funnel-row">
+    <div class="funnel-label">Invitations envoyées</div>
+    <div class="funnel-value" id="val-invites-sent">—</div>
+  </div>
+  <div class="funnel-row">
+    <div style="flex:1;">
+      <div class="funnel-label">Comptes créés</div>
+      <div class="funnel-rate" id="val-invites-rate"></div>
+      <div class="bar-wrap"><div class="bar-fill" id="bar-invites" style="width:0%"></div></div>
+    </div>
+    <div class="funnel-value" id="val-invites-used">—</div>
+  </div>
+</div>
+
+<!-- Prêts -->
+<div class="section-title">Prêts</div>
+<div class="grid grid-3">
+  <div class="card">
+    <div class="card-label">Total</div>
+    <div class="card-value" id="val-loans-total"><div class="skeleton"></div></div>
+  </div>
+  <div class="card">
+    <div class="card-label">En cours</div>
+    <div class="card-value" id="val-loans-active"><div class="skeleton"></div></div>
+  </div>
+  <div class="card">
+    <div class="card-label">Terminés</div>
+    <div class="card-value accent" id="val-loans-done"><div class="skeleton"></div></div>
+  </div>
+</div>
+
+<!-- Bouteilles à la mer -->
+<div class="section-title">Bouteilles à la mer</div>
+<div class="funnel-card">
+  <div class="funnel-row">
+    <div class="funnel-label">Bouteilles envoyées</div>
+    <div class="funnel-value" id="val-bottles-total">—</div>
+  </div>
+  <div class="funnel-row">
+    <div style="flex:1;">
+      <div class="funnel-label">Avec au moins 1 réponse</div>
+      <div class="funnel-rate" id="val-bottles-rate"></div>
+      <div class="bar-wrap"><div class="bar-fill" id="bar-bottles" style="width:0%"></div></div>
+    </div>
+    <div class="funnel-value" id="val-bottles-answered">—</div>
+  </div>
+</div>
+
+<div class="last-updated" id="last-updated"></div>
+
+<script>
+  const SUPABASE_URL = 'https://optfcepolcjyregdaxpt.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wdGZjZXBvbGNqeXJlZ2RheHB0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5NzE1MjgsImV4cCI6MjA5MzU0NzUyOH0.ZvHOCyd8SQYzh7AQw4PexH742aFvPkeq1JKcLMaQytc';
+  const COMMUNITY_ID = 'ed225eef-e9e0-4cf8-9ae9-aaf687b55c42';
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  function resetDates() {
+    document.getElementById('date-from').value = '';
+    document.getElementById('date-to').value = '';
+    loadAll();
+  }
+
+  function getFrom() {
+    const v = document.getElementById('date-from').value;
+    return v ? new Date(v).toISOString() : null;
+  }
+
+  function getTo() {
+    const v = document.getElementById('date-to').value;
+    if (!v) return null;
+    const d = new Date(v);
+    d.setHours(23, 59, 59, 999);
+    return d.toISOString();
+  }
+
+  function set(id, val) {
+    document.getElementById(id).textContent = val;
+  }
+
+  function addDateFilter(query, col = 'created_at') {
+    const from = getFrom();
+    const to   = getTo();
+    if (from) query = query.gte(col, from);
+    if (to)   query = query.lte(col, to);
+    return query;
+  }
+
+  async function loadAll() {
+    document.querySelectorAll('.card-value, .funnel-value').forEach(el => {
+      if (!el.querySelector('.skeleton')) el.textContent = '…';
+    });
+
+    const [
+      membersRes,
+      itemsRes,
+      invitesSentRes,
+      invitesUsedRes,
+      loansAllRes,
+      loansActiveRes,
+      loansDoneRes,
+      bottlesRes,
+      bottlesAnsweredRes,
+    ] = await Promise.all([
+      // Membres & items : toujours all-time (cumulatif)
+      db.from('members').select('id', { count: 'exact', head: true }).eq('community_id', COMMUNITY_ID),
+      db.from('items').select('id', { count: 'exact', head: true }).neq('status', 'archived'),
+
+      // Invitations filtrées par période
+      addDateFilter(db.from('invitations').select('id', { count: 'exact', head: true }).eq('community_id', COMMUNITY_ID)),
+      addDateFilter(db.from('invitations').select('id', { count: 'exact', head: true }).eq('community_id', COMMUNITY_ID).not('accepted_at', 'is', null), 'accepted_at'),
+
+      // Prêts filtrés par période
+      addDateFilter(db.from('loans').select('id', { count: 'exact', head: true }), 'requested_at'),
+      addDateFilter(db.from('loans').select('id', { count: 'exact', head: true }).in('status', ['pending','accepted','active']), 'requested_at'),
+      addDateFilter(db.from('loans').select('id', { count: 'exact', head: true }).eq('status', 'returned'), 'returned_at'),
+
+      // Bouteilles filtrées par période
+      addDateFilter(db.from('search_requests').select('id', { count: 'exact', head: true }).eq('community_id', COMMUNITY_ID)),
+      addDateFilter(db.from('search_request_responses').select('search_request_id')),
+    ]);
+
+    // Membres & objets (all-time)
+    set('val-members', membersRes.count ?? '—');
+    set('val-items', itemsRes.count ?? '—');
+
+    // Invitations funnel
+    const sent = invitesSentRes.count ?? 0;
+    const used = invitesUsedRes.count ?? 0;
+    const inviteRate = sent > 0 ? Math.round(used / sent * 100) : 0;
+    set('val-invites-sent', sent);
+    set('val-invites-used', used);
+    set('val-invites-rate', sent > 0 ? `${inviteRate}% de conversion` : '');
+    document.getElementById('bar-invites').style.width = inviteRate + '%';
+
+    // Prêts
+    set('val-loans-total', loansAllRes.count ?? '—');
+    set('val-loans-active', loansActiveRes.count ?? '—');
+    set('val-loans-done', loansDoneRes.count ?? '—');
+
+    // Bouteilles
+    const bottles = bottlesRes.count ?? 0;
+    const uniqueAnswered = new Set((bottlesAnsweredRes.data || []).map(r => r.search_request_id));
+    const answered = uniqueAnswered.size;
+    const bottleRate = bottles > 0 ? Math.round(answered / bottles * 100) : 0;
+    set('val-bottles-total', bottles);
+    set('val-bottles-answered', answered);
+    set('val-bottles-rate', bottles > 0 ? `${bottleRate}% avec réponse` : '');
+    document.getElementById('bar-bottles').style.width = bottleRate + '%';
+
+    // Timestamp
+    document.getElementById('last-updated').textContent =
+      'Mis à jour le ' + new Date().toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' });
+  }
+
+  loadAll();
+</script>
+</body>
+</html>
