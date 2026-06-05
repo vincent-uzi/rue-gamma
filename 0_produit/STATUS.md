@@ -49,7 +49,10 @@ Dernière mise à jour : 2 juin 2026
 ### 🟡 Important
 
 - [x] Mot de passe oublié — page reset-password.html ✅
-- [ ] Transactions : animations fade in/out
+- [ ] Transactions : animations fade in/out — WIP 🚧
+  - ✅ Fade out/in global de la liste au refresh
+  - ✅ Scroll vers archivées sur dernière étape
+  - ❌ Animation card-level (fade out section source → fade in section cible) : code en place mais ne se déclenche pas — `_txStateChanged` ou `hideThread` pas appelé dans le bon ordre. À débugger avec console ouverte.
 - [x] Perceuse Vincent : loan fantôme sans remise visible ✅
 
 ### ⚪ Nice-to-have
