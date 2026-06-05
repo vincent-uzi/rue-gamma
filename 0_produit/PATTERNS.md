@@ -22,8 +22,15 @@ Ce fichier contient :
 - `btn-icon-round` — cercle vert 44px (bouton +)
 - `btn-icon-close` — × fermeture modale
 
+### Champ de recherche (capsule)
+- **Composant unifié** sur home, panel-search et panel-objects
+- `border-radius: 999px` — forme capsule
+- `background: white` + `box-shadow: 0 2px 8px rgba(0,0,0,0.07)`
+- `border: 1px solid var(--line)` → `border-color: var(--text)` au focus
+- Classes : `.home-search-input-wrap` / `.search-active-field` / `.obj-inline-search`
+
 ### Cards
-- `card` — fond blanc, bordure #EAF5EA, radius:12px
+- `card` — fond blanc, bordure #EAF5EA, radius:14px
 - `card-object` — template objet liste (2 lignes + badges)
 - `card-muted` — fond #F5F5F5
 - `card-alert` — fond #FFEAA7 (alertes bouteilles)
