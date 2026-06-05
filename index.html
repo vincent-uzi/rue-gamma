@@ -5113,7 +5113,7 @@ async function updateTransactionStatus(loanId, frenchStatus) {
   }
 
   // Mémoriser le changement pour l'animation au retour du thread
-  window._txStateChanged = dbStatus;
+  window._txStateChanged = { loanId, dbStatus };
 
   // Refresh list + badge (seulement si pas de thread ouvert — sinon hideThread() s'en charge)
   const threadOpen = !!window._transactionsState?.currentThread;
@@ -5695,7 +5695,7 @@ function _txSection(title, txList, emptyMsg) {
   return wrap;
 }
 
-function renderExchanges() {
+function renderExchanges({ skipFade = false, highlightId = null } = {}) {
   const list = document.getElementById('requests-list');
   const hasContent = !!list.querySelector('[data-tx]');
 
@@ -5763,13 +5763,14 @@ function renderExchanges() {
     // Fade in des cards en cascade
     const cards = list.querySelectorAll('.transaction-card');
     cards.forEach((card, i) => {
+      const isHighlight = highlightId && card.dataset.tx === highlightId;
       card.style.opacity = '0';
-      card.style.transform = 'translateY(8px)';
+      card.style.transform = isHighlight ? 'translateY(12px)' : 'translateY(8px)';
       card.style.transition = 'opacity 220ms ease, transform 220ms ease';
       setTimeout(() => {
         card.style.opacity = '';
         card.style.transform = '';
-      }, i * 40);
+      }, isHighlight ? 0 : i * 40);
     });
 
     list.style.opacity = '';
@@ -5779,7 +5780,7 @@ function renderExchanges() {
     _showNotificationDots();
   };
 
-  if (hasContent) {
+  if (hasContent && !skipFade) {
     list.style.transition = 'opacity 120ms ease';
     list.style.opacity = '0';
     setTimeout(doRender, 130);
@@ -5992,18 +5993,30 @@ function hideThread() {
     backdrop.style.display = 'none';
 
     // Animer le refresh de la liste si une action a eu lieu dans le thread
-    const changedStatus = window._txStateChanged;
+    const changed = window._txStateChanged;
     window._txStateChanged = null;
-    if (changedStatus) {
-      const isLast = changedStatus === 'returned' || changedStatus === 'declined';
+    if (changed) {
+      const { loanId, dbStatus } = changed;
+      const isLast = dbStatus === 'returned' || dbStatus === 'declined';
       if (isLast) _archivedVisible = true;
-      renderExchanges();
-      if (isLast) {
-        // Scroller jusqu'à la section archivée une fois le render terminé
+
+      // Fade out de la carte dans sa section actuelle
+      const card = document.querySelector(`.transaction-card[data-tx="${loanId}"]`);
+      if (card) {
+        card.style.transition = 'opacity 180ms ease, transform 180ms ease';
+        card.style.opacity    = '0';
+        card.style.transform  = 'translateY(-6px)';
         setTimeout(() => {
-          const archSection = document.getElementById('exchanges-archived-section');
-          if (archSection) archSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 300);
+          renderExchanges({ skipFade: true, highlightId: loanId });
+          if (isLast) {
+            setTimeout(() => {
+              const archSection = document.getElementById('exchanges-archived-section');
+              if (archSection) archSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 250);
+          }
+        }, 200);
+      } else {
+        renderExchanges({ skipFade: true, highlightId: loanId });
       }
     }
   }, 300);
