@@ -85,6 +85,13 @@ Dernière mise à jour : 2 juin 2026
 - Typo titres : `ui-rounded` 800 (SF Pro Rounded sur iOS)
 - Logo : `logo-green.png` sur pages auth, `logo-white.png` sur splash
 
+## Dashboard admin
+
+- **URL :** https://rue-gamma.vercel.app/dashboard.html
+- Indicateurs live depuis Supabase, filtrables par période (du/au)
+- Comptes créés, objets partagés, funnel invitations (hors flyer FLO-RUE), prêts, bouteilles à la mer
+- Comptes test exclus des stats (vincent, michelle, vincent+test)
+
 ## Scripts maintenance
 
 | Script | Rôle |
