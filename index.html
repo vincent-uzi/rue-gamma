@@ -5998,6 +5998,13 @@ function hideThread() {
       const isLast = changedStatus === 'returned' || changedStatus === 'declined';
       if (isLast) _archivedVisible = true;
       renderExchanges();
+      if (isLast) {
+        // Scroller jusqu'à la section archivée une fois le render terminé
+        setTimeout(() => {
+          const archSection = document.getElementById('exchanges-archived-section');
+          if (archSection) archSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 300);
+      }
     }
   }, 300);
 }
