@@ -1502,6 +1502,7 @@
       color: var(--text);
       margin: 0 0 4px;
       line-height: 1.2;
+      letter-spacing: -0.5px;
     }
     .home-meta { font-size: 14px; color: var(--text-muted); margin: 0; }
 
@@ -1520,8 +1521,9 @@
       align-items: center;
       gap: 10px;
       background: white;
-      border-radius: 12px;
+      border-radius: 16px;
       padding: 14px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
     .home-search-placeholder { font-size: 16px; color: var(--text-muted); }
 
@@ -1531,8 +1533,8 @@
     .metric-card {
       background: var(--surface);
       border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 16px;
+      border-radius: 14px;
+      padding: 20px 16px 14px;
       text-align: center;
       position: relative;
     }
@@ -1566,7 +1568,7 @@
       align-items: center;
       background: var(--surface);
       border: 1px solid var(--line);
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 20px;
       margin-bottom: 24px;
       gap: 16px;
@@ -2662,31 +2664,8 @@
 
   <div class="search-scroll">
 
-    <!-- État initial : suggestions -->
-    <div id="search-suggestions">
-      <p class="search-section-label">Suggestions</p>
-      <div class="search-suggestion" onclick="pickSuggestion('perceuse')">
-        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true" style="color:var(--text-dim);flex-shrink:0;">
-          <circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.5"/>
-          <line x1="14" y1="14" x2="18.5" y2="18.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        <span class="t-body" style="color:var(--text);">perceuse</span>
-      </div>
-      <div class="search-suggestion" onclick="pickSuggestion('perceuse à colonne')">
-        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true" style="color:var(--text-dim);flex-shrink:0;">
-          <circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.5"/>
-          <line x1="14" y1="14" x2="18.5" y2="18.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        <span class="t-body" style="color:var(--text);">perceuse à colonne</span>
-      </div>
-      <div class="search-suggestion" onclick="pickSuggestion('perceuse visseuse')">
-        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true" style="color:var(--text-dim);flex-shrink:0;">
-          <circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.5"/>
-          <line x1="14" y1="14" x2="18.5" y2="18.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        <span class="t-body" style="color:var(--text);">perceuse visseuse</span>
-      </div>
-    </div>
+    <!-- État initial : suggestions (désactivées) -->
+    <div id="search-suggestions" style="display:none;"></div>
 
     <!-- Résultats (après frappe) -->
     <div id="search-results" style="display:none;">
