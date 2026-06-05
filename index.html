@@ -1788,7 +1788,14 @@
       display:flex; align-items:center; justify-content:center; flex-shrink:0;
     }
     .qr-choice-btn-label { font-size:15px; font-weight:600; color:var(--text); margin-bottom:2px; }
-    .qr-choice-btn-desc  { font-size:12px; color:var(--text-muted); }
+    .qr-choice-btn-desc  { font-size:12px; font-weight:600; color:var(--accent); }
+    .qr-choice-or {
+      display:flex; align-items:center; gap:10px; margin:2px 0 12px;
+    }
+    .qr-choice-or::before, .qr-choice-or::after {
+      content:''; flex:1; height:1px; background:var(--accent);
+    }
+    .qr-choice-or span { font-size:12px; color:var(--accent); font-weight:600; }
     .qr-choice-cancel {
       width:100%; padding:14px; border-radius:14px; border:none;
       background:transparent; font-family:var(--font); font-size:15px;
@@ -2865,6 +2872,7 @@
         <div class="qr-choice-btn-desc">Pointez la caméra vers le code de votre voisin</div>
       </div>
     </button>
+    <div class="qr-choice-or"><span>ou</span></div>
     <button class="qr-choice-btn" onclick="hideQRChoice();setTimeout(()=>showQRDisplay(),80)">
       <div class="qr-choice-icon">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
