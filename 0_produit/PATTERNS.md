@@ -44,6 +44,13 @@ Ce fichier contient :
 - `tab-badge` — rouge #EF4444, position absolute (compteur tab-bar)
 - `avatar-initiales` — cercle 44px (grand) ou 32px (compact)
 
+### Séparateur "ou"
+- `.qr-choice-or` — flex + liserés `var(--accent)` + label vert gras
+- Usage : entre deux options exclusives dans une bottom sheet
+```html
+<div class="qr-choice-or"><span>ou</span></div>
+```
+
 ### Modales
 - `bottom-sheet` — radius 24px 24px 0 0, slide du bas
 - `slide-right` — translateX(100%)→0, transition 300ms, z-index:400
