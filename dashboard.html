@@ -216,12 +216,12 @@
   <button class="period-reset" onclick="resetDates()">Tout afficher</button>
 </div>
 
-<!-- Communauté — toujours all-time -->
+<!-- Communauté -->
 <div class="section-title">Communauté</div>
 <div class="grid">
   <div class="card">
-    <div class="card-label">Membres inscrits</div>
-    <div class="card-value" id="val-members"><div class="skeleton"></div></div>
+    <div class="card-label">Comptes créés (période)</div>
+    <div class="card-value" id="val-members-period"><div class="skeleton"></div></div>
   </div>
   <div class="card">
     <div class="card-label">Objets partagés</div>
@@ -230,15 +230,15 @@
 </div>
 
 <!-- Invitations -->
-<div class="section-title">Invitations</div>
+<div class="section-title">Invitations (hors flyer)</div>
 <div class="funnel-card">
   <div class="funnel-row">
-    <div class="funnel-label">Invitations envoyées</div>
+    <div class="funnel-label">Invitations envoyées par voisins</div>
     <div class="funnel-value" id="val-invites-sent">—</div>
   </div>
   <div class="funnel-row">
     <div style="flex:1;">
-      <div class="funnel-label">Comptes créés</div>
+      <div class="funnel-label">Comptes créés via invitation</div>
       <div class="funnel-rate" id="val-invites-rate"></div>
       <div class="bar-wrap"><div class="bar-fill" id="bar-invites" style="width:0%"></div></div>
     </div>
@@ -286,6 +286,12 @@
   const SUPABASE_URL = 'https://optfcepolcjyregdaxpt.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wdGZjZXBvbGNqeXJlZ2RheHB0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5NzE1MjgsImV4cCI6MjA5MzU0NzUyOH0.ZvHOCyd8SQYzh7AQw4PexH742aFvPkeq1JKcLMaQytc';
   const COMMUNITY_ID = 'ed225eef-e9e0-4cf8-9ae9-aaf687b55c42';
+  const EXCLUDED_IDS  = [
+    '10504ca1-499a-4812-ad36-17f7ce04efc8', // michelle.mayol1944
+    'ac4c3c8e-8bc3-401b-9b3f-c2955e0ff7a5', // vincent.mayol
+    '8dab2e61-6f0c-4cc3-9285-fb7adb18dfc2', // vincent.mayol+test
+  ];
+  const FLYER_CODE = 'FLO-RUE';
   const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   function resetDates() {
@@ -324,8 +330,10 @@
       if (!el.querySelector('.skeleton')) el.textContent = '…';
     });
 
+    const excl = EXCLUDED_IDS.join(',');
+
     const [
-      membersRes,
+      membersPeriodRes,
       itemsRes,
       invitesSentRes,
       invitesUsedRes,
@@ -335,26 +343,71 @@
       bottlesRes,
       bottlesAnsweredRes,
     ] = await Promise.all([
-      // Membres & items : toujours all-time (cumulatif)
-      db.from('members').select('id', { count: 'exact', head: true }).eq('community_id', COMMUNITY_ID),
-      db.from('items').select('id', { count: 'exact', head: true }).neq('status', 'archived'),
+      // Comptes créés sur la période (hors comptes exclus)
+      addDateFilter(
+        db.from('members').select('id', { count: 'exact', head: true })
+          .eq('community_id', COMMUNITY_ID)
+          .not('id', 'in', `(${excl})`)
+      ),
 
-      // Invitations filtrées par période
-      addDateFilter(db.from('invitations').select('id', { count: 'exact', head: true }).eq('community_id', COMMUNITY_ID)),
-      addDateFilter(db.from('invitations').select('id', { count: 'exact', head: true }).eq('community_id', COMMUNITY_ID).not('accepted_at', 'is', null), 'accepted_at'),
+      // Objets (all-time, hors exclus)
+      db.from('items').select('id', { count: 'exact', head: true })
+        .neq('status', 'archived')
+        .not('owner_id', 'in', `(${excl})`),
 
-      // Prêts filtrés par période
-      addDateFilter(db.from('loans').select('id', { count: 'exact', head: true }), 'requested_at'),
-      addDateFilter(db.from('loans').select('id', { count: 'exact', head: true }).in('status', ['pending','accepted','active']), 'requested_at'),
-      addDateFilter(db.from('loans').select('id', { count: 'exact', head: true }).eq('status', 'returned'), 'returned_at'),
+      // Invitations envoyées par voisins (hors flyer, hors exclus)
+      addDateFilter(
+        db.from('invitations').select('id', { count: 'exact', head: true })
+          .eq('community_id', COMMUNITY_ID)
+          .neq('code', FLYER_CODE)
+          .not('created_by', 'in', `(${excl})`)
+      ),
 
-      // Bouteilles filtrées par période
-      addDateFilter(db.from('search_requests').select('id', { count: 'exact', head: true }).eq('community_id', COMMUNITY_ID)),
-      addDateFilter(db.from('search_request_responses').select('search_request_id')),
+      // Comptes créés via invitation (hors flyer)
+      addDateFilter(
+        db.from('invitations').select('id', { count: 'exact', head: true })
+          .eq('community_id', COMMUNITY_ID)
+          .neq('code', FLYER_CODE)
+          .not('accepted_at', 'is', null),
+        'accepted_at'
+      ),
+
+      // Prêts (hors exclus)
+      addDateFilter(
+        db.from('loans').select('id', { count: 'exact', head: true })
+          .not('owner_id', 'in', `(${excl})`)
+          .not('borrower_id', 'in', `(${excl})`),
+        'requested_at'
+      ),
+      addDateFilter(
+        db.from('loans').select('id', { count: 'exact', head: true })
+          .in('status', ['pending','accepted','active'])
+          .not('owner_id', 'in', `(${excl})`)
+          .not('borrower_id', 'in', `(${excl})`),
+        'requested_at'
+      ),
+      addDateFilter(
+        db.from('loans').select('id', { count: 'exact', head: true })
+          .eq('status', 'returned')
+          .not('owner_id', 'in', `(${excl})`)
+          .not('borrower_id', 'in', `(${excl})`),
+        'returned_at'
+      ),
+
+      // Bouteilles (hors exclus)
+      addDateFilter(
+        db.from('search_requests').select('id', { count: 'exact', head: true })
+          .eq('community_id', COMMUNITY_ID)
+          .not('requester_id', 'in', `(${excl})`)
+      ),
+      addDateFilter(
+        db.from('search_request_responses').select('search_request_id')
+          .not('responder_id', 'in', `(${excl})`)
+      ),
     ]);
 
-    // Membres & objets (all-time)
-    set('val-members', membersRes.count ?? '—');
+    // Membres période & objets
+    set('val-members-period', membersPeriodRes.count ?? '—');
     set('val-items', itemsRes.count ?? '—');
 
     // Invitations funnel
