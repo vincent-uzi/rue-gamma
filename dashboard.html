@@ -443,6 +443,11 @@
   }
 
   loadAll();
+
+  // Relance le chargement si la page est restaurée depuis le bfcache (ex: DuckDuckGo)
+  window.addEventListener('pageshow', (e) => {
+    if (e.persisted) loadAll();
+  });
 </script>
 </body>
 </html>

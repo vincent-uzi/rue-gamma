@@ -5056,32 +5056,11 @@ function _findTx(loanId) {
 async function updateTransactionStatus(loanId, frenchStatus) {
   console.log('[updateTransactionStatus] Called with frenchStatus:', frenchStatus);
   const s = window._transactionsState;
-  if (!s) return;
 
   const dbStatus = _STATUS_TO_DB[frenchStatus] || frenchStatus;
   console.log('[updateTransactionStatus] dbStatus resolved:', dbStatus);
 
-  // Update local state
-  const now_local = new Date().toISOString();
-  const idx = s.active.findIndex(t => t.id === loanId);
-  if (idx !== -1) {
-    s.active[idx].status   = frenchStatus;
-    s.active[idx]._dbStatus = dbStatus;
-    if (dbStatus === 'active'   && s.active[idx]._loan) s.active[idx]._loan.handed_at   = now_local;
-    if (dbStatus === 'returned' && s.active[idx]._loan) s.active[idx]._loan.returned_at = now_local;
-    if (dbStatus === 'returned' || dbStatus === 'declined') {
-      const tx = s.active.splice(idx, 1)[0];
-      s.archived.unshift(tx);
-    }
-  } else {
-    const aIdx = s.archived.findIndex(t => t.id === loanId);
-    if (aIdx !== -1) {
-      s.archived[aIdx].status   = frenchStatus;
-      s.archived[aIdx]._dbStatus = dbStatus;
-    }
-  }
-
-  // Supabase UPDATE (only for real UUIDs)
+  // Supabase UPDATE (only for real UUIDs) — toujours exécuté, même si l'état local n'est pas chargé
   if (_UUID_RE.test(loanId)) {
     const updates = { status: dbStatus };
     const now = new Date().toISOString();
@@ -5106,6 +5085,29 @@ async function updateTransactionStatus(loanId, frenchStatus) {
           })
           .catch(e => console.warn('[updateTransactionStatus] notification error:', e));
       }
+    }
+  }
+
+  // Si l'état local n'est pas encore chargé (ex: ouverture via lien push), on s'arrête là
+  if (!s) return;
+
+  // Update local state
+  const now_local = new Date().toISOString();
+  const idx = s.active.findIndex(t => t.id === loanId);
+  if (idx !== -1) {
+    s.active[idx].status   = frenchStatus;
+    s.active[idx]._dbStatus = dbStatus;
+    if (dbStatus === 'active'   && s.active[idx]._loan) s.active[idx]._loan.handed_at   = now_local;
+    if (dbStatus === 'returned' && s.active[idx]._loan) s.active[idx]._loan.returned_at = now_local;
+    if (dbStatus === 'returned' || dbStatus === 'declined') {
+      const tx = s.active.splice(idx, 1)[0];
+      s.archived.unshift(tx);
+    }
+  } else {
+    const aIdx = s.archived.findIndex(t => t.id === loanId);
+    if (aIdx !== -1) {
+      s.archived[aIdx].status   = frenchStatus;
+      s.archived[aIdx]._dbStatus = dbStatus;
     }
   }
 
