@@ -395,6 +395,7 @@
         const { data: member, error: memberError } = await db
           .from('members')
           .insert({
+            id:           authData.user.id,
             community_id: signupData.communityId,
             first_name:   signupData.firstName,
             last_name:    signupData.lastName,
