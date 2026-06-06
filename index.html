@@ -5062,14 +5062,26 @@ async function updateTransactionStatus(loanId, frenchStatus) {
 
   // Supabase UPDATE (only for real UUIDs) — toujours exécuté, même si l'état local n'est pas chargé
   if (_UUID_RE.test(loanId)) {
+    // Debug: vérifie que auth.uid() correspond bien à la session active
+    const { data: { session: _dbgSession } } = await db.auth.getSession();
+    console.log('[updateTransactionStatus] auth.uid:', _dbgSession?.user?.id, '| member_id localStorage:', localStorage.getItem('member_id'), '| loanId:', loanId);
     const updates = { status: dbStatus };
     const now = new Date().toISOString();
     if (dbStatus === 'accepted') updates.accepted_at = now;
     if (dbStatus === 'active')   updates.handed_at   = now;
     if (dbStatus === 'returned') updates.returned_at  = now;
     if (dbStatus === 'declined') updates.declined_at  = now;
-    const { error } = await db.from('loans').update(updates).eq('id', loanId);
-    if (error) console.error('[updateTransactionStatus]', error);
+    const { data: updated, error } = await db.from('loans').update(updates).eq('id', loanId).select('id');
+    if (error) {
+      console.error('[updateTransactionStatus] Erreur Supabase:', error);
+      showToast('Erreur : statut non mis à jour (' + (error.message || error.code) + ')', 'error');
+      return;
+    }
+    if (!updated || updated.length === 0) {
+      console.error('[updateTransactionStatus] Aucune ligne mise à jour — RLS ou ID invalide ?', loanId);
+      showToast('Erreur : impossible de mettre à jour le statut', 'error');
+      return;
+    }
 
     // Notifier l'emprunteur du refus
     if (dbStatus === 'declined') {
@@ -5309,6 +5321,9 @@ async function acceptRequest(loanId) {
       if (msg) await db.from('loans').update({ push_message: msg }).eq('id', loanId);
     }
   } catch (e) { console.warn('[acceptRequest] push_message:', e); }
+
+  // Re-sync depuis la DB pour éviter tout problème de cache
+  await loadTransactions();
 
   // Rebuild thread from DB so the pending step disappears and accepted state renders correctly
   if (window._transactionsState?.currentThread === loanId) {
@@ -6401,6 +6416,8 @@ function confirmManualValidation() {
     await updateTransactionStatus(loanId, newStatus);
     const { data: loan } = await db.from('loans').select('item_id').eq('id', loanId).maybeSingle();
     if (loan) await db.from('items').update({ status: itemStatus }).eq('id', loan.item_id);
+    // Re-sync depuis la DB pour éviter tout problème de cache
+    await loadTransactions();
     if (window._transactionsState?.currentThread === loanId) {
       _animateCurrentStepOut(() => showThread(loanId));
     }
