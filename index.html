@@ -7919,7 +7919,8 @@ function _onModalPhotoSelected(input) {
 async function _recognizeModalImage(file) {
   const nameInput = document.getElementById('modal-item-name');
   const descInput = document.getElementById('modal-item-description');
-  nameInput.placeholder = 'Identification en cours…';
+
+  _showAiLoader();
 
   try {
     const blob = await compressImage(file);
@@ -7936,7 +7937,6 @@ async function _recognizeModalImage(file) {
     });
 
     if (!res.ok) {
-      nameInput.placeholder = 'Ex : Perceuse Bosch GSR 12V';
       _showAiToast('Remplissage auto indisponible — saisis le nom manuellement');
       return;
     }
@@ -7957,8 +7957,38 @@ async function _recognizeModalImage(file) {
   } catch (e) {
     // Erreur réseau → saisie manuelle silencieuse
   } finally {
-    if (!nameInput.value) nameInput.placeholder = 'Ex : Perceuse Bosch GSR 12V';
+    _hideAiLoader();
   }
+}
+
+function _showAiLoader() {
+  if (document.getElementById('ai-loader-toast')) return;
+  const el = document.createElement('div');
+  el.id = 'ai-loader-toast';
+  el.style.cssText = `
+    position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+    background:rgba(20,20,20,0.88);backdrop-filter:blur(10px);
+    color:white;border-radius:20px;padding:20px 28px;
+    display:flex;flex-direction:column;align-items:center;gap:12px;
+    z-index:99999;pointer-events:none;
+  `;
+  el.innerHTML = `
+    <div style="width:32px;height:32px;border:2.5px solid rgba(255,255,255,0.2);border-top-color:white;border-radius:50%;animation:ai-spin 0.8s linear infinite;"></div>
+    <div style="font-size:14px;font-weight:600;letter-spacing:-0.1px;">Identification en cours…</div>
+  `;
+  // Ajouter keyframe si besoin
+  if (!document.getElementById('ai-spin-style')) {
+    const s = document.createElement('style');
+    s.id = 'ai-spin-style';
+    s.textContent = '@keyframes ai-spin { to { transform: rotate(360deg); } }';
+    document.head.appendChild(s);
+  }
+  document.body.appendChild(el);
+}
+
+function _hideAiLoader() {
+  const el = document.getElementById('ai-loader-toast');
+  if (el) el.remove();
 }
 
 function _clearModalPhoto() {
