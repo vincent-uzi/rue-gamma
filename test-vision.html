@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FLO — Test reconnaissance image</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f5f5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 32px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 28px;
+    }
+
+    /* Clé API */
+    .api-key-section {
+      margin-bottom: 24px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 6px;
+    }
+
+    input[type="password"], input[type="text"] {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus {
+      border-color: #2d6a4f;
+    }
+
+    /* Zone photo */
+    .photo-zone {
+      border: 2px dashed #d0d0d0;
+      border-radius: 16px;
+      padding: 32px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .photo-zone:hover {
+      border-color: #2d6a4f;
+      background: #f0f7f4;
+    }
+
+    .photo-zone.has-image {
+      border-style: solid;
+      border-color: #2d6a4f;
+      padding: 0;
+    }
+
+    .photo-zone img {
+      width: 100%;
+      max-height: 280px;
+      object-fit: cover;
+      border-radius: 14px;
+      display: block;
+    }
+
+    .photo-placeholder {
+      color: #aaa;
+    }
+
+    .photo-placeholder .icon {
+      font-size: 40px;
+      margin-bottom: 8px;
+    }
+
+    .photo-placeholder p {
+      font-size: 14px;
+    }
+
+    .photo-placeholder span {
+      font-size: 12px;
+      color: #bbb;
+    }
+
+    input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    /* Bouton */
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background: #2d6a4f;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      margin-bottom: 20px;
+    }
+
+    .btn:hover { opacity: 0.9; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Loader */
+    .loader {
+      display: none;
+      text-align: center;
+      padding: 16px;
+      color: #888;
+      font-size: 14px;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #e0e0e0;
+      border-top-color: #2d6a4f;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Résultat */
+    .result {
+      display: none;
+      background: #f0f7f4;
+      border: 1.5px solid #2d6a4f;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .result-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #2d6a4f;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
+    .result-name {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 4px;
+    }
+
+    .result-brand {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 12px;
+    }
+
+    .confidence-bar-wrap {
+      margin-top: 12px;
+    }
+
+    .confidence-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 4px;
+    }
+
+    .confidence-bar {
+      height: 6px;
+      background: #e0e0e0;
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .confidence-fill {
+      height: 100%;
+      background: #2d6a4f;
+      border-radius: 99px;
+      transition: width 0.5s ease;
+    }
+
+    /* Bouton "utiliser" */
+    .btn-use {
+      width: 100%;
+      padding: 12px;
+      background: white;
+      color: #2d6a4f;
+      border: 1.5px solid #2d6a4f;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 12px;
+      display: none;
+    }
+
+    .btn-use:hover { background: #f0f7f4; }
+
+    /* Erreur */
+    .error {
+      display: none;
+      background: #fff0f0;
+      border: 1.5px solid #e05252;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 14px;
+      color: #c0392b;
+      margin-bottom: 16px;
+    }
+
+    /* JSON brut */
+    .raw-json {
+      display: none;
+      margin-top: 12px;
+    }
+
+    .raw-json summary {
+      font-size: 12px;
+      color: #aaa;
+      cursor: pointer;
+      margin-bottom: 6px;
+    }
+
+    .raw-json pre {
+      background: #f5f5f5;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 12px;
+      overflow-x: auto;
+      color: #555;
+    }
+
+    /* Champ simulé */
+    .simulated-field {
+      display: none;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #f0f0f0;
+    }
+
+    .simulated-field label {
+      color: #888;
+    }
+
+    .simulated-field input {
+      margin-top: 6px;
+      font-weight: 600;
+      color: #1a1a1a;
+      background: #f9f9f9;
+    }
+
+    .warning {
+      background: #fffbea;
+      border: 1px solid #f0c040;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #856404;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h1>🔍 Test reconnaissance image</h1>
+  <p class="subtitle">Prototype FLO — photo → suggestion nom objet</p>
+
+  <div class="warning">
+    ⚠️ Page de test locale uniquement — ne pas déployer (clé API en clair)
+  </div>
+
+  <div class="api-key-section">
+    <label>Clé API Anthropic</label>
+    <input type="password" id="apiKey" placeholder="sk-ant-api03-..." />
+  </div>
+
+  <div class="photo-zone" id="photoZone">
+    <div class="photo-placeholder" id="placeholder">
+      <div class="icon">📷</div>
+      <p>Prends ou importe une photo</p>
+      <span>JPG, PNG, WEBP — max 5 Mo</span>
+    </div>
+    <img id="preview" style="display:none" />
+    <input type="file" id="fileInput" accept="image/*" capture="environment" />
+  </div>
+
+  <button class="btn" id="analyzeBtn" disabled>Analyser l'image</button>
+
+  <div class="loader" id="loader">
+    <span class="spinner"></span> Analyse en cours…
+  </div>
+
+  <div class="error" id="error"></div>
+
+  <div class="result" id="result">
+    <div class="result-label">✅ Objet reconnu</div>
+    <div class="result-name" id="resultName">—</div>
+    <div class="result-brand" id="resultBrand"></div>
+    <div class="confidence-bar-wrap">
+      <div class="confidence-label">
+        <span>Confiance</span>
+        <span id="confidencePct">—</span>
+      </div>
+      <div class="confidence-bar">
+        <div class="confidence-fill" id="confidenceFill" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-use" id="btnUse">← Utiliser cette suggestion</button>
+
+  <div class="simulated-field" id="simulatedField">
+    <label>Nom de l'objet (champ pré-rempli)</label>
+    <input type="text" id="simulatedInput" />
+  </div>
+
+  <details class="raw-json" id="rawJson">
+    <summary>Voir la réponse JSON brute</summary>
+    <pre id="rawPre"></pre>
+  </details>
+</div>
+
+<script>
+  const fileInput    = document.getElementById('fileInput');
+  const photoZone    = document.getElementById('photoZone');
+  const placeholder  = document.getElementById('placeholder');
+  const preview      = document.getElementById('preview');
+  const analyzeBtn   = document.getElementById('analyzeBtn');
+  const loader       = document.getElementById('loader');
+  const resultEl     = document.getElementById('result');
+  const errorEl      = document.getElementById('error');
+  const btnUse       = document.getElementById('btnUse');
+  const simulatedField = document.getElementById('simulatedField');
+  const rawJsonEl    = document.getElementById('rawJson');
+
+  let base64Image = null;
+  let mediaType   = 'image/jpeg';
+
+  // Gestion photo
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    mediaType = file.type || 'image/jpeg';
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target.result;
+      base64Image = dataUrl.split(',')[1];
+
+      preview.src = dataUrl;
+      preview.style.display = 'block';
+      placeholder.style.display = 'none';
+      photoZone.classList.add('has-image');
+      analyzeBtn.disabled = false;
+
+      // Reset résultats
+      resultEl.style.display = 'none';
+      errorEl.style.display = 'none';
+      btnUse.style.display = 'none';
+      simulatedField.style.display = 'none';
+      rawJsonEl.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Analyse
+  analyzeBtn.addEventListener('click', async () => {
+    const apiKey = document.getElementById('apiKey').value.trim();
+
+    if (!apiKey) {
+      showError('Entre ta clé API Anthropic (sk-ant-...)');
+      return;
+    }
+    if (!base64Image) {
+      showError('Sélectionne une image d\'abord');
+      return;
+    }
+
+    analyzeBtn.disabled = true;
+    loader.style.display = 'block';
+    resultEl.style.display = 'none';
+    errorEl.style.display = 'none';
+    btnUse.style.display = 'none';
+    simulatedField.style.display = 'none';
+    rawJsonEl.style.display = 'none';
+
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5',
+          max_tokens: 200,
+          messages: [{
+            role: 'user',
+            content: [
+              {
+                type: 'image',
+                source: {
+                  type: 'base64',
+                  media_type: mediaType,
+                  data: base64Image,
+                }
+              },
+              {
+                type: 'text',
+                text: `Tu regardes la photo d'un objet du quotidien qu'un voisin veut prêter à ses voisins.
+
+Identifie l'objet principal visible et réponds UNIQUEMENT avec ce JSON (rien d'autre) :
+{
+  "name": "nom court de l'objet en français (ex: Perceuse, Appareil à raclette, Trottinette, Vélo)",
+  "brand": "marque si clairement visible, sinon null",
+  "confidence": 0.95
+}
+
+- "name" : 1 à 4 mots maximum, commence par une majuscule
+- "confidence" : entre 0 et 1, ta confiance dans l'identification
+- Réponds avec le JSON seul, sans markdown, sans explication`
+              }
+            ]
+          }]
+        })
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error?.message || `Erreur API (${response.status})`);
+      }
+
+      const data = await response.json();
+      const text = data.content[0].text.trim();
+
+      // Parse JSON
+      let parsed;
+      try {
+        // Extraire le JSON si entouré de markdown
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text);
+      } catch {
+        throw new Error(`Réponse inattendue du modèle : ${text}`);
+      }
+
+      // Afficher résultat
+      document.getElementById('resultName').textContent = parsed.name || '—';
+
+      const brandEl = document.getElementById('resultBrand');
+      brandEl.textContent = parsed.brand ? `Marque : ${parsed.brand}` : '';
+
+      const pct = Math.round((parsed.confidence || 0) * 100);
+      document.getElementById('confidencePct').textContent = `${pct}%`;
+      document.getElementById('confidenceFill').style.width = `${pct}%`;
+
+      resultEl.style.display = 'block';
+      btnUse.style.display = 'block';
+
+      // JSON brut
+      document.getElementById('rawPre').textContent = JSON.stringify(parsed, null, 2);
+      rawJsonEl.style.display = 'block';
+
+    } catch (err) {
+      showError(err.message);
+    } finally {
+      loader.style.display = 'none';
+      analyzeBtn.disabled = false;
+    }
+  });
+
+  // Utiliser la suggestion
+  btnUse.addEventListener('click', () => {
+    const name = document.getElementById('resultName').textContent;
+    document.getElementById('simulatedInput').value = name;
+    simulatedField.style.display = 'block';
+    simulatedField.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+
+  function showError(msg) {
+    errorEl.textContent = msg;
+    errorEl.style.display = 'block';
+  }
+</script>
+
+</body>
+</html>

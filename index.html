@@ -2456,17 +2456,41 @@
 
   <div class="add-scroll" style="padding-top:72px;padding-bottom:16px;">
 
-    <!-- Card Nom -->
+    <!-- Card Photo (en premier) -->
     <div style="padding:24px 0 0;">
       <div style="margin:0 16px;background:white;border:1px solid #EAF5EA;border-radius:12px;padding:20px;">
-        <h3 style="margin:0 0 12px;font-size:16px;font-weight:600;color:#333;">Nom de l’objet</h3>
+        <h3 style="margin:0 0 4px;font-size:16px;font-weight:600;color:#333;">Commencer par une photo</h3>
+        <p style="margin:0 0 12px;font-size:13px;color:#888;">FLO reconnaît l’objet automatiquement</p>
+        <div class="photo-area" id="photoArea" role="button" tabindex="0"
+             onclick="openPhotoChoice()"
+             onkeydown="if(event.key===’Enter’)openPhotoChoice()">
+          <svg width="24" height="22" viewBox="0 0 20 18" fill="none" aria-hidden="true">
+            <path d="M6.4 3.2l.7-1.4c.3-.5.8-.8 1.4-.8h3c.6 0 1.1.3 1.4.8l.7 1.4h2.6c1.1 0 2 .9 2 2v8.4c0 1.1-.9 2-2 2H3.8c-1.1 0-2-.9-2-2V5.2c0-1.1.9-2 2-2h2.6z"
+                  stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            <circle cx="10" cy="9.6" r="3.2" stroke="currentColor" stroke-width="1.5"/>
+            <circle cx="15.5" cy="6" r="0.6" fill="currentColor"/>
+          </svg>
+          <span class="photo-area-label">Prendre ou importer une photo</span>
+        </div>
+        <input type="file" id="photoInput" accept="image/*" style="display:none"
+               onchange="onPhotoSelected(this)">
+      </div>
+    </div>
+
+    <!-- Card Nom -->
+    <div style="padding:16px 0 0;">
+      <div style="margin:0 16px;background:white;border:1px solid #EAF5EA;border-radius:12px;padding:20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <h3 style="margin:0;font-size:16px;font-weight:600;color:#333;">Nom de l’objet</h3>
+          <span id="aiBadgeName" style="display:none;font-size:11px;font-weight:600;color:#1F9D55;background:#EAF5EA;border-radius:99px;padding:2px 8px;">✦ Auto</span>
+        </div>
         <input
           class="form-input"
           id="nameInput"
           type="text"
           placeholder="Ex : Perceuse Bosch GSR 12V"
           autocomplete="off" autocorrect="off" spellcheck="false"
-          oninput="onNameInput(this)"
+          oninput="onNameInput(this);_clearAiBadge()"
           style="margin:0;"
         >
         <div class="form-guidance" style="margin-top:6px;">Type d’objet · marque · modèle</div>
@@ -2477,7 +2501,10 @@
     <!-- Card Description -->
     <div style="padding:16px 0 0;">
       <div style="margin:0 16px;background:white;border:1px solid #EAF5EA;border-radius:12px;padding:20px;">
-        <h3 style="margin:0 0 12px;font-size:16px;font-weight:600;color:#333;">Description <span style="font-weight:400;color:#888;">(optionnel)</span></h3>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <h3 style="margin:0;font-size:16px;font-weight:600;color:#333;">Description <span style="font-weight:400;color:#888;">(optionnel)</span></h3>
+          <span id="aiBadgeDesc" style="display:none;font-size:11px;font-weight:600;color:#1F9D55;background:#EAF5EA;border-radius:99px;padding:2px 8px;">✦ Auto</span>
+        </div>
         <textarea
           class="form-input"
           id="descInput"
@@ -2485,27 +2512,8 @@
           autocomplete="off" autocorrect="off" spellcheck="false"
           rows="4"
           style="resize:none;font-family:inherit;margin:0;"
+          oninput="_clearAiBadgeDesc()"
         ></textarea>
-      </div>
-    </div>
-
-    <!-- Card Photo -->
-    <div style="padding:16px 0 0;">
-      <div style="margin:0 16px;background:white;border:1px solid #EAF5EA;border-radius:12px;padding:20px;">
-        <h3 style="margin:0 0 12px;font-size:16px;font-weight:600;color:#333;">Photo <span style="font-weight:400;color:#888;">(optionnel)</span></h3>
-        <div class="photo-area" id="photoArea" role="button" tabindex="0"
-             onclick="openPhotoChoice()"
-             onkeydown="if(event.key===’Enter’)openPhotoChoice()">
-          <svg width="24" height="22" viewBox="0 0 20 18" fill="none" aria-hidden="true">
-            <path d="M6.4 3.2l.7-1.4c.3-.5.8-.8 1.4-.8h3c.6 0 1.1.3 1.4.8l.7 1.4h2.6c1.1 0 2 .9 2 2v8.4c0 1.1-.9 2-2 2H3.8c-1.1 0-2-.9-2-2V5.2c0-1.1.9-2 2-2h2.6z"
-                  stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-            <circle cx="10" cy="9.6" r="3.2" stroke="currentColor" stroke-width="1.5"/>
-            <circle cx="15.5" cy="6" r="0.6" fill="currentColor"/>
-          </svg>
-          <span class="photo-area-label">Ajouter une photo</span>
-        </div>
-        <input type="file" id="photoInput" accept="image/*" style="display:none"
-               onchange="onPhotoSelected(this)">
       </div>
     </div>
 
@@ -3761,6 +3769,72 @@ async function onPhotoSelected(input) {
   area.innerHTML = '';
   area.appendChild(img);
   area.classList.remove('loading');
+
+  // Reconnaissance IA silencieuse
+  _recognizeImage(blob);
+}
+
+async function _recognizeImage(blob) {
+  // Indicateur de chargement discret sur le champ nom
+  const nameInput = document.getElementById('nameInput');
+  const descInput = document.getElementById('descInput');
+  nameInput.placeholder = 'Identification en cours…';
+
+  try {
+    // Convertir en base64
+    const base64 = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result.split(',')[1]);
+      reader.readAsDataURL(blob);
+    });
+
+    const res = await fetch('/api/recognize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ base64, mediaType: 'image/jpeg' })
+    });
+
+    if (!res.ok) {
+      // Quota ou erreur → saisie manuelle silencieuse
+      nameInput.placeholder = 'Ex : Perceuse Bosch GSR 12V';
+      _showAiToast('Remplissage auto indisponible — saisis le nom manuellement');
+      return;
+    }
+
+    const data = await res.json();
+
+    if (data.name && data.confidence > 0.5) {
+      nameInput.value = data.name;
+      onNameInput(nameInput); // déclenche détection catégorie + CO₂
+      document.getElementById('aiBadgeName').style.display = 'inline-block';
+    }
+
+    if (data.description) {
+      descInput.value = data.description;
+      document.getElementById('aiBadgeDesc').style.display = 'inline-block';
+    }
+
+  } catch (e) {
+    // Erreur réseau → pas de message, saisie manuelle
+  } finally {
+    if (!nameInput.value) nameInput.placeholder = 'Ex : Perceuse Bosch GSR 12V';
+  }
+}
+
+function _clearAiBadge() {
+  document.getElementById('aiBadgeName').style.display = 'none';
+}
+
+function _clearAiBadgeDesc() {
+  document.getElementById('aiBadgeDesc').style.display = 'none';
+}
+
+function _showAiToast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.75);color:white;padding:10px 16px;border-radius:20px;font-size:13px;z-index:9999;white-space:nowrap;pointer-events:none;';
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
 }
 
 // ── Soumission formulaire ─────────────────────────────────────

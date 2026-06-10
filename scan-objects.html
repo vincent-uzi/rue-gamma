@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>FLO — Scanner des objets</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    :root {
+      --green: #2d6a4f;
+      --green-light: #f0f7f4;
+      --green-border: #b7dfc8;
+      --text: #1a1a1a;
+      --muted: #888;
+      --bg: #f5f5f7;
+      --white: #ffffff;
+      --radius: 20px;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    /* ─── SCREENS ─── */
+    .screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(16px);
+    }
+
+    /* ══════════════════════════════
+       SCREEN 1 — HOME
+    ══════════════════════════════ */
+    #screen-home {
+      background: var(--bg);
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px;
+    }
+
+    .home-logo {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 32px;
+    }
+
+    .home-title {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .home-sub {
+      font-size: 16px;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .btn-camera {
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      background: var(--green);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 32px rgba(45,106,79,0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+      margin-bottom: 16px;
+    }
+
+    .btn-camera:active {
+      transform: scale(0.93);
+      box-shadow: 0 4px 16px rgba(45,106,79,0.25);
+    }
+
+    .btn-camera svg { width: 36px; height: 36px; color: white; }
+
+    .btn-camera-label {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    /* Stack d'objets scannés */
+    .scanned-stack {
+      margin-top: 40px;
+      width: 100%;
+      max-width: 340px;
+    }
+
+    .stack-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .stack-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .stack-count {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .scanned-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .scanned-item {
+      background: var(--white);
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .scanned-thumb {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    .scanned-info { flex: 1; min-width: 0; }
+
+    .scanned-name {
+      font-size: 15px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .scanned-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 99px;
+      background: #e6f4ee;
+      color: var(--green);
+      margin-top: 2px;
+    }
+
+    .scanned-check {
+      color: var(--green);
+      flex-shrink: 0;
+    }
+
+    .btn-publish {
+      width: 100%;
+      margin-top: 16px;
+      padding: 15px;
+      background: var(--green);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .btn-publish:active { opacity: 0.85; }
+
+    /* ══════════════════════════════
+       SCREEN 2 — CAMERA
+    ══════════════════════════════ */
+    #screen-camera {
+      background: #000;
+    }
+
+    #video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .camera-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      pointer-events: none;
+    }
+
+    /* Cadre viseur */
+    .viewfinder {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .viewfinder-frame {
+      width: 240px;
+      height: 240px;
+      position: relative;
+    }
+
+    .viewfinder-frame::before,
+    .viewfinder-frame::after,
+    .vf-br::before,
+    .vf-br::after {
+      content: '';
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      border-color: rgba(255,255,255,0.8);
+      border-style: solid;
+    }
+
+    .viewfinder-frame::before { top: 0; left: 0; border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
+    .viewfinder-frame::after  { top: 0; right: 0; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
+    .vf-br::before { bottom: 0; left: 0; border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
+    .vf-br::after  { bottom: 0; right: 0; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
+
+    .camera-hint {
+      position: absolute;
+      bottom: -36px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255,255,255,0.7);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    /* Barre basse caméra */
+    .camera-bar {
+      padding: 24px 32px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      pointer-events: all;
+    }
+
+    .btn-close-cam {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    .btn-shutter {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: white;
+      border: 4px solid rgba(255,255,255,0.5);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.1s;
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.3);
+    }
+
+    .btn-shutter:active { transform: scale(0.9); }
+
+    .btn-shutter-inner {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: white;
+    }
+
+    .camera-spacer { width: 44px; }
+
+    /* Canvas caché */
+    #canvas { display: none; }
+
+    /* ══════════════════════════════
+       SCREEN 3 — ANALYSE
+    ══════════════════════════════ */
+    #screen-analyze {
+      background: #000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #analyze-photo {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.4;
+    }
+
+    .analyze-content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      color: white;
+    }
+
+    .analyze-spinner {
+      width: 56px;
+      height: 56px;
+      border: 3px solid rgba(255,255,255,0.2);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .analyze-text {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .analyze-sub {
+      font-size: 14px;
+      color: rgba(255,255,255,0.6);
+      margin-top: 4px;
+    }
+
+    /* ══════════════════════════════
+       SCREEN 4 — FICHE OBJET
+    ══════════════════════════════ */
+    #screen-card {
+      background: var(--white);
+      overflow-y: auto;
+    }
+
+    .card-header {
+      position: relative;
+      height: 280px;
+      flex-shrink: 0;
+    }
+
+    .card-photo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .card-header-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 100%);
+    }
+
+    .card-header-btns {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .btn-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.3);
+      backdrop-filter: blur(8px);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    .ai-badge {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(8px);
+      border-radius: 99px;
+      padding: 6px 12px;
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ai-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #4ade80;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(0.8); }
+    }
+
+    .card-body {
+      padding: 24px 20px 32px;
+    }
+
+    .field-group {
+      margin-bottom: 20px;
+    }
+
+    .field-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .field-input {
+      width: 100%;
+      padding: 13px 14px;
+      border: 1.5px solid #e8e8e8;
+      border-radius: 12px;
+      font-size: 16px;
+      font-family: inherit;
+      color: var(--text);
+      outline: none;
+      background: #fafafa;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .field-input:focus {
+      border-color: var(--green);
+      background: white;
+    }
+
+    .field-input.ai-filled {
+      border-color: var(--green-border);
+      background: var(--green-light);
+    }
+
+    textarea.field-input {
+      min-height: 80px;
+      resize: none;
+      line-height: 1.5;
+    }
+
+    /* Confidence badge dans le champ */
+    .field-with-badge {
+      position: relative;
+    }
+
+    .confidence-chip {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--green);
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 99px;
+    }
+
+    .card-actions {
+      padding: 0 20px 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .btn-validate {
+      padding: 15px;
+      background: var(--green);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .btn-validate:active { opacity: 0.85; }
+
+    .btn-retake {
+      padding: 14px;
+      background: transparent;
+      color: var(--muted);
+      border: 1.5px solid #e8e8e8;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    /* ══════════════════════════════
+       SCREEN 5 — SUCCÈS
+    ══════════════════════════════ */
+    #screen-success {
+      background: var(--green-light);
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+    }
+
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      animation: pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes pop {
+      from { transform: scale(0); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+
+    .success-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--green);
+      margin-bottom: 8px;
+    }
+
+    .success-name {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .success-sub {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 40px;
+    }
+
+    .btn-next-scan {
+      width: 100%;
+      max-width: 280px;
+      padding: 15px;
+      background: var(--green);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-bottom: 12px;
+    }
+
+    .btn-done {
+      font-size: 15px;
+      color: var(--muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+    }
+
+    /* ══════════════════════════════
+       CONFIG PANEL
+    ══════════════════════════════ */
+    .config-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid #eee;
+      padding: 12px 16px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      z-index: 100;
+      transform: translateY(-100%);
+      transition: transform 0.3s;
+    }
+
+    .config-bar.visible { transform: translateY(0); }
+
+    .config-bar input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .config-bar input:focus { border-color: var(--green); }
+
+    .config-bar button {
+      padding: 8px 14px;
+      background: var(--green);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Bouton config flottant */
+    .btn-config {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.08);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── SCREEN 0 : MOT DE PASSE ─── -->
+<div id="gate" style="
+  position:fixed;inset:0;background:#f5f5f7;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:32px;z-index:999;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+">
+  <img src="icons/logo-green.png" style="width:48px;margin-bottom:28px" onerror="this.style.display='none'" />
+  <div style="font-size:22px;font-weight:800;margin-bottom:6px;color:#1a1a1a">FLO — Proto scan</div>
+  <div style="font-size:14px;color:#888;margin-bottom:32px">Accès réservé</div>
+  <input id="gateInput" type="password" placeholder="Mot de passe" style="
+    width:100%;max-width:280px;padding:13px 16px;
+    border:1.5px solid #e0e0e0;border-radius:12px;
+    font-size:16px;outline:none;margin-bottom:12px;
+    font-family:inherit;
+  " onkeydown="if(event.key==='Enter')checkGate()" />
+  <div id="gateError" style="color:#c0392b;font-size:13px;margin-bottom:12px;display:none">Mot de passe incorrect</div>
+  <button onclick="checkGate()" style="
+    width:100%;max-width:280px;padding:14px;
+    background:#2d6a4f;color:white;border:none;border-radius:12px;
+    font-size:16px;font-weight:700;cursor:pointer;
+  ">Entrer</button>
+</div>
+
+<!-- Config API Key -->
+<div class="config-bar" id="configBar">
+  <input type="password" id="apiKeyInput" placeholder="Clé API Anthropic (sk-ant-...)" />
+  <button onclick="saveKey()">OK</button>
+</div>
+
+<!-- ─── SCREEN 1 : HOME ─── -->
+<div class="screen" id="screen-home">
+
+  <img src="icons/logo-green.png" class="home-logo" onerror="this.style.display='none'" />
+  <div class="home-title">Scanner des objets</div>
+  <div class="home-sub">Prends une photo, FLO crée la fiche</div>
+
+  <button class="btn-camera" onclick="openCamera()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+      <circle cx="12" cy="13" r="4"/>
+    </svg>
+  </button>
+  <div class="btn-camera-label">Scanner un objet</div>
+
+  <!-- Stack objets scannés -->
+  <div class="scanned-stack" id="scannedStack" style="display:none">
+    <div class="stack-header">
+      <div class="stack-title">Objets scannés</div>
+      <div class="stack-count" id="stackCount">0 objet</div>
+    </div>
+    <div class="scanned-list" id="scannedList"></div>
+    <button class="btn-publish" onclick="publishAll()">
+      Publier tous les objets →
+    </button>
+  </div>
+</div>
+
+<!-- ─── SCREEN 2 : CAMERA ─── -->
+<div class="screen hidden" id="screen-camera">
+  <video id="video" autoplay playsinline muted></video>
+  <canvas id="canvas"></canvas>
+
+  <div class="camera-overlay">
+    <div class="viewfinder">
+      <div class="viewfinder-frame">
+        <div class="vf-br"></div>
+      </div>
+      <div class="camera-hint">Centre l'objet dans le cadre</div>
+    </div>
+
+    <div class="camera-bar">
+      <button class="btn-close-cam" onclick="closeCamera()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+
+      <button class="btn-shutter" onclick="takePhoto()">
+        <div class="btn-shutter-inner"></div>
+      </button>
+
+      <div class="camera-spacer"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── SCREEN 3 : ANALYSE ─── -->
+<div class="screen hidden" id="screen-analyze">
+  <img id="analyze-photo" />
+  <div class="analyze-content">
+    <div class="analyze-spinner"></div>
+    <div class="analyze-text">Identification en cours…</div>
+    <div class="analyze-sub">IA analyse la photo</div>
+  </div>
+</div>
+
+<!-- ─── SCREEN 4 : FICHE OBJET ─── -->
+<div class="screen hidden" id="screen-card">
+  <div class="card-header">
+    <img class="card-photo" id="cardPhoto" />
+    <div class="card-header-overlay"></div>
+    <div class="card-header-btns">
+      <button class="btn-icon" onclick="retake()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="ai-badge">
+      <div class="ai-dot"></div>
+      Rempli par IA
+    </div>
+  </div>
+
+  <div class="card-body">
+    <div class="field-group">
+      <div class="field-label">Nom de l'objet</div>
+      <div class="field-with-badge">
+        <input class="field-input ai-filled" type="text" id="fieldName" />
+        <div class="confidence-chip" id="fieldConfidence">—</div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <div class="field-label">Marque (facultatif)</div>
+      <input class="field-input" type="text" id="fieldBrand" placeholder="Ex: Bosch, Karcher…" />
+    </div>
+
+    <div class="field-group">
+      <div class="field-label">Description</div>
+      <textarea class="field-input" id="fieldDesc" placeholder="État, accessoires inclus…"></textarea>
+    </div>
+  </div>
+
+  <div class="card-actions">
+    <button class="btn-validate" onclick="validateCard()">
+      ✓ Ajouter cet objet
+    </button>
+    <button class="btn-retake" onclick="retake()">
+      Reprendre la photo
+    </button>
+  </div>
+</div>
+
+<!-- ─── SCREEN 5 : SUCCÈS ─── -->
+<div class="screen hidden" id="screen-success">
+  <div class="success-icon">
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+  </div>
+  <div class="success-title">Objet ajouté !</div>
+  <div class="success-name" id="successName"></div>
+  <div class="success-sub" id="successCount">1 objet dans ta liste</div>
+
+  <button class="btn-next-scan" onclick="nextScan()">
+    📷 Scanner le suivant
+  </button>
+  <button class="btn-done" onclick="goHome()">
+    Voir ma liste
+  </button>
+</div>
+
+<!-- Bouton config flottant -->
+<button class="btn-config" onclick="toggleConfig()" title="Clé API">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+  </svg>
+</button>
+
+<script>
+  // ─── GATE ───
+  const GATE_PASSWORD = 'flo2026';
+
+  function checkGate() {
+    const val = document.getElementById('gateInput').value;
+    if (val === GATE_PASSWORD) {
+      document.getElementById('gate').style.display = 'none';
+      sessionStorage.setItem('flo_gate', '1');
+    } else {
+      document.getElementById('gateError').style.display = 'block';
+      document.getElementById('gateInput').value = '';
+      document.getElementById('gateInput').focus();
+    }
+  }
+
+  // Vérifier si déjà authentifié cette session
+  if (sessionStorage.getItem('flo_gate') === '1') {
+    document.getElementById('gate').style.display = 'none';
+  } else {
+    setTimeout(() => document.getElementById('gateInput').focus(), 300);
+  }
+
+  // ─── STATE ───
+  let apiKey        = localStorage.getItem('flo_api_key') || '';
+  let stream        = null;
+  let currentPhoto  = null; // { dataUrl, base64, mediaType }
+  let currentResult = null; // { name, brand, confidence }
+  let scannedItems  = [];
+
+  // ─── CONFIG ───
+  function toggleConfig() {
+    const bar = document.getElementById('configBar');
+    bar.classList.toggle('visible');
+    if (bar.classList.contains('visible')) {
+      document.getElementById('apiKeyInput').value = apiKey;
+      document.getElementById('apiKeyInput').focus();
+    }
+  }
+
+  function saveKey() {
+    apiKey = document.getElementById('apiKeyInput').value.trim();
+    localStorage.setItem('flo_api_key', apiKey);
+    document.getElementById('configBar').classList.remove('visible');
+  }
+
+  // Afficher config si pas de clé
+  window.addEventListener('load', () => {
+    if (!apiKey) {
+      setTimeout(() => document.getElementById('configBar').classList.add('visible'), 400);
+    }
+  });
+
+  // ─── NAVIGATION ───
+  function show(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+  }
+
+  // ─── CAMERA ───
+  async function openCamera() {
+    show('screen-camera');
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+      });
+      document.getElementById('video').srcObject = stream;
+    } catch (e) {
+      // Fallback: file input si pas de caméra (desktop)
+      alert('Caméra non disponible — utilise l\'import de fichier en bas de la page home');
+      show('screen-home');
+    }
+  }
+
+  function closeCamera() {
+    stopStream();
+    show('screen-home');
+  }
+
+  function stopStream() {
+    if (stream) {
+      stream.getTracks().forEach(t => t.stop());
+      stream = null;
+    }
+  }
+
+  function takePhoto() {
+    const video  = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    canvas.width  = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+
+    const dataUrl  = canvas.toDataURL('image/jpeg', 0.85);
+    const base64   = dataUrl.split(',')[1];
+
+    currentPhoto = { dataUrl, base64, mediaType: 'image/jpeg' };
+
+    stopStream();
+    analyze();
+  }
+
+  // ─── ANALYSE ───
+  async function analyze() {
+    // Afficher l'écran d'analyse avec la photo en fond
+    document.getElementById('analyze-photo').src = currentPhoto.dataUrl;
+    show('screen-analyze');
+
+    if (!apiKey) {
+      alert('Entre ta clé API Anthropic d\'abord (bouton ⚙️ en bas à droite)');
+      show('screen-home');
+      return;
+    }
+
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-5',
+          max_tokens: 200,
+          messages: [{
+            role: 'user',
+            content: [
+              {
+                type: 'image',
+                source: { type: 'base64', media_type: currentPhoto.mediaType, data: currentPhoto.base64 }
+              },
+              {
+                type: 'text',
+                text: `Tu regardes la photo d'un objet du quotidien qu'un voisin veut prêter.
+
+Contexte : objets typiquement prêtés entre voisins — outils de bricolage (perceuse, scie, niveau), électroménager (aspirateur, karcher), jardinage (tondeuse, taille-haie), sport, cuisine, mobilier, véhicules (vélo, trottinette).
+
+Identifie l'objet principal et réponds UNIQUEMENT avec ce JSON :
+{
+  "name": "nom précis en français (1-4 mots, commence par majuscule)",
+  "brand": "marque si visible sinon null",
+  "description": "phrase courte décrivant l'objet pour des voisins (max 12 mots)",
+  "confidence": 0.92
+}
+
+Règles :
+- "name" le plus précis possible (ex: "Agrafeuse type tacker" > "Outil")
+- "confidence" honnête entre 0 et 1
+- JSON seul, sans markdown`
+              }
+            ]
+          }]
+        })
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error?.message || `Erreur API (${response.status})`);
+      }
+
+      const data = await response.json();
+      const text = data.content[0].text.trim();
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      currentResult = JSON.parse(jsonMatch ? jsonMatch[0] : text);
+
+      showCard();
+
+    } catch (e) {
+      alert('Erreur : ' + e.message);
+      show('screen-home');
+    }
+  }
+
+  // ─── FICHE ───
+  function showCard() {
+    document.getElementById('cardPhoto').src = currentPhoto.dataUrl;
+    document.getElementById('fieldName').value  = currentResult.name  || '';
+    document.getElementById('fieldBrand').value = currentResult.brand || '';
+    document.getElementById('fieldDesc').value  = currentResult.description || '';
+
+    const pct = Math.round((currentResult.confidence || 0) * 100);
+    document.getElementById('fieldConfidence').textContent = pct + '%';
+
+    // Couleur confidence
+    const chip = document.getElementById('fieldConfidence');
+    chip.style.background = pct >= 80 ? '#2d6a4f' : pct >= 60 ? '#e07b39' : '#c0392b';
+
+    show('screen-card');
+  }
+
+  function retake() {
+    currentPhoto  = null;
+    currentResult = null;
+    openCamera();
+  }
+
+  // ─── VALIDATION ───
+  function validateCard() {
+    const item = {
+      name:   document.getElementById('fieldName').value  || currentResult?.name || 'Objet',
+      brand:  document.getElementById('fieldBrand').value || null,
+      desc:   document.getElementById('fieldDesc').value  || '',
+      photo:  currentPhoto.dataUrl,
+      confidence: currentResult?.confidence || 0,
+    };
+
+    scannedItems.push(item);
+
+    // Succès
+    document.getElementById('successName').textContent = item.name;
+    const n = scannedItems.length;
+    document.getElementById('successCount').textContent =
+      n === 1 ? '1 objet dans ta liste' : `${n} objets dans ta liste`;
+
+    show('screen-success');
+    updateStack();
+  }
+
+  // ─── STACK HOME ───
+  function updateStack() {
+    const stack = document.getElementById('scannedStack');
+    const list  = document.getElementById('scannedList');
+    const count = document.getElementById('stackCount');
+
+    if (scannedItems.length === 0) { stack.style.display = 'none'; return; }
+
+    stack.style.display = 'block';
+    count.textContent = scannedItems.length + (scannedItems.length === 1 ? ' objet' : ' objets');
+
+    list.innerHTML = scannedItems.map((item, i) => `
+      <div class="scanned-item">
+        <img class="scanned-thumb" src="${item.photo}" />
+        <div class="scanned-info">
+          <div class="scanned-name">${item.name}</div>
+          <span class="scanned-badge">Prêt à publier</span>
+        </div>
+        <svg class="scanned-check" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+    `).join('');
+  }
+
+  function nextScan() {
+    currentPhoto  = null;
+    currentResult = null;
+    openCamera();
+  }
+
+  function goHome() {
+    currentPhoto  = null;
+    currentResult = null;
+    show('screen-home');
+    updateStack();
+  }
+
+  function publishAll() {
+    // TODO: intégrer avec Supabase items insert
+    alert(`${scannedItems.length} objet(s) prêt(s) à publier !\n(intégration Supabase à câbler)`);
+  }
+</script>
+
+</body>
+</html>
